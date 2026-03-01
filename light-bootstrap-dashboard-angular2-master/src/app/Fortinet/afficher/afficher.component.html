@@ -1,0 +1,112 @@
+<div class="container">
+  <!-- En-tête avec titre et boutons alignés -->
+  <div class="header-row">
+    <h2>Listes de licences Fortinet</h2>
+    <div class="action-group">
+      <button (click)="goToAddFortinet()" class="btn btn-sm action-button">
+        <i class="fa fa-plus"></i>
+      </button>
+      <div class="input-group search-box">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Rechercher..." 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()" 
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau responsive -->
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Nom du Boîtier</th>
+          <th>Numéro de Série</th>
+          <th>Licences</th>
+          <th>Durée</th>
+          <th>Contact client</th>
+          <th>N° client</th>
+          <th>Email client</th>
+          <th>Email Commercial</th>
+          <th>Cc mail</th>
+          <th>Remarque</th>
+          <th>Sous Contrat</th>
+          <th>Commande Passer Par</th>
+          <th>Fichier</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fortinet of pagedFortinets">
+          <td>{{ fortinet.client }}</td>
+          <td>{{ fortinet.nomDuBoitier }}</td>
+          <td>{{ fortinet.numeroSerie }}</td>
+
+          <!-- LICENCES (affichage groupé) -->
+          <td>
+            <div *ngFor="let lic of fortinet.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
+              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
+              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
+              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+            </div>
+          </td>
+
+          <td>{{ fortinet.dureeDeLicence }}</td>
+          <td>{{ fortinet.nomDuContact }}</td>
+          <td>{{ fortinet.numero }}</td>
+          <td>{{ fortinet.adresseEmailContact }}</td>
+          <td>{{ fortinet.mailAdmin }}</td>
+          <td>{{ fortinet.ccMail }}</td>
+          <td>{{ fortinet.remarque }}</td>
+          <td>{{ fortinet.sousContrat }}</td>
+          <td>{{ getCommandePasserParLabel(fortinet.commandePasserPar) }}</td>
+          <!-- Fichier -->
+          <td>
+            <div *ngIf="fortinet.fichier; else noFileFortinet">
+              <a [href]="getFileDownloadUrlById(fortinet.fortinetId)" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ fortinet.fichierOriginalName || 'Télécharger' }}
+              </a>
+            </div>
+            <ng-template #noFileFortinet>
+              <span class="text-muted">-</span>
+            </ng-template>
+          </td>
+
+          <td>
+            <div class="d-flex flex-column gap-1">
+              <button (click)="updateFortinet(fortinet)" class="btn btn-sm btn-primary">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button (click)="deleteFortinet(fortinet.fortinetId)" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button (click)="approveFortinet(fortinet.fortinetId)" class="btn btn-sm btn-success">
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredFortinets.length === 0">
+          <td colspan="14" class="text-center">Aucun Fortinet trouvé.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="text-center mt-3">
+    <ng-container *ngIf="totalPages > 1">
+      <button 
+        *ngFor="let page of pageNumbers; let i = index"
+        (click)="changePage(i)"
+        [class.active]="i === currentPage"
+        class="btn btn-sm btn-outline-primary mx-1">
+        {{ i + 1 }}
+      </button>
+    </ng-container>
+  </div>
+</div>

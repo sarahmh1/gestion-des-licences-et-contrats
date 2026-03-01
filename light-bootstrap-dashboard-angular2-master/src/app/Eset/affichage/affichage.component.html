@@ -1,0 +1,112 @@
+<div class="container">
+  <!-- En-tête avec titre et boutons alignés -->
+  <div class="header-row">
+    <h2>Listes de licences ESET</h2>
+    <div class="action-group">
+      <button (click)="goToProducts()" class="btn btn-sm action-button">
+        <i class="fa fa-plus"></i> Ajouter
+      </button>
+      <div class="input-group search-box">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Rechercher..." 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()" 
+        />
+      </div>
+    </div>
+  </div>
+  <!-- Tableau responsive -->
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Identifiant</th>
+          <th>Clé de Licence</th>
+          <th>Nom du Produit</th>
+          <th>Durée de licence</th>
+          <th>Date d'Expiration</th>
+          <th>Type d'Achat</th>
+          <th>Nombre</th>
+          <th>Contact client</th>
+          <th>N° client</th>
+          <th>Email client</th>
+          <th>Email Commercial</th>
+          <th>Cc mail</th>
+          <th>Sous Contrat</th>
+          <th>Remarque</th>
+          <th>Commande Passer Par</th>
+          <th>Fichier</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let eset of pagedEsets">
+          <td>{{ eset.client }}</td>
+          <td>{{ eset.identifiant }}</td>
+          <td>{{ eset.cle_de_Licence }}</td>
+          <td>{{ getProductName(eset.nom_produit) }}</td>
+          <td>{{ eset.dureeDeLicence }}</td>
+          <td>{{ eset.dateEx | date:'dd/MM/yyyy' }}</td>
+          <td>{{ getTypeAchatName(eset.typeAchat) }}</td>
+          <td>{{ eset.nombre }}</td>
+          <td>{{ eset.nom_contact }}</td>
+          <td>{{ eset.nmb_tlf }}</td>
+          <td>{{ eset.mail }}</td>
+          <td>{{ eset.mailAdmin }}</td>
+          <td>{{ eset.ccMail }}</td>
+          <td>{{ eset.sousContrat ? 'Oui' : 'Non' }}</td>
+          <td>{{ eset.remarque }}</td>
+          <td>{{ getCommandePasserParLabel(eset.commandePasserPar) }}</td>
+          <!-- Fichier -->
+          <td>
+            <div *ngIf="eset.fichier; else noFileEset">
+              <a [href]="getFileDownloadUrlById(eset.esetid)" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ eset.fichierOriginalName || 'Télécharger' }}
+              </a>
+            </div>
+            <ng-template #noFileEset>
+              <span class="text-muted">-</span>
+            </ng-template>
+          </td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              <button (click)="updateEset(eset)" class="btn btn-sm btn-primary">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button (click)="deleteEset(eset.esetid)" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button (click)="aprouve(eset.esetid)" class="btn btn-sm btn-success">
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="pagedEsets.length === 0">
+          <td colspan="18" class="text-center">
+            <div *ngIf="unapprovedEsets.length === 0" class="alert alert-success">
+              Aucune licence ESET en attente d'approbation.
+            </div>
+            <div *ngIf="unapprovedEsets.length > 0 && filteredEsets.length === 0" class="alert alert-warning">
+              Aucun résultat trouvé pour votre recherche.
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="text-center mt-3" *ngIf="totalPages > 1">
+    <button 
+      *ngFor="let page of pageNumbers; let i = index"
+      (click)="changePage(i)"
+      [class.active]="i === currentPage"
+      class="btn btn-sm btn-outline-primary mx-1">
+      {{ i + 1 }}
+    </button>
+  </div>
+</div>

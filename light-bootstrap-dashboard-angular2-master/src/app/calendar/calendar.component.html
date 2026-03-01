@@ -1,0 +1,112 @@
+<div class="timeline-container">
+
+    <!-- ========== HEADER ========== -->
+    <div class="timeline-header">
+        <div class="header-left">
+            <i class="fas fa-project-diagram"></i>
+            <h2>Timeline des Interventions</h2>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn" (click)="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+            <span class="month-label">{{ getMonthLabel() }}</span>
+            <button class="nav-btn" (click)="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+            <button class="today-btn" (click)="goToToday()">Aujourd'hui</button>
+        </div>
+    </div>
+
+    <!-- ========== LEGEND ========== -->
+    <div class="timeline-legend">
+        <div class="legend-item">
+            <span class="legend-bar" style="background:#dc3545;"></span>
+            Période recommandée (en attente)
+        </div>
+        <div class="legend-item">
+            <span class="legend-bar" style="background:#fd7e14;"></span>
+            Période d'intervention (en attente)
+        </div>
+        <div class="legend-item">
+            <span class="legend-bar" style="background:#28a745;"></span>
+            Terminée
+        </div>
+    </div>
+
+    <!-- ========== GANTT CHART ========== -->
+    <div class="gantt-wrapper">
+
+        <!-- Day columns header -->
+        <div class="gantt-header">
+            <div class="gantt-label-col">Intervention</div>
+            <div class="gantt-days-col">
+                <div *ngFor="let day of days" class="gantt-day-header" [class.today]="day.isToday"
+                    [class.weekend]="day.isWeekend">
+                    {{ day.dayNum }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Event rows -->
+        <div class="gantt-body" *ngIf="getVisibleEvents().length > 0">
+            <div class="gantt-row" *ngFor="let event of getVisibleEvents()">
+                <div class="gantt-label-col row-label" [title]="event.title">
+                    <span class="row-dot" [style.background]="event.color"></span>
+                    <span class="row-text">{{ event.title }}</span>
+                </div>
+                <div class="gantt-days-col">
+                    <!-- Day grid lines -->
+                    <div *ngFor="let day of days" class="gantt-day-cell" [class.today]="day.isToday"
+                        [class.weekend]="day.isWeekend">
+                    </div>
+                    <!-- The bar -->
+                    <div class="gantt-bar" [ngStyle]="getBarStyle(event)" (click)="openPopup(event)"
+                        [title]="event.title + (event.done ? ' ✔' : '')">
+                        <span class="bar-label">{{ event.client }}</span>
+                        <i *ngIf="event.done" class="fas fa-check bar-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="gantt-empty" *ngIf="getVisibleEvents().length === 0">
+            <i class="fas fa-calendar-times"></i>
+            <p>Aucune intervention pour ce mois</p>
+        </div>
+    </div>
+
+    <!-- ========== POPUP ========== -->
+    <div class="popup-overlay" *ngIf="showPopup" (click)="closePopup()">
+        <div class="popup-card" (click)="$event.stopPropagation()">
+            <button class="popup-close" (click)="closePopup()">&times;</button>
+            <div class="popup-accent" [style.background]="selectedEvent?.color"></div>
+            <div class="popup-content" *ngIf="selectedEvent">
+                <h3>{{ selectedEvent.title }}</h3>
+                <div class="popup-grid">
+                    <div class="popup-field">
+                        <span class="field-label">Client</span>
+                        <span class="field-value">{{ selectedEvent.client }}</span>
+                    </div>
+                    <div class="popup-field">
+                        <span class="field-label">Type</span>
+                        <span class="field-value">{{ getTypeLabel(selectedEvent.type) }}</span>
+                    </div>
+                    <div class="popup-field">
+                        <span class="field-label">Du</span>
+                        <span class="field-value">{{ selectedEvent.start || '—' }}</span>
+                    </div>
+                    <div class="popup-field">
+                        <span class="field-label">Au</span>
+                        <span class="field-value">{{ selectedEvent.end || '—' }}</span>
+                    </div>
+                    <div class="popup-field full-width">
+                        <span class="field-label">Statut</span>
+                        <span class="status-chip" [class.chip-done]="selectedEvent.done"
+                            [class.chip-pending]="!selectedEvent.done">
+                            {{ getStatusLabel(selectedEvent.done) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

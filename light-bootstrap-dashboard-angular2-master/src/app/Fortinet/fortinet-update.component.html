@@ -1,0 +1,279 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Mettre à jour Fortinet</h2>
+  
+    <form [formGroup]="updateForm" (ngSubmit)="onSubmit()">
+      <!-- Client -->
+      <div class="form-group mb-3">
+        <label for="client" class="form-label">Client</label>
+        <input
+          type="text"
+          id="client"
+          class="form-control"
+          formControlName="client"
+          placeholder="Nom du client"
+        />
+        <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
+          Ce champ est obligatoire.
+        </div>
+      </div>
+
+      <!-- Nom du Boîtier -->
+      <div class="form-group mb-3">
+        <label for="nomDuBoitier" class="form-label">Nom du Boîtier</label>
+        <input
+          type="text"
+          id="nomDuBoitier"
+          class="form-control"
+          formControlName="nomDuBoitier"
+          placeholder="Nom du boîtier"
+        />
+        <div *ngIf="updateForm.get('nomDuBoitier')?.touched && updateForm.get('nomDuBoitier')?.invalid" class="text-danger">
+          Ce champ est obligatoire.
+        </div>
+      </div>
+
+      <!-- Licences -->
+      <div formArrayName="licences" class="mb-3">
+        <label class="form-label">Licences</label>
+        <div
+          *ngFor="let licence of licences.controls; let i = index"
+          [formGroupName]="i"
+          class="row align-items-end mb-2"
+        >
+          <div class="col-md-4">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Nom de licence"
+              formControlName="nomDesLicences"
+            />
+          </div>
+          <div class="col-md-3">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Quantité"
+              formControlName="quantite"
+            />
+          </div>
+          <div class="col-md-4">
+            <input
+              type="date"
+              class="form-control"
+              formControlName="dateEx"
+            />
+          </div>
+          <div class="col-md-1">
+            <button
+              type="button"
+              class="btn btn-danger"
+              (click)="removeLicence(i)"
+              *ngIf="licences.length > 1"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary mt-2" (click)="addLicence()">
+          Ajouter une licence
+        </button>
+      </div>
+
+      <!-- Numéro de Série -->
+      <div class="form-group mb-3">
+        <label for="numeroSerie" class="form-label">Numéro de Série</label>
+        <input
+          type="text"
+          id="numeroSerie"
+          class="form-control"
+          formControlName="numeroSerie"
+          placeholder="Numéro de série"
+        />
+        <div *ngIf="updateForm.get('numeroSerie')?.touched && updateForm.get('numeroSerie')?.invalid" class="text-danger">
+          Ce champ est obligatoire.
+        </div>
+      </div>
+
+      <!-- Durée de la Licence -->
+      <div class="form-group mb-3">
+        <label for="dureeDeLicence" class="form-label">Durée de la Licence</label>
+        <input
+          type="text"
+          id="dureeDeLicence"
+          class="form-control"
+          formControlName="dureeDeLicence"
+          placeholder="Durée de la licence"
+        />
+      </div>
+
+      <!-- Nom du Contact -->
+      <div class="form-group mb-3">
+        <label for="nomDuContact" class="form-label">Contact Client</label>
+        <input
+          type="text"
+          id="nomDuContact"
+          class="form-control"
+          formControlName="nomDuContact"
+          placeholder="Nom du contact"
+        />
+      </div>
+
+      <!-- Numéro -->
+      <div class="form-group mb-3">
+        <label for="numero" class="form-label">N° Client</label>
+        <input
+          type="text"
+          id="numero"
+          class="form-control"
+          formControlName="numero"
+          placeholder="Numéro du contact"
+        />
+      </div>
+
+      <!-- Adresse Email Contact -->
+      <div class="form-group mb-3">
+        <label for="adresseEmailContact" class="form-label">Email Client</label>
+        <input
+          type="email"
+          id="adresseEmailContact"
+          class="form-control"
+          formControlName="adresseEmailContact"
+          placeholder="Email du contact"
+        />
+        <div *ngIf="updateForm.get('adresseEmailContact')?.touched && updateForm.get('adresseEmailContact')?.invalid" class="text-danger">
+          Veuillez entrer une adresse email valide.
+        </div>
+      </div>
+
+      <!-- Email Admin -->
+      <div class="form-group mb-3">
+        <label for="mailAdmin" class="form-label">Email Commercial</label>
+        <input 
+          type="email" 
+          id="mailAdmin" 
+          formControlName="mailAdmin" 
+          class="form-control" 
+          placeholder="Email de l'administrateur" 
+        />
+      </div>
+
+      <!-- CC Mail -->
+      <div class="form-group mb-3">
+        <label class="form-label">Emails en copie (CC)</label>
+        <div [formArrayName]="'ccMail'">
+          <div *ngFor="let control of ccMail.controls; let i = index" class="d-flex mb-2">
+            <input
+              [formControlName]="i"
+              type="email"
+              class="form-control me-2"
+              placeholder="Email en copie"
+            />
+            <button type="button" class="btn btn-danger" (click)="removeCcMail(i)" *ngIf="ccMail.length > 1">
+              Supprimer
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary mt-2" (click)="addCcMail()">
+          Ajouter Email
+        </button>
+      </div>
+
+      <!-- Remarque -->
+      <div class="form-group mb-3">
+        <label for="remarque" class="form-label">Remarque</label>
+        <textarea
+          id="remarque"
+          class="form-control"
+          formControlName="remarque"
+          placeholder="Ajouter une remarque"
+        ></textarea>
+      </div>
+
+      <!-- Sous Contrat -->
+      <div class="form-group mb-3 form-check">
+        <input type="checkbox" id="sousContrat" class="form-check-input" formControlName="sousContrat" />
+        <label for="sousContrat" class="form-check-label">Sous Contrat</label>
+      </div>
+
+      <!-- Section Upload de Fichier -->
+      <div class="form-group mb-3">
+        <label class="form-label"><strong>📎 Fichier attaché</strong></label>
+        
+        <!-- Fichier existant -->
+        <div *ngIf="currentFileName" class="alert alert-info d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <i class="fa fa-file"></i> 
+            <span class="ms-2">{{ currentFileOriginalName || currentFileName }}</span>
+          </div>
+          <div>
+            <button type="button" class="btn btn-sm btn-success me-2" (click)="downloadFile()">
+              <i class="fa fa-download"></i> Télécharger
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" (click)="deleteFile()">
+              <i class="fa fa-trash"></i> Supprimer
+            </button>
+          </div>
+        </div>
+
+        <!-- Upload nouveau fichier -->
+        <div class="input-group">
+          <input 
+            type="file" 
+            class="form-control" 
+            (change)="onFileSelected($event)"
+            #fileInput
+          />
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="uploadFile()" 
+            [disabled]="!selectedFile || uploading"
+          >
+            <span *ngIf="!uploading"><i class="fa fa-upload"></i> Uploader</span>
+            <span *ngIf="uploading"><i class="fa fa-spinner fa-spin"></i> {{ uploadProgress }}%</span>
+          </button>
+        </div>
+
+        <!-- Barre de progression -->
+        <div *ngIf="uploading" class="progress mt-2" style="height: 20px;">
+          <div 
+            class="progress-bar progress-bar-striped progress-bar-animated" 
+            role="progressbar" 
+            [style.width.%]="uploadProgress"
+            [attr.aria-valuenow]="uploadProgress" 
+            aria-valuemin="0" 
+            aria-valuemax="100"
+          >
+            {{ uploadProgress }}%
+          </div>
+        </div>
+
+        <!-- Message de succès/erreur -->
+        <div *ngIf="uploadMessage" class="mt-2">
+          <div [class]="uploadSuccess ? 'alert alert-success' : 'alert alert-danger'">
+            <i [class]="uploadSuccess ? 'fa fa-check-circle' : 'fa fa-exclamation-circle'"></i>
+            {{ uploadMessage }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Commande Passer Par -->
+      <div class="form-group mb-3">
+        <label for="commandePasserPar" class="form-label">Commande Passer Par</label>
+        <select id="commandePasserPar" formControlName="commandePasserPar" class="form-control">
+          <option *ngFor="let option of commandePasserParOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Boutons -->
+      <button type="submit" class="btn btn-primary" [disabled]="updateForm.invalid">
+        Mettre à jour
+      </button>
+      <button type="button" class="btn btn-secondary ms-2" (click)="onCancel()">
+        Annuler
+      </button>
+    </form>
+  
+</div>

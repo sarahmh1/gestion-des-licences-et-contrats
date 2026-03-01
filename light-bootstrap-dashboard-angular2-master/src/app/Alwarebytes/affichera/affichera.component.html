@@ -1,0 +1,108 @@
+<div class="container">
+  <!-- En-tête avec titre et bouton Ajouter + recherche -->
+  <div class="header-row">
+    <h2>Liste des Alwarebytes</h2>
+    <div class="action-group">
+      <button (click)="goToAddAlwarebytes()" class="btn btn-sm action-button">
+        <i class="fa fa-plus"></i>
+      </button>
+      <div class="input-group search-box">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Rechercher..." 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()" 
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau responsive -->
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Licences</th>
+          <th>Durée</th>
+          <th>Contact client</th>
+          <th>N° client</th>
+          <th>Email client</th>
+          <th>Email Commercial</th>
+          <th>Cc mail</th>
+          <th>Remarque</th>
+          <th>Sous Contrat</th>
+          <th>Commande Passer Par</th>
+          <th>Fichier</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let alwarebytes of pagedAlwarebytess">
+          <td>{{ alwarebytes.client }}</td>
+
+          <!-- LICENCES (affichage groupé) -->
+          <td>
+            <div *ngFor="let lic of alwarebytes.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
+              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
+              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
+              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+            </div>
+          </td>
+
+          <td>{{ alwarebytes.dureeDeLicence }}</td>
+          <td>{{ alwarebytes.nomDuContact }}</td>
+          <td>{{ alwarebytes.numero }}</td>
+          <td>{{ alwarebytes.adresseEmailContact }}</td>
+          <td>{{ alwarebytes.mailAdmin }}</td>
+          <td>{{ alwarebytes.ccMail }}</td>
+          <td>{{ alwarebytes.remarque }}</td>
+          <td>{{ alwarebytes.sousContrat }}</td>
+          <td>{{ getCommandePasserParLabel(alwarebytes.commandePasserPar) }}</td>
+
+          <!-- Fichier -->
+          <td>
+            <a *ngIf="alwarebytes.fichierOriginalName" 
+               [href]="getFileDownloadUrl(alwarebytes.alwarebytesId)" 
+               target="_blank" 
+               class="btn btn-sm btn-info">
+              <i class="fa fa-download"></i> {{ alwarebytes.fichierOriginalName }}
+            </a>
+            <span *ngIf="!alwarebytes.fichierOriginalName">-</span>
+          </td>
+
+          <td>
+            <div class="d-flex flex-column gap-1">
+              <button (click)="updateAlwarebytes(alwarebytes)" class="btn btn-sm btn-primary">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button (click)="deleteAlwarebytes(alwarebytes.alwarebytesId)" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button (click)="approveAlwarebytes(alwarebytes.alwarebytesId)" class="btn btn-sm btn-success">
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredAlwarebytess.length === 0">
+          <td colspan="13" class="text-center">Aucun Alwarebytes trouvé.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="text-center mt-3">
+    <ng-container *ngIf="totalPages > 1">
+      <button 
+        *ngFor="let page of pageNumbers; let i = index"
+        (click)="changePage(i)"
+        [class.active]="i === currentPage"
+        class="btn btn-sm btn-outline-primary mx-1">
+        {{ i + 1 }}
+      </button>
+    </ng-container>
+  </div>
+</div>

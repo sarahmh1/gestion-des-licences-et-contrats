@@ -1,0 +1,335 @@
+<div class="container">
+  <!-- En-tête avec titre et boutons alignés -->
+  <div class="header-row">
+    <h2>Interventions Curatives</h2>
+    <div class="action-group">
+      <button (click)="openAddModal()" class="btn btn-sm action-button">
+        <i class="fa fa-plus"></i>
+      </button>
+      <div class="input-group search-box">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Rechercher..." 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()" 
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau responsive -->
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Fiche</th>
+          <th>Client</th>
+          <th>Criticité</th>
+          <th>Intervenant</th>
+          <th>Demande</th>
+          <th>Intervention</th>
+          <th>Résolution</th>
+          <th>Durée</th>
+          <th>Mode</th>
+          <th>Vis-à-vis Client</th>
+          <th>Statut</th>
+          <th>Tâches</th>
+          <th>Fichier</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let intervention of pagedInterventions">
+          <td>{{ intervention.ficheIntervention }}</td>
+          <td>{{ intervention.nomClient }}</td>
+          <td>
+            <span class="badge" [ngClass]="getCriticiteClass(intervention.criticite)">
+              {{ intervention.criticite }}
+            </span>
+          </td>
+          <td>{{ formatIntervenants(intervention) }}</td>
+          <td>{{ intervention.dateHeureDemande | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ intervention.dateHeureIntervention | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ intervention.dateHeureResolution | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ intervention.dureeIntervention }}</td>
+          <td>
+            <span [class]="intervention.modeIntervention === 'Sur site' ? 'badge badge-primary' : 'badge badge-info'">
+              {{ intervention.modeIntervention }}
+            </span>
+          </td>
+          <td>{{ intervention.visAVisClient }}</td>
+          <td>
+            <div class="status-badges">
+              <span *ngIf="intervention.enCoursDeResolution" class="badge badge-warning">En cours</span>
+              <span *ngIf="intervention.resolu" class="badge badge-success">Résolu</span>
+              <span *ngIf="!intervention.enCoursDeResolution && !intervention.resolu" class="badge badge-secondary">-</span>
+            </div>
+          </td>
+          <td class="taches-cell">{{ intervention.tachesEffectuees }}</td>
+          <td>
+            <a *ngIf="intervention.fichier" 
+               [href]="getFileDownloadUrl(intervention.interventionCurativeId)" 
+               target="_blank" 
+               class="btn btn-sm btn-outline-primary">
+              <i class="fa fa-download"></i> {{ intervention.fichierOriginalName || 'Télécharger' }}
+            </a>
+            <span *ngIf="!intervention.fichier" class="text-muted">-</span>
+          </td>
+          <td>
+            <div class="d-flex flex-row gap-1">
+              <button (click)="openEditModal(intervention)" class="btn btn-sm btn-primary">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button (click)="deleteIntervention(intervention.interventionCurativeId)" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredInterventions.length === 0">
+          <td colspan="14" class="text-center">Aucune intervention trouvée.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="text-center mt-3">
+    <ng-container *ngIf="totalPages > 1">
+      <button 
+        *ngFor="let page of pageNumbers; let i = index"
+        class="btn btn-sm mx-1"
+        [class.btn-primary]="currentPage === i"
+        [class.btn-outline-primary]="currentPage !== i"
+        (click)="changePage(i)"
+      >
+        {{ i + 1 }}
+      </button>
+    </ng-container>
+  </div>
+</div>
+
+<!-- Modal Popup -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>{{ isEditMode ? 'Modifier l\'Intervention' : 'Ajouter une Intervention' }}</h4>
+      <button type="button" class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+    
+    <form [formGroup]="interventionForm" (ngSubmit)="saveIntervention()">
+      <!-- Fiche d'intervention -->
+      <div class="form-group mb-3">
+        <label for="ficheIntervention" class="form-label">Fiche d'intervention</label>
+        <input
+          type="text"
+          id="ficheIntervention"
+          class="form-control"
+          formControlName="ficheIntervention"
+          placeholder="Numéro de fiche"
+        />
+      </div>
+
+      <!-- Nom du client -->
+      <div class="form-group mb-3">
+        <label for="nomClient" class="form-label">Nom du Client</label>
+        <input
+          type="text"
+          id="nomClient"
+          class="form-control"
+          formControlName="nomClient"
+          placeholder="Nom du client"
+        />
+      </div>
+
+      <div class="row">
+        <!-- Criticité -->
+        <div class="col-md-6">
+          <div class="form-group mb-3">
+            <label for="criticite" class="form-label">Criticité</label>
+            <select id="criticite" class="form-control" formControlName="criticite">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let crit of criticiteOptions" [value]="crit">{{ crit }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Durée de l'intervention (déplacé ici) -->
+        <div class="col-md-6">
+          <div class="form-group mb-3">
+            <label for="dureeIntervention" class="form-label">Durée de l'Intervention</label>
+            <input
+              type="text"
+              id="dureeIntervention"
+              class="form-control"
+              formControlName="dureeIntervention"
+              placeholder="Ex: 2h30"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Intervenants avec bouton + -->
+      <div class="form-group mb-3">
+        <label class="form-label">Intervenant(s)</label>
+        <div formArrayName="intervenants">
+          <div *ngFor="let intervenant of intervenants.controls; let i = index" [formGroupName]="i" class="intervenant-row">
+            <input
+              type="text"
+              class="form-control intervenant-input"
+              formControlName="nom"
+              placeholder="Nom de l'intervenant"
+            />
+            <button type="button" class="btn btn-add-intervenant" (click)="addIntervenant()">
+              <i class="fa fa-plus"></i>
+            </button>
+            <button type="button" class="btn btn-remove-intervenant" *ngIf="intervenants.length > 1" (click)="removeIntervenant(i)">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date et heure de la demande -->
+      <div class="form-group mb-3">
+        <label for="dateHeureDemande" class="form-label">Date et Heure de la Demande</label>
+        <input
+          type="datetime-local"
+          id="dateHeureDemande"
+          class="form-control"
+          formControlName="dateHeureDemande"
+        />
+      </div>
+
+      <!-- Date et heure de l'intervention -->
+      <div class="form-group mb-3">
+        <label for="dateHeureIntervention" class="form-label">Date et Heure de l'Intervention</label>
+        <input
+          type="datetime-local"
+          id="dateHeureIntervention"
+          class="form-control"
+          formControlName="dateHeureIntervention"
+        />
+      </div>
+
+      <!-- Date et heure de la résolution -->
+      <div class="form-group mb-3">
+        <label for="dateHeureResolution" class="form-label">Date et Heure de la Résolution</label>
+        <input
+          type="datetime-local"
+          id="dateHeureResolution"
+          class="form-control"
+          formControlName="dateHeureResolution"
+        />
+      </div>
+
+      <div class="row">
+        <!-- Mode d'intervention -->
+        <div class="col-md-12">
+          <div class="form-group mb-3">
+            <label for="modeIntervention" class="form-label">Mode d'Intervention</label>
+            <select id="modeIntervention" class="form-control" formControlName="modeIntervention">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let mode of modeInterventionOptions" [value]="mode">{{ mode }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vis-à-vis client -->
+      <div class="form-group mb-3">
+        <label for="visAVisClient" class="form-label">Vis-à-vis Client</label>
+        <input
+          type="text"
+          id="visAVisClient"
+          class="form-control"
+          formControlName="visAVisClient"
+          placeholder="Contact client"
+        />
+      </div>
+
+      <!-- Statut: En cours de résolution et Résolu -->
+      <div class="form-group mb-3">
+        <label class="form-label">Statut</label>
+        <div class="status-checkboxes">
+          <div class="form-check">
+            <input
+              type="checkbox"
+              id="enCoursDeResolution"
+              class="form-check-input"
+              formControlName="enCoursDeResolution"
+            />
+            <label for="enCoursDeResolution" class="form-check-label">En cours de résolution</label>
+          </div>
+          <div class="form-check">
+            <input
+              type="checkbox"
+              id="resolu"
+              class="form-check-input"
+              formControlName="resolu"
+            />
+            <label for="resolu" class="form-check-label">Résolu</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tâches effectuées -->
+      <div class="form-group mb-3">
+        <label for="tachesEffectuees" class="form-label">Tâches Effectuées</label>
+        <textarea
+          id="tachesEffectuees"
+          class="form-control"
+          formControlName="tachesEffectuees"
+          placeholder="Détail des tâches effectuées"
+          rows="4"
+        ></textarea>
+      </div>
+
+      <!-- Upload de fichier -->
+      <div class="form-group mb-3">
+        <label class="form-label">Fichier Joint</label>
+        
+        <!-- Afficher le fichier existant en mode édition -->
+        <div *ngIf="isEditMode && existingFile" class="mb-2">
+          <span class="text-success">
+            <i class="fas fa-file"></i> Fichier actuel: {{ existingFileName }}
+          </span>
+          <a [href]="getFileDownloadUrl(editingInterventionId)" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+            <i class="fa fa-download"></i>
+          </a>
+          <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteExistingFile()">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+        
+        <!-- Input pour nouveau fichier -->
+        <input
+          type="file"
+          id="fichierIntervention"
+          class="form-control"
+          (change)="onFileSelected($event)"
+        />
+        <small class="text-muted">Sélectionnez un fichier à joindre (PDF, Word, etc.)</small>
+        
+        <!-- Indicateur de fichier sélectionné -->
+        <div *ngIf="selectedFile" class="mt-2">
+          <span class="text-primary">
+            <i class="fas fa-paperclip"></i> Fichier sélectionné: {{ selectedFile.name }}
+          </span>
+          <button type="button" class="btn btn-sm btn-danger ms-2" (click)="clearSelectedFile()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Boutons -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+          {{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

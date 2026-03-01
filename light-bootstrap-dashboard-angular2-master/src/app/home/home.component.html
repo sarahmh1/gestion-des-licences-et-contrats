@@ -1,0 +1,181 @@
+<div class="main-content">
+    <div class="container-fluid">
+        <!-- Indicateur de chargement -->
+        <div *ngIf="isLoading" class="text-center">
+            <i class="fa fa-spinner fa-spin fa-3x"></i>
+            <p>Chargement des données...</p>
+        </div>
+
+        <div *ngIf="!isLoading">
+            <!-- Cartes de statistiques rapides -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card card-stats">
+                        <div class="card-header" data-background-color="orange">
+                            <i class="fa fa-list-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <p class="category">Total Licences</p>
+                            <h3 class="title">{{totalLicenses}}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stats">
+                        <div class="card-header" data-background-color="green">
+                            <i class="fa fa-trophy"></i>
+                        </div>
+                        <div class="card-content">
+                            <p class="category">Top Produit</p>
+                            <h3 class="title">{{getTopProductName()}}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+    <div class="card card-stats">
+        <div class="card-header" data-background-color="blue">
+            <i class="fa fa-building"></i>
+        </div>
+        <div class="card-content">
+            
+            <p class="category">Client</p>
+            <div class="product-with-licenses">
+            <h3 class="title">{{getTopClientName()}}</h3>
+            <div class="stats-details">
+                <span class="product-count">
+                    <i class="fa fa-cube"></i> {{getTopClientProductCount()}} produits
+                </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                <div class="col-md-3">
+    <div class="card card-stats">
+        <div class="card-header" data-background-color="red">
+            <i class="fa fa-arrow-down"></i>
+        </div>
+        <div class="card-content">
+            <p class="category">Produit le moins ajouté</p>
+            <div class="product-with-licenses">
+                <h3 class="title">{{getLeastAddedProductName()}}</h3>
+                <span class="license-count">
+                    <i class="fa fa-database"></i> {{getLeastAddedProductCount()}} licences
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <lbd-chart
+                      [title]="'Top 5 Produits'"
+                      [subtitle]="'Répartition des licences'"
+                      [chartClass]="'ct-perfect-fourth'"
+                      [chartType]="emailChartType"
+                      [chartData]="emailChartData"
+                      [legendItems]="emailChartLegendItems"
+                      [withHr]="true"
+                      [footerIconClass]="'fa fa-refresh'"
+                      [footerText]="'Données en temps réel'">
+                    </lbd-chart>
+                </div>
+                <div class="col-md-8">
+                    <div #chartContainer style="position: relative;">
+                        <lbd-chart
+                          [title]="'Expirations à venir'"
+                          [subtitle]="'Licences qui expirent dans les 6 prochains mois'"
+                          [chartType]="hoursChartType"
+                          [chartData]="hoursChartData"
+                          [chartOptions]="hoursChartOptions"
+                          [chartResponsive]="hoursChartResponsive"
+                          [legendItems]="hoursChartLegendItems"
+                          [withHr]="true"
+                          [footerIconClass]="'fa fa-calendar'"
+                          [footerText]="'Surveillance des dates d\'expiration'">
+                        </lbd-chart>
+                        
+                        <!-- Overlay transparent pour capturer le survol -->
+                        <div class="chart-overlay" 
+                             (mousemove)="onChartHover($event)"
+                             (mouseleave)="onChartLeave()">
+                        </div>
+                        
+                        <!-- Tooltip -->
+                        <div class="chart-tooltip" 
+                             [style.left]="tooltipLeft" 
+                             [style.top]="tooltipTop"
+                             [class.hidden]="!tooltipVisible">
+                            <div class="tooltip-header">
+                                <i class="fa fa-calendar"></i> {{tooltipMonth}}
+                            </div>
+                            <div class="tooltip-content">
+                                <div *ngIf="tooltipCount > 0" class="text-warning">
+                                    <i class="fa fa-exclamation-circle"></i>
+                                    <strong>{{tooltipCount}}</strong> licence(s) expirent
+                                </div>
+                                <div *ngIf="tooltipCount === 0" class="text-success">
+                                    <i class="fa fa-check-circle"></i>
+                                    Aucune expiration
+                                </div>
+                                <div class="license-details" *ngIf="tooltipLicenses.length > 0">
+                                    <div *ngFor="let license of tooltipLicenses" class="license-item">
+                                        <i class="fa fa-certificate"></i> {{license}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <lbd-chart
+                      [title]="'Comparaison Produits'"
+                      [subtitle]="'Top 8 des solutions'"
+                      [chartType]="activityChartType"
+                      [chartData]="activityChartData"
+                      [chartOptions]="activityChartOptions"
+                      [chartResponsive]="activityChartResponsive"
+                      [legendItems]="activityChartLegendItems"
+                      [withHr]="true"
+                      [footerIconClass]="'fa fa-bar-chart'"
+                      [footerText]="'Données certifiées'">
+                    </lbd-chart>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="header">
+                            <h4 class="title">Statistiques Rapides</h4>
+                            <p class="category">Répartition par produit</p>
+                        </div>
+                        <div class="content">
+                            <div class="table-full-width">
+                                <table class="table">
+                                    <tbody>
+                                        <tr *ngFor="let product of getTopProducts(10); let i = index">
+                                            <td>
+                                                <i class="fa fa-circle text-{{getColorClass(i)}}"></i>
+                                            </td>
+                                            <td>{{product.name}}</td>
+                                            <td class="text-right">
+                                                <strong>{{product.count}}</strong> licences
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="footer">
+                                <hr>
+                                <div class="stats">
+                                    <i class="fa fa-database"></i> Total: {{totalLicenses}} licences
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

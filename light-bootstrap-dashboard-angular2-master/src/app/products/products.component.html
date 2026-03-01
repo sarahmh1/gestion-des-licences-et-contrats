@@ -1,0 +1,222 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Ajouter licence ESET</h2>
+
+  <form [formGroup]="productForm" (ngSubmit)="addProduct()">
+    <!-- Client -->
+    <div class="form-group mb-3">
+      <label for="client" class="form-label">Client</label>
+      <input
+        type="text"
+        id="client"
+        class="form-control"
+        formControlName="client"
+        placeholder="Nom du client"
+      />
+      <div *ngIf="productForm.get('client')?.touched && productForm.get('client')?.invalid" class="text-danger">
+        Ce champ est obligatoire.
+      </div>
+    </div>
+
+    <!-- Identifiant -->
+    <div class="form-group mb-3">
+      <label for="identifiant" class="form-label">Identifiant</label>
+      <input
+        type="text"
+        id="identifiant"
+        class="form-control"
+        formControlName="identifiant"
+        placeholder="Entrez l'identifiant"
+      />
+      <div *ngIf="productForm.get('identifiant')?.touched && productForm.get('identifiant')?.invalid" class="text-danger">
+        Ce champ est obligatoire.
+      </div>
+    </div>
+
+    <!-- Clé de Licence -->
+    <div class="form-group mb-3">
+      <label for="cle_de_Licence" class="form-label">Clé de Licence</label>
+      <input
+        type="text"
+        id="cle_de_Licence"
+        class="form-control"
+        formControlName="cle_de_Licence"
+        placeholder="Entrez la clé de licence"
+      />
+      <div *ngIf="productForm.get('cle_de_Licence')?.touched && productForm.get('cle_de_Licence')?.invalid" class="text-danger">
+        Ce champ est obligatoire.
+      </div>
+    </div>
+
+    <!-- Nom du Produit -->
+    <div class="form-group mb-3">
+      <label for="nom_produit" class="form-label">Nom du Produit</label>
+      <select id="nom_produit" formControlName="nom_produit" class="form-control">
+        <option *ngFor="let product of nomProduitOptions" [value]="product.value">{{ product.display }}</option>
+      </select>
+    </div>
+
+    <!-- Quantité -->
+    <div class="form-group mb-3">
+      <label for="nombre" class="form-label">Quantité</label>
+      <input
+        type="number"
+        id="nombre"
+        class="form-control"
+        formControlName="nombre"
+        placeholder="Entrez la quantité"
+      />
+    </div>
+
+    <!-- Type d'Achat -->
+    <div class="form-group mb-3">
+      <label for="typeAchat" class="form-label">Type d'Achat</label>
+      <select id="typeAchat" formControlName="typeAchat" class="form-control">
+        <option *ngFor="let type of typeAchatOptions" [value]="type.value">{{ type.display }}</option>
+      </select>
+    </div>
+
+    <!-- Durée de la Licence -->
+    <div class="form-group mb-3">
+      <label for="dureeDeLicence" class="form-label">Durée de la Licence</label>
+      <input
+        type="text"
+        id="dureeDeLicence"
+        class="form-control"
+        formControlName="dureeDeLicence"
+        placeholder="Durée de la licence"
+      />
+    </div>
+
+    <!-- Date d'expiration -->
+    <div class="form-group mb-3">
+      <label for="dateEx" class="form-label">Date d'expiration</label>
+      <input
+        type="date"
+        id="dateEx"
+        class="form-control"
+        formControlName="dateEx"
+      />
+    </div>
+
+    <!-- Contact client -->
+    <div class="form-group mb-3">
+      <label for="nom_contact" class="form-label">Contact Client</label>
+      <input
+        type="text"
+        id="nom_contact"
+        class="form-control"
+        formControlName="nom_contact"
+        placeholder="Nom du contact"
+      />
+    </div>
+
+    <!-- N° client -->
+    <div class="form-group mb-3">
+      <label for="nmb_tlf" class="form-label">N° Client</label>
+      <input
+        type="number"
+        id="nmb_tlf"
+        class="form-control"
+        formControlName="nmb_tlf"
+        placeholder="Numéro du contact"
+      />
+    </div>
+
+    <!-- Adresse Email Contact -->
+    <div class="form-group mb-3">
+      <label for="mail" class="form-label">Email Client</label>
+      <input
+        type="email"
+        id="mail"
+        class="form-control"
+        formControlName="mail"
+        placeholder="Email du contact"
+      />
+      <div *ngIf="productForm.get('mail')?.touched && productForm.get('mail')?.invalid" class="text-danger">
+        Veuillez entrer une adresse email valide.
+      </div>
+    </div>
+
+    <!-- Email Commercial -->
+    <div class="form-group mb-3">
+      <label for="mailAdmin" class="form-label">Email Commercial</label>
+      <input type="email" id="mailAdmin" formControlName="mailAdmin" class="form-control" placeholder="Email de l'administrateur" />
+    </div>
+
+    <!-- CC Mail -->
+    <div class="form-group mb-3">
+      <label>Emails en copie (CC)</label>
+      <div *ngIf="productForm.get('ccMail') as cc">
+        <div [formArrayName]="'ccMail'">
+          <div *ngFor="let control of cc.controls; let i = index" class="d-flex mb-2">
+            <input
+              [formControlName]="i"
+              type="email"
+              class="form-control me-2"
+              placeholder="Email en copie"
+            />
+            <button type="button" class="btn btn-danger" (click)="removeCcMail(i)">Supprimer</button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-secondary mt-2" (click)="addCcMail()">Ajouter Email</button>
+    </div>
+ <!-- Remarque -->
+    <div class="form-group mb-3">
+      <label for="remarque" class="form-label">Remarque</label>
+      <textarea
+        id="remarque"
+        class="form-control"
+        formControlName="remarque"
+        placeholder="Ajouter une remarque"
+      ></textarea>
+    </div>
+    <!-- Sous Contrat -->
+      <div class="form-group mb-3 form-check">
+        <input type="checkbox" id="sousContrat" class="form-check-input" formControlName="sousContrat" />
+        <label for="sousContrat" class="form-check-label">Sous Contrat</label>
+      </div>
+
+    <!-- Section Upload de Fichier -->
+    <div class="form-group mb-3">
+      <label class="form-label"><strong>📎 Fichier attaché</strong></label>
+      <div class="input-group">
+        <input 
+          type="file" 
+          class="form-control" 
+          (change)="onFileSelected($event)"
+          #fileInput
+        />
+      </div>
+      <small class="text-muted">
+        <i class="fa fa-info-circle"></i> Le fichier sera uploadé après la création du produit.
+      </small>
+      
+      <!-- Message de succès/erreur -->
+      <div *ngIf="uploadMessage" class="mt-2">
+        <div [class]="uploadSuccess ? 'alert alert-success' : 'alert alert-danger'">
+          <i [class]="uploadSuccess ? 'fa fa-check-circle' : 'fa fa-exclamation-circle'"></i>
+          {{ uploadMessage }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Commande Passer Par -->
+    <div class="form-group mb-3">
+      <label for="commandePasserPar" class="form-label">Commande Passer Par</label>
+      <select id="commandePasserPar" formControlName="commandePasserPar" class="form-control">
+        <option *ngFor="let option of commandePasserParOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Bouton Ajouter -->
+    <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid">
+      Ajouter
+    </button>
+    <button type="button" class="btn btn-secondary ms-2" (click)="onCancel()">
+      Annuler
+    </button>
+  </form>
+</div>

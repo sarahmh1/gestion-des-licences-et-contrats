@@ -1,0 +1,106 @@
+<div class="container">
+  <!-- En-tête avec titre et boutons alignés -->
+  <div class="header-row">
+    <h2>Licences Expirées ESET</h2>
+    <div class="action-group">
+      <div class="input-group search-box">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Rechercher..." 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()" 
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Show a message if no approved products are found -->
+  <div *ngIf="filteredExpiredProducts.length === 0" class="text-center mt-4">
+    <p>Aucune licence ESET approuvée trouvée.</p>
+    <p *ngIf="allEsets.length > 0" class="text-muted">
+      ({{allEsets.length}} licences ESET au total dans le système)
+    </p>
+  </div>
+
+  <!-- Tableau responsive -->
+  <div *ngIf="filteredExpiredProducts.length > 0" class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Identifiant</th>
+          <th>Clé de Licence</th>
+          <th>Nom du Produit</th>
+          <th>Durée de licence</th>
+          <th>Date d'Expiration</th>
+          <th>Type d'Achat</th>
+          <th>Nombre</th>
+          <th>Contact client</th>
+          <th>N° client</th>
+          <th>Email client</th>
+          <th>Email Commercial</th>
+          <th>Cc mail</th>
+          <th>Remarque</th>
+          <th>Sous Contrat</th>
+          <th>Commande Passer Par</th>
+          <th>Fichier</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- CORRECTION: Utiliser pagedExpiredProducts au lieu de pagedExpiredEsets -->
+        <tr *ngFor="let eset of pagedExpiredProducts; let i = index">
+          <td>{{ eset.client || 'N/A' }}</td>
+          <td>{{ eset.identifiant || 'N/A' }}</td>
+          <td>{{ eset.cle_de_Licence || 'N/A' }}</td>
+          <td>{{ getProductName(eset.nom_produit) }}</td>
+          <td>{{ eset.dureeDeLicence || 'N/A' }}</td>
+          <td>{{ eset.dateEx ? (eset.dateEx | date:'dd/MM/yyyy') : 'N/A' }}</td>
+          <td>{{ getTypeAchatName(eset.typeAchat) }}</td>
+          <td>{{ eset.nombre || 'N/A' }}</td>
+          <td>{{ eset.nom_contact || 'N/A' }}</td>
+          <td>{{ eset.nmb_tlf || 'N/A' }}</td>
+          <td>{{ eset.mail || 'N/A' }}</td>
+          <td>{{ eset.mailAdmin || 'N/A' }}</td>
+          <td>
+            <span *ngIf="eset.ccMail && eset.ccMail.length > 0">
+              {{ eset.ccMail.join(', ') }}
+            </span>
+            <span *ngIf="!eset.ccMail || eset.ccMail.length === 0">N/A</span>
+          </td>
+          <td>{{ eset.remarque || 'N/A' }}</td>
+          <td>{{ eset.sousContrat ? 'Oui' : 'Non' }}</td>
+          <td>{{ getCommandePasserParLabel(eset.commandePasserPar) }}</td>
+          <td>
+            <a *ngIf="eset.fichier" [href]="getFileDownloadUrl(eset.esetid)" target="_blank" class="btn btn-sm btn-info">
+              <i class="fas fa-download"></i> {{ eset.fichierOriginalName || 'Télécharger' }}
+            </a>
+            <span *ngIf="!eset.fichier">-</span>
+          </td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              <button class="btn btn-sm btn-warning" (click)="desapprouve(eset.esetid)"
+                      title="Désapprouver">
+                <i class="fas fa-times-circle"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="filteredExpiredProducts.length > 0" class="text-center mt-3">
+    <ng-container *ngIf="totalPages > 1">
+      <button 
+        *ngFor="let page of pageNumbers; let i = index"
+        (click)="changePage(i)"
+        [class.active]="i === currentPage"
+        class="btn btn-sm btn-outline-primary mx-1">
+        {{ i + 1 }}
+      </button>
+    </ng-container>
+  </div>
+</div>

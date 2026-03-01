@@ -1,0 +1,119 @@
+<div class="container">
+  <!-- En-tête avec titre et boutons alignés -->
+  <div class="header-row">
+    <h2>Listes de licences CrowdStrike</h2>
+    <div class="action-group">
+      <button (click)="goToAddCrowdstrike()" class="btn btn-sm action-button">
+        <i class="fa fa-plus"></i>
+      </button>
+      <div class="input-group search-box">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Rechercher..." 
+          [(ngModel)]="searchTerm" 
+          (input)="onSearch()" 
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau responsive -->
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Licences</th>
+          <th>Durée</th>
+          <th>Contact client</th>
+          <th>N° client</th>
+          <th>Email client</th>
+          <th>Email Commercial</th>
+          <th>Cc mail</th>
+          <th>Remarque</th>
+          <th>Sous Contrat</th>
+          <th>Commande Passer Par</th>
+          <th>Fichier</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let crowdstrike of pagedCrowdstrikes; let i = index">
+          <td>{{ crowdstrike.client }}</td>
+
+          <!-- LICENCES (affichage groupé) -->
+          <td>
+            <div *ngFor="let lic of crowdstrike.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
+              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
+              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
+              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+            </div>
+          </td>
+
+          <td>{{ crowdstrike.dureeLicence }}</td>
+          <td>{{ crowdstrike.nomDuContact }}</td>
+          <td>{{ crowdstrike.numero }}</td>
+          <td>{{ crowdstrike.adresseEmailContact }}</td>
+          <td>{{ crowdstrike.mailAdmin }}</td>
+          <td>{{ crowdstrike.ccMail }}</td>
+          <td>{{ crowdstrike.remarques }}</td>
+          <td>{{ crowdstrike.sousContrat }}</td>
+          <td>{{ getCommandePasserParLabel(crowdstrike.commandePasserPar) }}</td>
+
+          <td>
+            <div *ngIf="crowdstrike.fichier; else noFile">
+              <a [href]="getFileDownloadUrl(crowdstrike.crowdstrikeid)" target="_blank" class="btn btn-sm btn-outline-info">
+                <i class="fa fa-download"></i> {{ crowdstrike.fichierOriginalName }}
+              </a>
+            </div>
+            <ng-template #noFile>
+              <span class="text-muted">-</span>
+            </ng-template>
+          </td>
+
+          <td>
+            <div class="d-flex flex-column gap-1">
+              <!-- Ajout de [disabled] et de logs de debug -->
+              <button (click)="updateCrowdstrike(crowdstrike)" 
+                      class="btn btn-sm btn-primary"
+                      [disabled]="!crowdstrike.crowdstrikeid">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button (click)="deleteCrowdstrike(crowdstrike.crowdstrikeid)" 
+                      class="btn btn-sm btn-danger"
+                      [disabled]="!crowdstrike.crowdstrikeid">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button (click)="approveCrowdstrike(crowdstrike.crowdstrikeid)" 
+                      class="btn btn-sm btn-success"
+                      [disabled]="!crowdstrike.crowdstrikeid">
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+            <!-- Debug info -->
+            <small *ngIf="!crowdstrike.crowdstrikeid" class="text-danger">
+              ID manquant
+            </small>
+          </td>
+        </tr>
+        <tr *ngIf="filteredCrowdstrikes.length === 0">
+          <td colspan="13" class="text-center">Aucun CrowdStrike trouvé.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="text-center mt-3">
+    <ng-container *ngIf="totalPages > 1">
+      <button 
+        *ngFor="let page of pageNumbers; let i = index"
+        (click)="changePage(i)"
+        [class.active]="i === currentPage"
+        class="btn btn-sm btn-outline-primary mx-1">
+        {{ i + 1 }}
+      </button>
+    </ng-container>
+  </div>
+</div>

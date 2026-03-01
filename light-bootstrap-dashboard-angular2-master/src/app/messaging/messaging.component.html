@@ -1,0 +1,206 @@
+<div class="main-content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card messaging-container">
+          <div class="card-header">
+            <h4 class="card-title">
+              <i class="pe-7s-chat"></i> Messagerie Interne
+              <span class="current-user-badge" *ngIf="currentUserName">
+                ({{ currentUserName }})
+              </span>
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="row messaging-row">
+              <!-- Liste des conversations -->
+              <div class="col-md-4 conversations-list">
+                <div class="search-box">
+                  <input type="text" class="form-control" [(ngModel)]="conversationSearchQuery"
+                    placeholder="Rechercher une conversation...">
+                  <button class="btn btn-success btn-new-conv" (click)="openNewConversationModal()">
+                    <i class="pe-7s-plus"></i> Nouvelle
+                  </button>
+                </div>
+                <div class="conversations">
+                  <div *ngIf="filterConversations().length === 0" class="no-conversations">
+                    <p>Aucune conversation</p>
+                    <button class="btn btn-primary" (click)="openNewConversationModal()">
+                      Démarrer une conversation
+                    </button>
+                  </div>
+                  <div *ngFor="let conversation of filterConversations()" class="conversation-item"
+                    [class.active]="selectedConversation?.id === conversation.id"
+                    (click)="selectConversation(conversation)">
+                    <div class="conversation-avatar">
+                      <img
+                        [src]="getProfilePictureUrl(conversation.otherUserProfilePicture, conversation.otherUserName)"
+                        alt="Avatar">
+                      <span class="unread-badge" *ngIf="conversation.unreadCount > 0">
+                        {{ conversation.unreadCount }}
+                      </span>
+                    </div>
+                    <div class="conversation-info">
+                      <div class="conversation-name">{{ conversation.otherUserName }}</div>
+                      <div class="conversation-preview">{{ conversation.lastMessage }}</div>
+                    </div>
+                    <div class="conversation-actions">
+                      <div class="conversation-time">
+                        {{ formatTime(conversation.lastMessageTime) }}
+                      </div>
+                      <button class="btn-delete-conv" (click)="deleteConversation(conversation, $event)"
+                        title="Supprimer la conversation">
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fenêtre de chat -->
+              <div class="col-md-8 chat-window">
+                <div *ngIf="!selectedConversation" class="no-conversation">
+                  <i class="pe-7s-chat"></i>
+                  <p>Sélectionnez une conversation ou démarrez-en une nouvelle</p>
+                  <button class="btn btn-primary" (click)="openNewConversationModal()">
+                    <i class="pe-7s-plus"></i> Nouvelle conversation
+                  </button>
+                </div>
+
+                <div *ngIf="selectedConversation" class="chat-active">
+                  <!-- En-tête du chat -->
+                  <div class="chat-header">
+                    <div class="chat-user-info">
+                      <img
+                        [src]="getProfilePictureUrl(selectedConversation.otherUserProfilePicture, selectedConversation.otherUserName)"
+                        alt="Avatar" class="chat-avatar">
+                      <div>
+                        <div class="chat-user-name">{{ selectedConversation.otherUserName }}</div>
+                        <div class="chat-user-status" *ngIf="isTyping">En train d'écrire...</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Messages -->
+                  <div class="chat-messages">
+                    <div *ngIf="messages.length === 0" class="no-messages">
+                      <p>Aucun message. Envoyez le premier message !</p>
+                    </div>
+                    <div *ngFor="let message of messages" class="message"
+                      [class.message-sent]="message.senderId === currentUserId"
+                      [class.message-received]="message.senderId !== currentUserId">
+                      <div class="message-bubble">
+                        <!-- Affichage du fichier si présent -->
+                        <div *ngIf="message.fileName" class="message-attachment">
+                          <!-- Image -->
+                          <div *ngIf="isImage(message.fileType)" class="message-image">
+                            <img [src]="getFileDownloadUrl(message.filePath)" [alt]="message.originalFileName">
+                          </div>
+                          <!-- Audio / Voice message -->
+                          <div *ngIf="isAudio(message.fileType)" class="message-audio">
+                            <i class="pe-7s-micro"></i>
+                            <audio controls [src]="getFileDownloadUrl(message.filePath)"></audio>
+                          </div>
+                          <!-- Fichier non-image et non-audio -->
+                          <div *ngIf="!isImage(message.fileType) && !isAudio(message.fileType)" class="message-file">
+                            <i class="pe-7s-file"></i>
+                            <span class="file-name">{{ message.originalFileName }}</span>
+                            <a [href]="getFileDownloadUrl(message.filePath)" download
+                              [title]="'Télécharger ' + message.originalFileName" class="btn-download">
+                              <i class="pe-7s-download"></i>
+                            </a>
+                          </div>
+                        </div>
+                        <!-- Contenu texte -->
+                        <div *ngIf="message.content" class="message-content">{{ message.content }}</div>
+                        <div class="message-footer">
+                          <span class="message-time">{{ formatTime(message.timestamp!) }}</span>
+                          <!-- Bouton supprimer uniquement pour ses propres messages -->
+                          <button *ngIf="message.senderId === currentUserId && message.id" class="btn-delete-message"
+                            (click)="deleteMessage(message)" title="Supprimer">
+                            <i class="pe-7s-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Preview fichier sélectionné -->
+                  <div *ngIf="selectedFile" class="selected-file-preview">
+                    <i class="pe-7s-paperclip"></i>
+                    <span class="file-name">{{ selectedFile.name }}</span>
+                    <button class="btn-remove-file" (click)="removeSelectedFile()" title="Annuler">
+                      <i class="pe-7s-close"></i>
+                    </button>
+                  </div>
+
+                  <!-- Indicateur d'enregistrement vocal -->
+                  <div *ngIf="isRecording" class="recording-indicator">
+                    <div class="recording-pulse"></div>
+                    <span class="recording-time">{{ formatRecordingTime() }}</span>
+                    <button class="btn-cancel-recording" (click)="cancelRecording()" title="Annuler">
+                      <i class="pe-7s-close"></i>
+                    </button>
+                    <button class="btn-stop-recording" (click)="stopRecording()" title="Envoyer">
+                      <i class="pe-7s-paper-plane"></i>
+                    </button>
+                  </div>
+
+                  <!-- Zone de saisie -->
+                  <div class="chat-input" *ngIf="!isRecording">
+                    <input type="file" id="fileInput" (change)="onFileSelected($event)" style="display: none;">
+                    <button class="btn btn-outline-secondary btn-attach" (click)="triggerFileInput()"
+                      title="Joindre un fichier">
+                      <i class="pe-7s-paperclip"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-voice" (click)="startRecording()"
+                      title="Message vocal">
+                      <i class="pe-7s-micro"></i>
+                    </button>
+                    <input type="text" class="form-control" [(ngModel)]="newMessage"
+                      (keyup.enter)="selectedFile ? sendFile() : sendMessage()" (input)="onTyping()"
+                      placeholder="Tapez votre message...">
+                    <button class="btn btn-primary btn-send" (click)="selectedFile ? sendFile() : sendMessage()">
+                      <i class="pe-7s-paper-plane"></i>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nouvelle Conversation -->
+<div class="modal-overlay" *ngIf="showNewConversationModal" (click)="closeNewConversationModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5>Nouvelle Conversation</h5>
+      <button class="btn-close" (click)="closeNewConversationModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="search-users">
+        <input type="text" class="form-control" [(ngModel)]="userSearchQuery" (input)="searchUsers()"
+          placeholder="Rechercher un utilisateur...">
+      </div>
+      <div class="users-list">
+        <div *ngIf="filteredUsers.length === 0" class="no-users">
+          <p>Aucun utilisateur trouvé</p>
+        </div>
+        <div *ngFor="let user of filteredUsers" class="user-item" (click)="startConversationWith(user)">
+          <div class="user-avatar">
+            <img [src]="getProfilePictureUrl(user.profilePicture, getUserFullName(user))" alt="Avatar">
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{ getUserFullName(user) }}</div>
+            <div class="user-email">{{ user.email }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

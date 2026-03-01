@@ -1,0 +1,87 @@
+/* Admin Layout Responsive Styles */
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Main Panel Responsive */
+.main-panel {
+  transition: all 0.3s ease;
+  overflow-x: hidden;
+}
+
+@media (max-width: 991px) {
+  .main-panel {
+    width: 100% !important;
+    float: none !important;
+    padding-top: 60px; /* Account for fixed navbar */
+  }
+  
+  .wrapper {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-panel {
+    padding-top: 55px;
+    
+    .content {
+      padding: 10px;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .main-panel {
+    padding-top: 50px;
+    
+    .content {
+      padding: 5px;
+    }
+  }
+}
+
+/* Close Layer for Mobile Sidebar */
+.close-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1031;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Navigation Open State */
+.nav-open {
+  .main-panel {
+    transform: translateX(-260px);
+    
+    @media (max-width: 768px) {
+      transform: translateX(-240px);
+    }
+    
+    @media (max-width: 576px) {
+      transform: translateX(-220px);
+    }
+  }
+  
+  .sidebar-wrapper {
+    transform: translateX(0) !important;
+  }
+  
+  .close-layer {
+    opacity: 1;
+    visibility: visible;
+  }
+}

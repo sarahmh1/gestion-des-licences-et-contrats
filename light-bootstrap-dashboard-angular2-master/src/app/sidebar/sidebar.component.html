@@ -1,0 +1,42 @@
+<div class="sidebar-wrapper">
+    
+    <!-- Logo -->
+    <div class="logo">
+        <div class="logo-img">
+            <img src="/assets/img/xx.png" alt="Logo GI"/>
+        </div>
+    </div>
+
+    <!-- Menu principal - même contenu pour desktop et mobile -->
+    <ul class="nav responsive-nav">
+        <ng-container *ngFor="let menuItem of menuItems">
+            <!-- Menu sans sous-menu -->
+            <li routerLinkActive="active" *ngIf="!menuItem.children" class="{{menuItem.class}}">
+                <a [routerLink]="[menuItem.path]">
+                    <i class="{{menuItem.icon}}"></i>
+                    <p>{{menuItem.title}}</p>
+                </a>
+            </li>
+            <!-- Menu avec sous-menu -->
+            <li *ngIf="menuItem.children" class="{{menuItem.class}} has-submenu" [class.open]="menuItem.isOpen" routerLinkActive="active">
+                <a class="parent-menu">
+                    <a [routerLink]="[menuItem.path]" class="menu-link">
+                        <i class="{{menuItem.icon}}"></i>
+                        <p>{{menuItem.title}}</p>
+                    </a>
+                    <span class="submenu-toggle" (click)="toggleSubmenu(menuItem)">
+                        <i class="fa fa-chevron-down arrow-icon"></i>
+                    </span>
+                </a>
+                <ul class="submenu" *ngIf="menuItem.isOpen">
+                    <li routerLinkActive="active" *ngFor="let child of menuItem.children">
+                        <a [routerLink]="[child.path]">
+                            <i class="{{child.icon}}"></i>
+                            <p>{{child.title}}</p>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ng-container>
+    </ul>
+</div>

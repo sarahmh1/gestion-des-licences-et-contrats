@@ -1,0 +1,650 @@
+/* ==================== RESPONSIVE FIXES FOR ALL COMPONENTS ==================== */
+
+/* ==================== CRITICAL: DISABLE ALL PSEUDO ELEMENTS THAT HIDE SIDEBAR CONTENT ==================== */
+.sidebar::before,
+.sidebar::after,
+.bootstrap-navbar::before,
+.bootstrap-navbar::after {
+  display: none !important;
+  content: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* ==================== FORCE SIDEBAR BLUE BACKGROUND ==================== */
+/* Supprimer complètement l'image de fond de la sidebar */
+.sidebar-background {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.sidebar,
+.bootstrap-navbar {
+  background: linear-gradient(180deg, #1a204c 0%, #2a3060 100%) !important;
+  background-image: none !important;
+  background-color: #1a204c !important;
+}
+
+/* Force sidebar-wrapper to be visible with content */
+.sidebar .sidebar-wrapper,
+.sidebar-wrapper {
+  background: transparent !important;
+  position: relative !important;
+  z-index: 10 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+}
+
+/* Force logo visibility */
+.sidebar .sidebar-wrapper .logo,
+.sidebar-wrapper .logo,
+.sidebar .logo {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 11 !important;
+  position: relative !important;
+}
+
+/* Force nav visibility */
+.sidebar .sidebar-wrapper .nav,
+.sidebar-wrapper .nav,
+.sidebar-wrapper .nav.responsive-nav,
+.sidebar .nav {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 11 !important;
+  position: relative !important;
+}
+
+.sidebar-wrapper .nav li,
+.sidebar-wrapper .nav.responsive-nav li,
+.sidebar .nav li {
+  display: block !important;
+  visibility: visible !important;
+}
+
+.sidebar-wrapper .nav li a,
+.sidebar-wrapper .nav.responsive-nav li a,
+.sidebar .nav li a {
+  display: flex !important;
+  visibility: visible !important;
+  color: #fff !important;
+}
+
+.sidebar-wrapper .nav li a i,
+.sidebar .nav li a i {
+  color: #f36e24 !important;
+}
+
+.sidebar-wrapper .nav li a p,
+.sidebar .nav li a p {
+  color: #fff !important;
+}
+
+/* ==================== SIDEBAR MOBILE FIX ==================== */
+/* Cacher les éléments du menu mobile non utilisés */
+.nav-mobile-menu {
+  display: none !important;
+}
+
+/* Sidebar sur mobile - à gauche, pas à droite */
+@media (max-width: 991px) {
+  .sidebar,
+  .bootstrap-navbar {
+    left: 0 !important;
+    right: auto !important;
+    transform: translateX(-260px) !important;
+    background: linear-gradient(180deg, #1a204c 0%, #2a3060 100%) !important;
+    background-image: none !important;
+    width: 260px !important;
+  }
+  
+  .sidebar .sidebar-wrapper {
+    width: 260px !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+  }
+  
+  .nav-open .sidebar,
+  .nav-open .bootstrap-navbar {
+    transform: translateX(0) !important;
+  }
+  
+  .nav-open .main-panel {
+    transform: translateX(260px) !important;
+  }
+  
+  .nav-open .close-layer {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Main panel prend toute la largeur */
+  .main-panel {
+    width: 100% !important;
+    float: none !important;
+  }
+}
+
+/* Container Responsive */
+@media (max-width: 1200px) {
+  .container {
+    width: 100% !important;
+    padding: 12px !important;
+  }
+  
+  .table thead th,
+  .table tbody td {
+    padding: 10px 12px !important;
+    font-size: 0.95rem !important;
+  }
+  
+  .licence-block {
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .container {
+    padding: 10px !important;
+  }
+
+  .table-responsive {
+    max-height: calc(100vh - 200px) !important;
+  }
+
+  /* Hide less important columns */
+  .table thead th:nth-child(7),
+  .table thead th:nth-child(8),
+  .table thead th:nth-child(9),
+  .table tbody td:nth-child(7),
+  .table tbody td:nth-child(8),
+  .table tbody td:nth-child(9) {
+    display: none !important;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 8px 10px !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Sidebar adjustments */
+  .sidebar-wrapper {
+    width: 260px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 8px !important;
+    border-radius: 5px !important;
+    margin: 5px !important;
+  }
+
+  /* Header row responsive */
+  .header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  
+  .action-group {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  
+  .search-box {
+    width: 100% !important;
+  }
+
+  .search-box .form-control {
+    font-size: 0.9rem !important;
+    padding: 8px 12px !important;
+  }
+  
+  h2, .header-row h2 {
+    font-size: 1.4rem !important;
+    text-align: center !important;
+  }
+  
+  .table thead th,
+  .table tbody td {
+    padding: 6px 8px !important;
+    font-size: 0.85rem !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
+
+  /* Hide more columns on mobile */
+  .table thead th:nth-child(4),
+  .table thead th:nth-child(5),
+  .table thead th:nth-child(6),
+  .table thead th:nth-child(10),
+  .table thead th:nth-child(11),
+  .table tbody td:nth-child(4),
+  .table tbody td:nth-child(5),
+  .table tbody td:nth-child(6),
+  .table tbody td:nth-child(10),
+  .table tbody td:nth-child(11) {
+    display: none !important;
+  }
+  
+  .btn-sm {
+    padding: 5px 8px !important;
+    font-size: 0.85rem !important;
+  }
+  
+  .licence-block {
+    flex-direction: column !important;
+    gap: 0.3rem !important;
+    align-items: flex-start !important;
+    font-size: 0.8rem !important;
+    padding: 5px 0 !important;
+  }
+
+  .licence-block div {
+    min-width: auto !important;
+  }
+
+  .action-button {
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Form responsive */
+  .form-group {
+    margin-bottom: 12px !important;
+  }
+
+  .form-control {
+    font-size: 0.9rem !important;
+    padding: 10px !important;
+  }
+
+  .row > [class*="col-"] {
+    margin-bottom: 10px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 5px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  h2, .header-row h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 5px 4px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* On very small screens, show only essential columns */
+  .table thead th:nth-child(n+3):not(:last-child),
+  .table tbody td:nth-child(n+3):not(:last-child) {
+    display: none !important;
+  }
+
+  /* Always show actions column */
+  .table thead th:last-child,
+  .table tbody td:last-child {
+    display: table-cell !important;
+  }
+
+  .d-flex.flex-column.gap-1 {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
+  .d-flex.flex-column.gap-1 .btn {
+    flex: 0 0 auto !important;
+    padding: 4px 6px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  body {
+    padding-top: 55px !important;
+  }
+
+  .table-responsive {
+    max-height: calc(100vh - 180px) !important;
+    border-radius: 5px !important;
+  }
+
+  /* Compact pagination */
+  .text-center button,
+  .text-center .btn {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+    margin: 2px !important;
+  }
+
+  /* Forms on small screens */
+  .col-md-3, .col-md-4, .col-md-6, .col-md-12,
+  .col-sm-3, .col-sm-4, .col-sm-6 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
+
+  /* Stack form buttons */
+  .form-group .btn {
+    width: 100% !important;
+    margin-top: 5px !important;
+  }
+}
+
+/* ==================== SIDEBAR RESPONSIVE ==================== */
+@media (max-width: 991px) {
+  .sidebar,
+  .sidebar-wrapper {
+    position: fixed !important;
+    z-index: 1032 !important;
+  }
+
+  .sidebar .nav.responsive-nav li a {
+    padding: 12px 15px !important;
+  }
+
+  .sidebar .nav.responsive-nav li a i {
+    font-size: 1.1rem !important;
+    margin-right: 10px !important;
+  }
+
+  .sidebar .nav.responsive-nav li a p {
+    font-size: 0.9rem !important;
+  }
+
+  .sidebar .logo {
+    padding: 20px 15px !important;
+  }
+
+  .sidebar .logo-img img {
+    width: 140px !important;
+  }
+}
+
+/* ==================== NAVBAR RESPONSIVE ==================== */
+@media (max-width: 991px) {
+  .navbar {
+    min-height: 55px !important;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem !important;
+    padding: 15px 10px !important;
+  }
+
+  .navbar-toggle {
+    display: block !important;
+    margin: 10px 15px !important;
+    padding: 8px !important;
+  }
+
+  .navbar-toggle .icon-bar {
+    background-color: #f36e24 !important;
+    width: 22px !important;
+    height: 2px !important;
+  }
+
+  .navbar-collapse {
+    display: none !important;
+  }
+}
+
+/* ==================== FORM PAGES RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  /* Add/Update forms */
+  .container.mt-5 {
+    margin-top: 15px !important;
+    padding: 15px !important;
+  }
+
+  .container.mt-5 h2 {
+    font-size: 1.3rem !important;
+    margin-bottom: 15px !important;
+  }
+
+  /* Licence rows in forms */
+  .row.align-items-end {
+    flex-direction: column !important;
+  }
+
+  .row.align-items-end > [class*="col-"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* File input */
+  input[type="file"] {
+    font-size: 0.85rem !important;
+    padding: 8px !important;
+  }
+
+  /* CC Mail section */
+  .d-flex.mb-2 {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .d-flex.mb-2 .form-control {
+    width: 100% !important;
+  }
+
+  .d-flex.mb-2 .btn {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .container.mt-5 {
+    margin-top: 10px !important;
+    padding: 10px !important;
+  }
+
+  .container.mt-5 h2 {
+    font-size: 1.1rem !important;
+  }
+
+  .form-label {
+    font-size: 0.85rem !important;
+  }
+
+  textarea.form-control {
+    min-height: 80px !important;
+  }
+}
+
+/* ==================== BUTTONS RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-danger,
+  .btn-info {
+    font-size: 0.9rem !important;
+    padding: 8px 15px !important;
+  }
+
+  /* Form submit buttons */
+  button[type="submit"],
+  button[type="button"] {
+    min-width: 100px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-danger,
+  .btn-info {
+    font-size: 0.85rem !important;
+    padding: 6px 12px !important;
+  }
+
+  /* Stack form buttons on mobile */
+  .container.mt-5 button[type="submit"],
+  .container.mt-5 button[type="button"] {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+}
+
+/* ==================== DROPDOWN MENU RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    max-width: 100% !important;
+    font-size: 0.9rem !important;
+  }
+
+  .dropdown-item {
+    padding: 8px 15px !important;
+  }
+}
+
+/* ==================== MODAL RESPONSIVE ==================== */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 10px !important;
+    max-width: calc(100% - 20px) !important;
+  }
+
+  .modal-header {
+    padding: 10px 15px !important;
+  }
+
+  .modal-body {
+    padding: 15px !important;
+  }
+
+  .modal-footer {
+    padding: 10px 15px !important;
+    flex-direction: column !important;
+  }
+
+  .modal-footer .btn {
+    width: 100% !important;
+    margin: 5px 0 !important;
+  }
+}
+
+/* ==================== SCROLLBAR STYLING ==================== */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #f36e24;
+  border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #e55d1a;
+}
+
+/* ==================== TOUCH DEVICES ==================== */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .btn, button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  .btn-sm {
+    min-height: 36px !important;
+    min-width: 36px !important;
+  }
+
+  /* Better spacing for touch */
+  .table tbody tr {
+    border-bottom: 2px solid #ddd !important;
+  }
+
+  .table tbody td {
+    padding: 10px 8px !important;
+  }
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+  .sidebar,
+  .navbar,
+  .btn,
+  .action-group,
+  .action-button,
+  .close-layer,
+  .navbar-toggle {
+    display: none !important;
+  }
+
+  .main-panel {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .table {
+    font-size: 10pt !important;
+  }
+
+  .table thead th,
+  .table tbody td {
+    display: table-cell !important;
+    padding: 5px !important;
+  }
+}
+
+/* ==================== LANDSCAPE ORIENTATION ==================== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sidebar-wrapper {
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+  }
+
+  .nav.responsive-nav li a {
+    padding: 8px 15px !important;
+  }
+
+  .container {
+    max-height: calc(100vh - 60px) !important;
+    overflow-y: auto !important;
+  }
+
+  .table-responsive {
+    max-height: calc(100vh - 150px) !important;
+  }
+}

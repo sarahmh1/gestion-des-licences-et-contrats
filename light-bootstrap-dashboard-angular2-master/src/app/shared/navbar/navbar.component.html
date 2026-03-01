@@ -1,0 +1,294 @@
+<nav class="navbar navbar-default" style="background-color: #1a204c; color: white;">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" (click)="sidebarToggle()">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar" style="background-color: white;"></span>
+        <span class="icon-bar" style="background-color: white;"></span>
+        <span class="icon-bar" style="background-color: white;"></span>
+      </button>
+      <span class="navbar-brand" href="#" style="color: #f36e24;">{{ getTitle() }}</span>
+    </div>
+
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav navbar-right">
+        <!-- Notification Icon -->
+        <li class="nav-icon-item notif-icon-wrapper">
+          <a (click)="toggleNotifPanel(); $event.preventDefault()" title="Notifications" href="#">
+            <i class="fas fa-bell"></i>
+            <span class="notif-badge" *ngIf="unreadNotifCount > 0">{{ unreadNotifCount }}</span>
+          </a>
+
+          <!-- Notification Dropdown Panel -->
+          <div class="notif-panel" *ngIf="showNotifPanel">
+            <div class="notif-panel-header">
+              <span class="notif-panel-title">Notifications</span>
+              <button class="notif-mark-all" (click)="markAllNotifsRead()" *ngIf="unreadNotifCount > 0">
+                Tout marquer lu
+              </button>
+            </div>
+            <div class="notif-panel-body">
+              <div *ngIf="notifications.length === 0" class="notif-empty">
+                Aucune notification
+              </div>
+              <div *ngFor="let notif of notifications" class="notif-item" [class.notif-unread]="!notif.read"
+                (click)="markNotifRead(notif)">
+                <div class="notif-message">{{ notif.message }}</div>
+                <div class="notif-time">{{ getTimeAgo(notif.createdAt) }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="notif-backdrop" *ngIf="showNotifPanel" (click)="showNotifPanel = false"></div>
+        </li>
+
+        <!-- Calendar Icon -->
+        <li class="nav-icon-item cal-icon-wrapper">
+          <a (click)="toggleCalendarModal(); $event.preventDefault()" title="Calendrier" href="#">
+            <i class="fas fa-calendar-alt"></i>
+          </a>
+
+          <!-- Calendar Dropdown Panel -->
+          <div class="cal-panel" *ngIf="showCalendarModal">
+            <div class="cal-panel-header">
+              <button class="cal-panel-nav" (click)="prevCalMonth(); $event.stopPropagation()">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span class="cal-panel-title">{{ getCalMonthLabel() }}</span>
+              <button class="cal-panel-nav" (click)="nextCalMonth(); $event.stopPropagation()">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- Weekday Headers -->
+            <div class="cal-grid-header">
+              <div *ngFor="let wd of calWeekDays" class="cal-wd">{{ wd }}</div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="cal-grid">
+              <div *ngFor="let week of calWeeks" class="cal-week">
+                <div *ngFor="let day of week" class="cal-day" [class.cal-day-empty]="!day"
+                  [class.cal-day-today]="day?.isToday"
+                  [class.cal-day-selected]="day && selectedCalDay?.dateStr === day.dateStr"
+                  [class.cal-day-has-events]="day?.dots?.length > 0"
+                  (click)="day && selectCalDay(day); $event.stopPropagation()">
+                  <span class="cal-day-num" *ngIf="day">{{ day.dayNum }}</span>
+                  <div class="cal-dots" *ngIf="day?.dots?.length > 0">
+                    <span *ngFor="let color of day.dots" class="cal-dot" [style.background]="color"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="cal-panel-legend">
+              <span class="cal-leg"><span class="cal-leg-dot" style="background:#dc3545;"></span> Recomm.</span>
+              <span class="cal-leg"><span class="cal-leg-dot" style="background:#fd7e14;"></span> Interv.</span>
+              <span class="cal-leg"><span class="cal-leg-dot" style="background:#28a745;"></span> Termin&#233;e</span>
+            </div>
+
+            <!-- Selected Day Events -->
+            <div class="cal-day-events" *ngIf="selectedCalDay">
+              <div class="cal-day-events-header">
+                {{ selectedCalDay.dayNum }} {{ getCalMonthLabel() }}
+              </div>
+              <div *ngIf="selectedDayEvents.length === 0" class="cal-no-events">
+                Aucune intervention ce jour
+              </div>
+              <div *ngFor="let ev of selectedDayEvents" class="cal-event-item" [style.border-left-color]="ev.color"
+                (click)="goToIntervention(ev)" style="cursor: pointer;">
+                <div class="cal-ev-title">{{ ev.title }}</div>
+                <div class="cal-ev-client">{{ ev.client }}</div>
+                <div class="cal-ev-dates">
+                  <i class="far fa-clock"></i>
+                  {{ ev.start || '&#8212;' }} &#8594; {{ ev.end || '&#8212;' }}
+                </div>
+                <span class="cal-ev-status" [class.cal-st-done]="ev.done" [class.cal-st-pending]="!ev.done">
+                  {{ ev.done ? 'Termin&#233;e' : 'En attente' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="cal-backdrop" *ngIf="showCalendarModal" (click)="showCalendarModal = false"></div>
+        </li>
+
+        <!-- Message Icon -->
+        <li class="nav-icon-item msg-icon-wrapper">
+          <a (click)="toggleMessagingPanel(); $event.preventDefault()" title="Messages" href="#">
+            <i class="fas fa-envelope"></i>
+            <span class="msg-badge" *ngIf="unreadTotal > 0">{{ unreadTotal }}</span>
+          </a>
+        </li>
+
+        <!-- User Dropdown -->
+        <li class="user-dropdown-wrapper">
+          <div class="user-dropdown-trigger" (click)="toggleDropdown()">
+            <img *ngIf="userProfilePic" [src]="userProfilePic" class="user-avatar-img" alt="avatar" />
+            <i *ngIf="!userProfilePic" class="fas fa-user-circle user-avatar-icon"></i>
+            <span class="user-name">{{ userName }}</span>
+            <i class="fas fa-chevron-down dropdown-arrow" [class.open]="showDropdown"></i>
+          </div>
+          <div class="user-dropdown-menu" *ngIf="showDropdown">
+            <button class="dropdown-item" (click)="goToProfile()">
+              <i class="fas fa-user"></i> Profile
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout-item" (click)="logout()">
+              <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+          </div>
+          <div class="dropdown-backdrop" *ngIf="showDropdown" (click)="closeDropdown()"></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Messaging Panel Dropdown -->
+<div class="msg-panel-backdrop" *ngIf="showMessagingPanel" (click)="closeMessagingPanel()"></div>
+<div class="msg-panel" *ngIf="showMessagingPanel">
+
+  <!-- Conversations List View -->
+  <div class="msg-convos-view" *ngIf="messagingView === 'conversations'">
+    <div class="msg-panel-header">
+      <span class="msg-panel-title">Messages</span>
+      <button class="msg-new-btn" (click)="showNewMessage()" title="Nouveau message">
+        <i class="fas fa-plus"></i>
+      </button>
+      <button class="msg-close-btn" (click)="closeMessagingPanel()">&times;</button>
+    </div>
+    <div class="msg-convo-list">
+      <div *ngFor="let conv of conversations" class="msg-convo-item" (click)="selectConversation(conv)">
+        <img [src]="getProfilePictureUrl(conv.otherUserProfilePicture, conv.otherUserName)" class="msg-user-avatar"
+          alt="avatar" />
+        <div class="msg-convo-info">
+          <div class="msg-convo-top">
+            <span class="msg-user-name">{{ conv.otherUserName }}</span>
+            <span class="msg-convo-unread" *ngIf="conv.unreadCount && conv.unreadCount > 0">{{ conv.unreadCount
+              }}</span>
+            <span class="msg-convo-time" *ngIf="conv.lastMessageTime">{{ getTimeAgo(conv.lastMessageTime) }}</span>
+          </div>
+          <div class="msg-convo-bottom">
+            <span class="msg-convo-last">{{ conv.lastMessage || 'Aucun message' }}</span>
+          </div>
+        </div>
+        <button class="msg-delete-btn" (click)="deleteConversation(conv); $event.stopPropagation()" title="Supprimer">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+      <div *ngIf="conversations.length === 0" class="msg-no-users">
+        Aucune conversation
+      </div>
+    </div>
+  </div>
+
+  <!-- Users List View -->
+  <div class="msg-users-view" *ngIf="messagingView === 'users'">
+    <div class="msg-panel-header">
+      <button class="msg-back-btn" (click)="messagingView = 'conversations'">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <span class="msg-panel-title">Nouveau message</span>
+      <button class="msg-close-btn" (click)="closeMessagingPanel()">&times;</button>
+    </div>
+    <div class="msg-search-box">
+      <input type="text" [(ngModel)]="userSearchQuery" (input)="searchUsers()" placeholder="Rechercher..."
+        class="msg-search-input" />
+      <i class="fas fa-search msg-search-icon"></i>
+    </div>
+    <div class="msg-user-list">
+      <div *ngFor="let user of filteredUsers" class="msg-user-item" (click)="selectUser(user)">
+        <img [src]="getProfilePictureUrl(user.profilePicture, getUserFullName(user))" class="msg-user-avatar"
+          alt="avatar" />
+        <div class="msg-user-info">
+          <span class="msg-user-name">{{ getUserFullName(user) }}</span>
+        </div>
+        <span class="msg-online-dot"></span>
+      </div>
+      <div *ngIf="filteredUsers.length === 0" class="msg-no-users">
+        Aucun utilisateur trouvé
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat View -->
+  <div class="msg-chat-view" *ngIf="messagingView === 'chat' && selectedChatUser">
+    <div class="msg-chat-header">
+      <button class="msg-back-btn" (click)="backToConversations()">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <img [src]="getProfilePictureUrl(selectedChatUser.profilePicture, getUserFullName(selectedChatUser))"
+        class="msg-chat-avatar" alt="avatar" />
+      <span class="msg-chat-name">{{ getUserFullName(selectedChatUser) }}</span>
+    </div>
+
+    <div class="msg-chat-messages">
+      <div *ngIf="messages.length === 0" class="msg-no-messages">
+        <p>Envoyez le premier message !</p>
+      </div>
+      <div *ngFor="let msg of messages" class="msg-bubble-wrapper" [class.sent]="msg.senderId === currentUserId"
+        [class.received]="msg.senderId !== currentUserId">
+
+        <img *ngIf="msg.senderId !== currentUserId"
+          [src]="getProfilePictureUrl(selectedChatUser.profilePicture, getUserFullName(selectedChatUser))"
+          class="msg-bubble-avatar" alt="" />
+
+        <div class="msg-bubble" [class.msg-bubble-sent]="msg.senderId === currentUserId"
+          [class.msg-bubble-received]="msg.senderId !== currentUserId">
+          <!-- Image attachment -->
+          <div *ngIf="msg.fileName && isImage(msg.fileType)" class="msg-attachment-img">
+            <img [src]="getFileDownloadUrl(msg.filePath)" [alt]="msg.originalFileName" />
+          </div>
+          <!-- Audio attachment -->
+          <div *ngIf="msg.fileName && isAudio(msg.fileType)" class="msg-attachment-audio">
+            <audio controls [src]="getFileDownloadUrl(msg.filePath)"></audio>
+          </div>
+          <!-- Other file attachment -->
+          <div *ngIf="msg.fileName && !isImage(msg.fileType) && !isAudio(msg.fileType)" class="msg-attachment-file">
+            <i class="fas fa-file"></i>
+            <span class="msg-file-name">{{ msg.originalFileName }}</span>
+            <a [href]="getFileDownloadUrl(msg.filePath)" download class="msg-download-btn">
+              <i class="fas fa-download"></i>
+            </a>
+          </div>
+          <!-- Text content -->
+          <div *ngIf="msg.content" class="msg-text">{{ msg.content }}</div>
+          <div class="msg-time">{{ formatTime(msg.timestamp!) }}</div>
+          <button class="msg-delete-msg-btn" (click)="deleteMessage(msg)" title="Supprimer">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+
+        <img *ngIf="msg.senderId === currentUserId && userProfilePic" [src]="userProfilePic" class="msg-bubble-avatar"
+          alt="" />
+        <i *ngIf="msg.senderId === currentUserId && !userProfilePic"
+          class="fas fa-user-circle msg-bubble-avatar-icon"></i>
+      </div>
+    </div>
+
+    <!-- Typing indicator -->
+    <div *ngIf="isTyping" class="msg-typing">
+      En train d'écrire...
+    </div>
+
+    <!-- Selected file preview -->
+    <div *ngIf="selectedFile" class="msg-file-preview">
+      <i class="fas fa-paperclip"></i>
+      <span class="msg-file-preview-name">{{ selectedFile.name }}</span>
+      <button class="msg-file-remove" (click)="removeSelectedFile()">&times;</button>
+    </div>
+
+    <!-- Input -->
+    <div class="msg-chat-input">
+      <input type="file" id="msgFileInput" (change)="onFileSelected($event)" style="display: none;" />
+      <button class="msg-attach-btn" (click)="triggerFileInput()" title="Joindre un fichier">
+        <i class="fas fa-paperclip"></i>
+      </button>
+      <input type="text" [(ngModel)]="newMessage" (keyup.enter)="selectedFile ? sendFile() : sendMessage()"
+        (input)="onTyping()" placeholder="Écrire un message..." class="msg-input" />
+      <button class="msg-send-btn" (click)="selectedFile ? sendFile() : sendMessage()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+</div>

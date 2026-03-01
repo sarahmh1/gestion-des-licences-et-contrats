@@ -1,0 +1,265 @@
+<div class="container" style="margin-top: 20px;">
+  
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center" style="padding: 50px;">
+    <i class="glyphicon glyphicon-refresh gly-spin" style="font-size: 40px;"></i>
+    <p>Chargement de votre profil...</p>
+    <p class="text-muted"><small>Connexion au serveur</small></p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage && !loading" class="alert alert-danger">
+    <i class="glyphicon glyphicon-exclamation-sign"></i>
+    <strong>Erreur :</strong> {{ errorMessage }}
+    
+    <div style="margin-top: 15px;">
+      <button *ngIf="errorMessage.includes('connecté')" class="btn btn-primary" (click)="login()">
+        <i class="glyphicon glyphicon-log-in"></i> Se connecter
+      </button>
+      
+      <button *ngIf="errorMessage.includes('Serveur') || errorMessage.includes('Service')" 
+              class="btn btn-info" (click)="loadCurrentUser()" style="margin-left: 10px;">
+        <i class="glyphicon glyphicon-refresh"></i> Réessayer
+      </button>
+      
+      <button class="btn btn-warning" (click)="reloadPage()" style="margin-left: 10px;">
+        <i class="glyphicon glyphicon-repeat"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div *ngIf="!loading && !errorMessage && currentUser">
+    
+    <div class="row">
+      <div class="col-md-12">
+        <div class="page-header">
+          <h2><i class="glyphicon glyphicon-user"></i> Mon Profil</h2>
+          <div class="btn-group">
+            <button class="btn btn-default" routerLink="/users">
+              <i class="glyphicon glyphicon-arrow-left"></i> Retour
+            </button>
+            <button class="btn btn-warning" (click)="logout()" style="margin-left: 10px;">
+              <i class="glyphicon glyphicon-log-out"></i> Déconnexion
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4">
+        <!-- Photo de profil -->
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">Photo de profil</h4>
+          </div>
+          <div class="panel-body text-center">
+            <label for="profilePicture" style="cursor: pointer;">
+              <img [src]="profileImageUrl" 
+                   class="img-circle" 
+                   style="width: 200px; height: 200px; object-fit: cover; border: 4px solid #ddd;"
+                   alt="Photo de profil"
+                   (error)="profileImageUrl = 'assets/img/avatar.png'">
+              <div class="text-muted" style="margin-top: 15px;">
+                <i class="glyphicon glyphicon-camera"></i> Cliquer pour changer la photo
+              </div>
+            </label>
+            <input type="file" id="profilePicture" 
+                   (change)="onFileSelected($event)"
+                   accept="image/*" 
+                   style="display: none;">
+            
+            <!-- Progress bar -->
+            <div *ngIf="uploading" class="progress" style="margin-top: 15px;">
+              <div class="progress-bar progress-bar-striped active" 
+                   [style.width]="uploadProgress + '%'">
+                {{ uploadProgress }}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info compte -->
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            <h4 class="panel-title">Informations du compte</h4>
+          </div>
+          <div class="panel-body">
+            <p><strong>Email :</strong> {{ currentUser.email }}</p>
+            <p><strong>Rôle :</strong> {{ getRoleDisplayName(currentUser.role) }}</p>
+            <p><strong>Statut :</strong> 
+              <span [class.text-success]="currentUser.verified" 
+                    [class.text-danger]="!currentUser.verified">
+                {{ currentUser.verified ? 'Activé' : 'Désactivé' }}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <!-- Formulaire -->
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">Informations personnelles</h3>
+          </div>
+          <div class="panel-body">
+            <form [formGroup]="profileForm">
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Prénom *</label>
+                    <input type="text" class="form-control" formControlName="firstname"
+                           [class.is-invalid]="profileForm.get('firstname')?.invalid && profileForm.get('firstname')?.touched">
+                    <div *ngIf="profileForm.get('firstname')?.invalid && profileForm.get('firstname')?.touched" 
+                         class="invalid-feedback">
+                      Le prénom est requis (min. 2 caractères)
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Nom *</label>
+                    <input type="text" class="form-control" formControlName="lastname"
+                           [class.is-invalid]="profileForm.get('lastname')?.invalid && profileForm.get('lastname')?.touched">
+                    <div *ngIf="profileForm.get('lastname')?.invalid && profileForm.get('lastname')?.touched" 
+                         class="invalid-feedback">
+                      Le nom est requis (min. 2 caractères)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Date de naissance *</label>
+                    <input type="date" class="form-control" formControlName="dateOfBirth"
+                           [class.is-invalid]="profileForm.get('dateOfBirth')?.invalid && profileForm.get('dateOfBirth')?.touched">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Sexe *</label>
+                    <select class="form-control" formControlName="sex"
+                           [class.is-invalid]="profileForm.get('sex')?.invalid && profileForm.get('sex')?.touched">
+                      <option value="">Sélectionner</option>
+                      <option value="MALE">Masculin</option>
+                      <option value="FEMALE">Féminin</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Numéro de téléphone *</label>
+                    <input type="text" class="form-control" formControlName="phoneNumber"
+                           [class.is-invalid]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+                    <div *ngIf="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched" 
+                         class="invalid-feedback">
+                      Numéro de téléphone invalide (8-15 chiffres)
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" [value]="currentUser.email" readonly
+                           style="background-color: #f8f9fa;">
+                  </div>
+                </div>
+              </div>
+
+            </form>
+
+            <!-- Section Changement de mot de passe -->
+            <hr style="margin: 25px 0; border-top: 2px solid #f0ad4e;">
+            <h4 style="color: #f0ad4e; margin-bottom: 20px;">
+              <i class="glyphicon glyphicon-lock"></i> Changer le mot de passe
+            </h4>
+            
+            <form [formGroup]="passwordForm">
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>Mot de passe actuel *</label>
+                    <input type="password" class="form-control" formControlName="currentPassword"
+                           placeholder="Mot de passe actuel"
+                           [class.is-invalid]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
+                    <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched" 
+                         class="invalid-feedback">
+                      Requis
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>Nouveau mot de passe *</label>
+                    <input type="password" class="form-control" formControlName="newPassword"
+                           placeholder="Nouveau mot de passe"
+                           [class.is-invalid]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+                    <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" 
+                         class="invalid-feedback">
+                      Min. 6 caractères
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label>Confirmer le mot de passe *</label>
+                    <input type="password" class="form-control" formControlName="confirmPassword"
+                           placeholder="Confirmer"
+                           [class.is-invalid]="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched">
+                    <div *ngIf="passwordForm.hasError('passwordMismatch') && passwordForm.get('confirmPassword')?.touched" 
+                         class="invalid-feedback">
+                      Non identiques
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="passwordChangeMessage" 
+                   class="alert"
+                   [class.alert-success]="passwordChangeSuccess"
+                   [class.alert-danger]="!passwordChangeSuccess"
+                   style="margin-top: 10px; padding: 12px; border-radius: 5px;">
+                <i [class.glyphicon]="true" 
+                   [class.glyphicon-ok-circle]="passwordChangeSuccess"
+                   [class.glyphicon-exclamation-sign]="!passwordChangeSuccess"
+                   style="margin-right: 8px;"></i>
+                <strong>{{ passwordChangeSuccess ? 'Succès !' : 'Erreur !' }}</strong>
+                {{ passwordChangeMessage }}
+              </div>
+
+              <div style="margin-top: 15px;">
+                <button type="button" class="btn btn-warning" (click)="changePassword()" 
+                        [disabled]="!passwordForm.valid || changingPassword">
+                  <i class="glyphicon glyphicon-lock"></i> 
+                  {{ changingPassword ? 'Changement en cours...' : 'Changer le mot de passe' }}
+                </button>
+                <button type="button" class="btn btn-default" (click)="resetPasswordForm()" style="margin-left: 10px;">
+                  <i class="glyphicon glyphicon-refresh"></i> Réinitialiser
+                </button>
+              </div>
+            </form>
+
+          </div>
+          <div class="panel-footer">
+            <button type="button" class="btn btn-default" routerLink="/users">
+              <i class="glyphicon glyphicon-remove"></i> Annuler
+            </button>
+            <button type="button" class="btn btn-primary" (click)="updateProfile()" 
+                    [disabled]="!profileForm.valid || updating" style="margin-left: 10px;">
+              <i class="glyphicon glyphicon-floppy-disk"></i> 
+              {{ updating ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

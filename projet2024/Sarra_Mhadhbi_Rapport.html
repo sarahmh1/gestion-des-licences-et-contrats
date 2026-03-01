@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport Sarra Mhadhbi - Gestion Intégrée des Solutions de Sécurité Informatique</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 22px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-top: 40px;
+        }
+        
+        h3 {
+            font-size: 18px;
+            color: #34495e;
+            margin-top: 25px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 30px 0;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin: 0 0 10px 0;
+            border: none;
+            padding: 0;
+        }
+        
+        .header .subtitle {
+            font-size: 18px;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        
+        .header-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .header-info div {
+            text-align: center;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin: 15px 0 15px 30px;
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .toc {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 30px 0;
+        }
+        
+        .toc h2 {
+            border: none;
+            padding: 0;
+            margin-top: 0;
+        }
+        
+        .toc ol {
+            margin-left: 30px;
+        }
+        
+        .toc li {
+            margin-bottom: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #ecf0f1;
+        }
+        
+        .box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 3px;
+        }
+        
+        .success {
+            background: #d5f4e6;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .code {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #3498db;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                max-width: 100%;
+                box-shadow: none;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>RAPPORT DE PROJET 2024</h1>
+            <p class="subtitle">Gestion Intégrée des Solutions de Sécurité Informatique</p>
+            <div class="header-info">
+                <div>
+                    <span>RÉALISÉ PAR :</span><br>
+                    <strong>Sarra Mhadhbi</strong>
+                </div>
+                <div>
+                    <span>ANNÉE :</span><br>
+                    <strong>2024</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table des matières -->
+        <div class="toc">
+            <h2>TABLE DES MATIÈRES</h2>
+            <ol>
+                <li>Introduction</li>
+                <li>Présentation de l'Entreprise</li>
+                <li>Description du Projet</li>
+                <li>Architecture Technique</li>
+                <li>Fonctionnalités Principales</li>
+                <li>Technologies Utilisées</li>
+                <li>Défis et Solutions</li>
+                <li>Résultats et Conclusion</li>
+            </ol>
+        </div>
+
+        <!-- 1. Introduction -->
+        <h2>1. INTRODUCTION</h2>
+        <p>La sécurité informatique est devenue un enjeu majeur pour toutes les organisations modernes. Face à la multiplicité des menaces et à la complexité croissante des environnements informatiques, les entreprises cherchent des solutions intégrées et performantes pour protéger leurs données et leurs systèmes.</p>
+        <p>Ce projet vise à développer une plateforme centralisée de gestion des solutions de sécurité informatique, permettant aux administrateurs de consolider et de superviser l'ensemble de leurs outils de protection dans une interface unique et intuitive.</p>
+
+        <!-- 2. Présentation de l'Entreprise -->
+        <h2>2. PRÉSENTATION DE L'ENTREPRISE</h2>
+        
+        <h3>Contexte Général</h3>
+        <p>La société Gérance Informatique est une entreprise spécialisée dans la fourniture de solutions informatiques et de services de gestion de sécurité. Elle accompagne les organisations dans leur transformation digitale en leur proposant des technologies innovantes et des expertises métier reconnues.</p>
+
+        <h3>Mission de l'Entreprise</h3>
+        <p>La mission de Gérance Informatique est d'assurer la continuité de service et la protection des actifs informatiques des entreprises. L'organisation met en place des stratégies globales de sécurité, d'infrastructure et de support technique pour permettre aux clients de se concentrer sur leur cœur de métier.</p>
+
+        <h3>Services Proposés</h3>
+        <ul>
+            <li>Gestion des solutions antivirus et antimalware</li>
+            <li>Intégration de solutions de sécurité tierces</li>
+            <li>Surveillance et alertes de sécurité</li>
+            <li>Gestion centralisée des licenses et des configurations</li>
+            <li>Support et assistance technique</li>
+        </ul>
+
+        <!-- 3. Description du Projet -->
+        <h2>3. DESCRIPTION DU PROJET</h2>
+        
+        <h3>Objectifs Généraux</h3>
+        <p>Le projet vise à créer une application web complète permettant :</p>
+        <ul>
+            <li><strong>La gestion centralisée</strong> de multiples solutions de sécurité informatique (Bitdefender, Kaspersky, F5, Fortinet, Cisco, etc.)</li>
+            <li><strong>Le monitoring en temps réel</strong> des statuts de protection des systèmes</li>
+            <li><strong>L'administration simplifiée</strong> des configurations de sécurité</li>
+            <li><strong>La génération de rapports</strong> sur l'état de sécurité globale</li>
+            <li><strong>La gestion des utilisateurs</strong> et des permissions d'accès</li>
+        </ul>
+
+        <h3>Objectifs Spécifiques</h3>
+        <ol>
+            <li>Centraliser les interfaces de gestion de 20+ solutions de sécurité</li>
+            <li>Fournir un tableau de bord unifié avec des indicateurs clés de sécurité</li>
+            <li>Automatiser les alertes et les notifications de sécurité</li>
+            <li>Permettre le déploiement et la mise à jour des solutions de sécurité</li>
+            <li>Générer des rapports conformes aux standards de sécurité (ISO 27001, NIST)</li>
+        </ol>
+
+        <!-- 4. Architecture Technique -->
+        <h2>4. ARCHITECTURE TECHNIQUE</h2>
+        
+        <h3>Stack Technologique</h3>
+        
+        <h3>Backend</h3>
+        <ul>
+            <li><strong>Framework :</strong> Spring Boot 3.2.2</li>
+            <li><strong>Langage :</strong> Java 17</li>
+            <li><strong>Base de Données :</strong> MySQL</li>
+            <li><strong>Sécurité :</strong> Spring Security avec JWT (JSON Web Tokens)</li>
+            <li><strong>API Documentation :</strong> Swagger/OpenAPI</li>
+        </ul>
+
+        <h3>Frontend</h3>
+        <ul>
+            <li><strong>Framework :</strong> Angular 14.2.0</li>
+            <li><strong>Template UI :</strong> Light Bootstrap Dashboard</li>
+            <li><strong>Style :</strong> SCSS et Bootstrap 3</li>
+            <li><strong>Graphiques :</strong> Chart.js et Chartist</li>
+        </ul>
+
+        <h3>Infrastructure</h3>
+        <ul>
+            <li><strong>Serveur :</strong> Port 8089</li>
+            <li><strong>Upload de fichiers :</strong> Support jusqu'à 10MB</li>
+            <li><strong>Authentification :</strong> JWT avec expiration 24h</li>
+            <li><strong>Email :</strong> Configuration SMTP (Gmail)</li>
+        </ul>
+
+        <h3>Architecture Globale</h3>
+        <div class="code">
+┌─────────────────────────────────────────────────────┐
+│           FRONT-END (Angular 14)                    │
+│    Light Bootstrap Dashboard Interface               │
+└──────────────────┬──────────────────────────────────┘
+                   │ REST API (JSON)
+                   │ JWT Authentication
+┌──────────────────▼──────────────────────────────────┐
+│         BACK-END (Spring Boot 3.2.2)                │
+│  - Controllers (API Endpoints)                       │
+│  - Services (Business Logic)                         │
+│  - Security Layer (JWT + Spring Security)            │
+│  - Email Service (SMTP)                              │
+│  - File Upload Management                            │
+└──────────────────┬──────────────────────────────────┘
+                   │ JDBC
+┌──────────────────▼──────────────────────────────────┐
+│      DATABASE (MySQL)                               │
+│  - Users & Permissions                              │
+│  - Configuration Solutions                          │
+│  - Audit Logs                                        │
+│  - Reports Data                                      │
+└─────────────────────────────────────────────────────┘
+        </div>
+
+        <!-- 5. Fonctionnalités Principales -->
+        <h2>5. FONCTIONNALITÉS PRINCIPALES</h2>
+        
+        <h3>5.1 Authentification et Gestion des Utilisateurs</h3>
+        <ul>
+            <li>Système d'authentification sécurisé avec JWT</li>
+            <li>Gestion des rôles et permissions (Admin, Manager, User)</li>
+            <li>Contrôle d'accès basé sur les rôles (RBAC)</li>
+            <li>Historique des connexions et des actions</li>
+        </ul>
+
+        <h3>5.2 Tableau de Bord Unifié</h3>
+        <ul>
+            <li>Vue d'ensemble de tous les systèmes de sécurité</li>
+            <li>Indicateurs de santé en temps réel</li>
+            <li>Alertes et notifications prioritaires</li>
+            <li>Graphiques de tendances et statistiques</li>
+        </ul>
+
+        <h3>5.3 Gestion des Solutions de Sécurité Intégrées</h3>
+        <p>L'application supporte l'intégration avec plus de 20 solutions incluant :</p>
+        
+        <p><strong>Antivirus et Antimalware :</strong></p>
+        <ul>
+            <li>Bitdefender</li>
+            <li>ESET</li>
+            <li>Kaspersky (via Alwarebytes)</li>
+        </ul>
+
+        <p><strong>Firewalls et Contrôle d'Accès :</strong></p>
+        <ul>
+            <li>Fortinet FortiGate</li>
+            <li>Cisco ASA</li>
+            <li>Palo Alto Networks</li>
+            <li>F5 Networks</li>
+        </ul>
+
+        <p><strong>Prévention des Menaces :</strong></p>
+        <ul>
+            <li>Crowdstrike Falcon</li>
+            <li>Rapid7 InsightIDR</li>
+            <li>Netskope</li>
+        </ul>
+
+        <p><strong>Sécurité Email :</strong></p>
+        <ul>
+            <li>Proofpoint</li>
+            <li>Microsoft Office 365 Security</li>
+        </ul>
+
+        <p><strong>Sécurité des Données :</strong></p>
+        <ul>
+            <li>Varonis Data Security Platform</li>
+            <li>Imperva Data Center Security</li>
+        </ul>
+
+        <p><strong>Infrastructure et Identité :</strong></p>
+        <ul>
+            <li>One Identity Solutions</li>
+            <li>InfoBlox (DNS/DHCP)</li>
+            <li>Cisco SecureX</li>
+        </ul>
+
+        <p><strong>Autres Solutions :</strong></p>
+        <ul>
+            <li>Splunk Security Monitoring</li>
+            <li>VMware NSX</li>
+            <li>Veeam Backup & Recovery</li>
+            <li>Wallix PAM</li>
+            <li>Fortra Secure Solutions</li>
+        </ul>
+
+        <h3>5.4 Gestion des Alertes</h3>
+        <ul>
+            <li>Configuration des règles d'alerte personnalisées</li>
+            <li>Escalade automatique des alertes critiques</li>
+            <li>Notification par email en temps réel</li>
+            <li>Historique complet des alertes</li>
+        </ul>
+
+        <h3>5.5 Gestion des Rapports</h3>
+        <ul>
+            <li>Génération de rapports personnalisés</li>
+            <li>Export en formats multiples (PDF, Excel)</li>
+            <li>Planification de rapports automatiques</li>
+            <li>Conformité avec les standards de sécurité</li>
+        </ul>
+
+        <h3>5.6 Gestion des Profils Utilisateur</h3>
+        <ul>
+            <li>Affichage et modification des informations de profil</li>
+            <li>Gestion des préférences de sécurité</li>
+            <li>Historique des activités de l'utilisateur</li>
+            <li>Gestion des appareils autorisés</li>
+        </ul>
+
+        <!-- 6. Technologies Utilisées -->
+        <h2>6. TECHNOLOGIES UTILISÉES</h2>
+        
+        <h3>Dépendances Principales</h3>
+        
+        <h3>Spring Boot</h3>
+        <ul>
+            <li><code>spring-boot-starter-web</code> : Support REST API</li>
+            <li><code>spring-boot-starter-security</code> : Gestion de la sécurité</li>
+            <li><code>spring-boot-starter-data-jpa</code> : Accès aux données</li>
+            <li><code>spring-boot-starter-mail</code> : Service de messagerie</li>
+        </ul>
+
+        <h3>Sécurité et JWT</h3>
+        <ul>
+            <li><code>jjwt</code> (JSON Web Token) v0.11.5</li>
+            <li>Spring Security avec JWT Bearer Token</li>
+        </ul>
+
+        <h3>Frontend</h3>
+        <ul>
+            <li><code>@angular/core</code> et <code>@angular/common</code></li>
+            <li><code>@angular/material</code> : Composants UI avancés</li>
+            <li><code>bootstrap</code> : Framework CSS</li>
+            <li><code>chart.js</code> : Graphiques</li>
+            <li><code>rxjs</code> : Programmation réactive</li>
+        </ul>
+
+        <h3>Base de Données</h3>
+        <ul>
+            <li><code>mysql-connector-j</code> : Driver MySQL</li>
+            <li><code>Hibernate</code> : ORM</li>
+            <li><code>MapStruct</code> : Mapping d'entités</li>
+        </ul>
+
+        <h3>Outils de Développement</h3>
+        <ul>
+            <li>Maven 3.x : Build automation</li>
+            <li>Java 17 : Langage de programmation</li>
+            <li>Angular CLI 14 : Développement frontend</li>
+            <li>npm/Node.js : Gestion des dépendances</li>
+        </ul>
+
+        <!-- 7. Défis et Solutions -->
+        <h2>7. DÉFIS ET SOLUTIONS</h2>
+        
+        <h3>Défi 1 : Intégration de Multiples Solutions Hétérogènes</h3>
+        <p><strong>Problème :</strong> Chaque solution de sécurité possède ses propres APIs et formats de données.</p>
+        <p><strong>Solution :</strong></p>
+        <ul>
+            <li>Création d'une couche d'abstraction avec interfaces génériques</li>
+            <li>Utilisation de MapStruct pour transformer les données</li>
+            <li>Développement de contrôleurs spécifiques par solution</li>
+        </ul>
+
+        <h3>Défi 2 : Sécurité et Authentification</h3>
+        <p><strong>Problème :</strong> Protéger les données sensibles et les credentials des solutions intégrées.</p>
+        <p><strong>Solution :</strong></p>
+        <ul>
+            <li>Implémentation de JWT avec expiration 24h</li>
+            <li>Chiffrement des credentials en base de données</li>
+            <li>Spring Security avec configuration personnalisée</li>
+        </ul>
+
+        <h3>Défi 3 : Performance et Scalabilité</h3>
+        <p><strong>Problème :</strong> Gérer les requêtes simultanées de multiples utilisateurs.</p>
+        <p><strong>Solution :</strong></p>
+        <ul>
+            <li>Architecture microservices ready</li>
+            <li>Cache de données fréquemment accédées</li>
+            <li>Optimisation des requêtes JPA</li>
+        </ul>
+
+        <h3>Défi 4 : Upload de Fichiers Volumineux</h3>
+        <p><strong>Problème :</strong> Gestion de fichiers de configuration jusqu'à 10MB.</p>
+        <p><strong>Solution :</strong></p>
+        <ul>
+            <li>Configuration multipart optimisée</li>
+            <li>Validation du type et de la taille</li>
+            <li>Stockage sécurisé dans <code>/uploads/profiles/</code></li>
+        </ul>
+
+        <!-- 8. Résultats et Conclusion -->
+        <h2>8. RÉSULTATS ET CONCLUSION</h2>
+        
+        <h3>Résultats Obtenus</h3>
+        <div class="box success">
+            <p>✅ <strong>Plateforme Opérationnelle :</strong> Application web complète et fonctionnelle</p>
+            <p>✅ <strong>Interface Conviviale :</strong> Dashboard intuitif pour les administrateurs</p>
+            <p>✅ <strong>Intégrations Multiples :</strong> 20+ solutions de sécurité intégrées</p>
+            <p>✅ <strong>Sécurité Renforcée :</strong> Authentification JWT, contrôle d'accès RBAC</p>
+            <p>✅ <strong>Scalabilité :</strong> Architecture permettant l'ajout de nouvelles solutions</p>
+        </div>
+
+        <h3>Points Forts du Projet</h3>
+        <ol>
+            <li><strong>Centralisation :</strong> Gestion unique de multiples solutions</li>
+            <li><strong>Facilité d'Utilisation :</strong> Interface moderne et responsive</li>
+            <li><strong>Sécurité :</strong> Multiples couches de protection</li>
+            <li><strong>Extensibilité :</strong> Facile d'ajouter de nouvelles solutions</li>
+            <li><strong>Documentation :</strong> API documentée avec Swagger</li>
+        </ol>
+
+        <h3>Améliorations Futures</h3>
+        <ol>
+            <li><strong>Analytics Avancée :</strong> Machine Learning pour la détection d'anomalies</li>
+            <li><strong>Automation :</strong> Orchestration automatique des réponses aux incidents</li>
+            <li><strong>Mobile App :</strong> Application mobile native pour monitoring mobile</li>
+            <li><strong>Blockchain :</strong> Audit trail immuable des actions de sécurité</li>
+            <li><strong>Multi-tenant :</strong> Support pour gérer plusieurs organisations</li>
+        </ol>
+
+        <h3>Conclusion</h3>
+        <p>Ce projet démontre la capacité à développer une solution d'entreprise complète et sécurisée, intégrant de multiples technologies et systèmes. L'application offre une gestion centralisée de la sécurité informatique, essentielle pour les organisations modernes.</p>
+        
+        <p>Les technologies modernes utilisées (Spring Boot 3, Angular 14, JWT) garantissent une solution robuste, maintenable et évolutive. La plateforme est prête pour une utilisation en production et peut facilement s'adapter aux évolutions futures des solutions de sécurité.</p>
+        
+        <p>La gestion intégrée des solutions de sécurité représente un avantage compétitif majeur pour Gérance Informatique et ses clients, en leur permettant de centraliser, monitorer et optimiser leur posture de sécurité globale.</p>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Rapport réalisé par :</strong> Sarra Mhadhbi</p>
+            <p><strong>Date :</strong> Novembre 2024</p>
+            <p><strong>Projet :</strong> Gestion Intégrée des Solutions de Sécurité Informatique</p>
+        </div>
+    </div>
+</body>
+</html>

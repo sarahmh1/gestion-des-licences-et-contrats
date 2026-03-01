@@ -1,0 +1,46 @@
+<div class="main-content">
+
+    
+
+
+    <!-- Table -->
+    <div style="margin-top: 20px;">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Client Identifiant</th>
+                    <th>Clé de License</th>
+                    <th>Nom de Produit</th>
+                    <th>Nombre de License</th>
+                    <th>Type d'Achat</th>
+                    <th>Date d'Expiration</th>
+                    <th>Nom de Contact</th>
+                    <th>Nom de Telephone</th>
+                    <th>Adresse Mail du Contact</th>
+                    <th>Email d'Admin de Licence</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let license of licenses">
+                    <td>{{license.clientIdentifiant}}</td>
+                    <td>{{license.cleLicense}}</td>
+                    <td>{{license.nomProduit}}</td>
+                    <td>{{license.nombreLicense}}</td>
+                    <td>{{license.typeAchat}}</td>
+                    <td>{{license.dateExpiration}}</td>
+                    <td>{{license.nomContact}}</td>
+                    <td>{{license.nomTelephone}}</td>
+                    <td>{{license.adresseMailContact}}</td>
+                    <td>{{license.emailAdmin}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Optional: Buttons at the bottom as well -->
+    <div style="margin-top: 20px;">
+        <button class="btn btn-secondary" (click)="onBack()">Revenir</button>
+        <button class="btn btn-primary" (click)="onAdd()">Ajouter</button>
+    </div>
+
+</div>
