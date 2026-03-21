@@ -1,104 +1,76 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
-    <h2>Listes de licences OneIdentity</h2>
+    <h2>Licences OneIdentity</h2>
     <div class="action-group">
-      <button (click)="goToAddOneIdentity()" class="btn btn-sm action-button">
-        <i class="fa fa-plus"></i>
-      </button>
+      <button (click)="goToAddOneIdentity()" class="btn btn-sm action-button"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
-
-  <!-- Tableau responsive (comme Fortinet) -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Licences</th>
-          <th>Durée</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let oneIdentity of pagedOneIdentitys">
-          <td>{{ oneIdentity.client }}</td>
-
-          <!-- LICENCES (affichage groupé - comme Fortinet) -->
-          <td>
-            <div *ngFor="let lic of oneIdentity.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
-              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
-              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
-              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+  <div class="md-layout" [class.detail-open]="selectedOneIdentity">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let x of pagedOneIdentitys" class="md-item"
+          [class.md-item-active]="selectedOneIdentity?.oneIdentityId === x.oneIdentityId" (click)="selectOneIdentity(x)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ x.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Durée :</strong> {{ x.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of x.licences" class="md-field"><strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}</span>
             </div>
-          </td>
-
-          <td>{{ oneIdentity.dureeDeLicence }}</td>
-          <td>{{ oneIdentity.nomDuContact }}</td>
-          <td>{{ oneIdentity.numero }}</td>
-          <td>{{ oneIdentity.adresseEmailContact }}</td>
-          <td>{{ oneIdentity.mailAdmin }}</td>
-          <td>{{ oneIdentity.ccMail }}</td>
-          <td>{{ oneIdentity.remarque }}</td>
-          <td>{{ oneIdentity.sousContrat }}</td>
-          <td>{{ getCommandePasserParLabel(oneIdentity.commandePasserPar) }}</td>
-
-          <td>
-            <a *ngIf="oneIdentity.fichierOriginalName" [href]="getFileDownloadUrl(oneIdentity.oneIdentityId)" target="_blank" class="btn btn-sm btn-info">
-              <i class="fa fa-download"></i> {{ oneIdentity.fichierOriginalName }}
-            </a>
-            <span *ngIf="!oneIdentity.fichierOriginalName">-</span>
-          </td>
-
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button (click)="updateOneIdentity(oneIdentity)" class="btn btn-sm btn-primary">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteOneIdentity(oneIdentity.oneIdentityId)" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-              </button>
-              <button (click)="approveOneIdentity(oneIdentity.oneIdentityId)" class="btn btn-sm btn-success">
-                <i class="fas fa-check"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredOneIdentitys.length === 0">
-          <td colspan="13" class="text-center">Aucun OneIdentity trouvé.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination (comme Fortinet) -->
-  <div class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectOneIdentity(x)" title="Voir details"><i class="fas fa-eye"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateOneIdentity(x)"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteOneIdentity(x.oneIdentityId)"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveOneIdentity(x.oneIdentityId)"><i class="fas fa-check"></i></button>
+          </div>
+        </div>
+        <div *ngIf="pagedOneIdentitys.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun OneIdentity trouvé.</p></div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)" [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">{{ i + 1 }}</button>
+      </div>
+    </div>
+    <div class="md-detail" *ngIf="selectedOneIdentity">
+      <div class="md-detail-card">
+        <div class="md-detail-header"><h4>{{ selectedOneIdentity.client }}</h4><button class="md-detail-close" (click)="closeDetail()">&times;</button></div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Licence</div>
+          <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedOneIdentity.dureeDeLicence || '-' }}</span></div>
+          
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Licences</div>
+          <div *ngFor="let lic of selectedOneIdentity.licences" class="licence-block">
+            <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Contact Client</div>
+          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedOneIdentity.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedOneIdentity.numero || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedOneIdentity.adresseEmailContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedOneIdentity.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedOneIdentity.ccMail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous Contrat</span><span class="md-value"><span [class]="selectedOneIdentity.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedOneIdentity.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedOneIdentity.remarque || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedOneIdentity.commandePasserPar) || '-' }}</span></div>
+          <div class="md-detail-row" *ngIf="selectedOneIdentity.fichierOriginalName">
+            <span class="md-label">Fichier</span><span class="md-value"><a [href]="getFileDownloadUrl(selectedOneIdentity.oneIdentityId)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"></i> {{ selectedOneIdentity.fichierOriginalName }}</a></span>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button (click)="updateOneIdentity(selectedOneIdentity)" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i> Modifier</button>
+            <button (click)="deleteOneIdentity(selectedOneIdentity.oneIdentityId)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="approveOneIdentity(selectedOneIdentity.oneIdentityId)" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approuver</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+
+

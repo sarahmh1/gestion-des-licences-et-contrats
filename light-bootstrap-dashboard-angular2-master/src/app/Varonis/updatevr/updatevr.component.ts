@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Varonis } from 'app/Model/Varonis';
 import { VaronisService } from 'app/Services/varonis.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-varonis',
@@ -11,6 +12,7 @@ import { VaronisService } from 'app/Services/varonis.service';
   styleUrls: ['./updatevr.component.scss']
 })
 export class UpdateVaronisComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     varonisId!: number;
     varonis!: Varonis;
@@ -26,10 +28,11 @@ export class UpdateVaronisComponent implements OnInit {
       public fb: FormBuilder,
       private varonisService: VaronisService,
       private route: ActivatedRoute,
-      private router: Router
-    ) {}
+      private router: Router,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { SentineIOne } from 'app/Model/SentineIOne';
 import { SentineIOneService } from 'app/Services/sentineIOne.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouters',
   templateUrl: './ajouters.component.html',
   styleUrls: ['./ajouters.component.scss']
 })
 export class AjouterssComponent implements OnInit {
+  clients: Client[] = [];
    sentineIOneForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjouterssComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private sentineIOneService: SentineIOneService
-    ) {}
+      private sentineIOneService: SentineIOneService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.sentineIOneForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

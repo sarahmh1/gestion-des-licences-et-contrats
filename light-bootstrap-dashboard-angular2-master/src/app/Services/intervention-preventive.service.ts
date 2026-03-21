@@ -64,4 +64,16 @@ export class InterventionPreventiveService {
   deleteFile(id: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}/${id}/delete-file`);
   }
+
+  // Upload de fichier pour une ligne de période
+  uploadPeriodeLigneFile(periodeLigneId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.put<any>(`${this.baseUrl}/periode-ligne/${periodeLigneId}/upload-file`, formData);
+  }
+
+  // Télécharger un fichier de ligne de période
+  getPeriodeLigneFileDownloadUrl(periodeLigneId: number): string {
+    return `${this.baseUrl}/periode-ligne/${periodeLigneId}/download`;
+  }
 }

@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Rapid7 } from 'app/Model/Rapid7';
 import { Rapid7Service } from 'app/Services/rapid7.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-rapid7',
@@ -11,6 +12,7 @@ import { Rapid7Service } from 'app/Services/rapid7.service';
   styleUrls: ['./update-rapid7.component.scss']
 })
 export class UpdateRapid7Component implements OnInit {
+  clients: Client[] = [];
  updateForm!: FormGroup;
     rapid7Id!: number;
     rapid7!: Rapid7;
@@ -27,10 +29,11 @@ export class UpdateRapid7Component implements OnInit {
       private  rapid7Service: Rapid7Service,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

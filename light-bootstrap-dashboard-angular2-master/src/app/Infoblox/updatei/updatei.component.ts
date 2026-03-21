@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Infoblox } from 'app/Model/Infoblox';
 import { InfobloxService } from 'app/Services/infoblox.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-infoblox',
@@ -11,6 +12,7 @@ import { InfobloxService } from 'app/Services/infoblox.service';
   styleUrls: ['./updatei.component.scss']
 })
 export class UpdateInfobloxComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     infobloxId!: number;
     infoblox!: Infoblox;
@@ -28,10 +30,11 @@ export class UpdateInfobloxComponent implements OnInit {
       public fb: FormBuilder,
       private infobloxService: InfobloxService,
       private route: ActivatedRoute,
-      private router: Router
-    ) {}
+      private router: Router,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ContratService } from 'app/Services/contrat.service';
 import { Contrat } from 'app/Model/Contrat';
+import { ClientService, Client } from '../../Services/client.service';
+import { PRODUIT_LIST } from '../../Model/NomProduit';
 
 @Component({
   selector: 'app-afficher-contrat',
@@ -9,6 +11,7 @@ import { Contrat } from 'app/Model/Contrat';
   styleUrls: ['./afficher-contrat.component.scss']
 })
 export class AfficherContratComponent implements OnInit {
+  clients: Client[] = [];
   searchTerm: string = '';
   contrats: Contrat[] = [];
   filteredContrats: Contrat[] = [];
@@ -24,6 +27,11 @@ export class AfficherContratComponent implements OnInit {
   contratForm!: FormGroup;
   editingContratId: number | null = null;
 
+  // Detail panel
+  selectedContrat: Contrat | null = null;
+
+  nomProduitOptions = PRODUIT_LIST;
+
   // Variables pour la gestion des fichiers
   selectedFile: File | null = null;
   existingFile: string | null = null;
@@ -32,11 +40,13 @@ export class AfficherContratComponent implements OnInit {
 
   constructor(
     private contratService: ContratService,
-    private fb: FormBuilder
-  ) {}
+    private fb: FormBuilder,
+    private clientService: ClientService) { }
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initForm();
+    this.watchDateFin();
     this.getAllContrats();
   }
 
@@ -44,15 +54,28 @@ export class AfficherContratComponent implements OnInit {
     this.contratForm = this.fb.group({
       client: [''],
       objetContrat: [''],
-      nbInterventionsPreventives: [0],
-      nbInterventionsCuratives: [0],
+      nbInterventionsPreventives: [''],
+      nbInterventionsCuratives: [''],
       dateDebut: [''],
       dateFin: [''],
       renouvelable: [false],
       remarque: [''],
       emailCommercial: [''],
       ccMail: this.fb.array([]),
-      datesAvenants: this.fb.array([])
+      datesAvenants: this.fb.array([]),
+      nomProduit: ['']
+    });
+  }
+
+  watchDateFin(): void {
+    this.contratForm.get('dateFin')?.valueChanges.subscribe((val: string) => {
+      const renouvelable = this.contratForm.get('renouvelable');
+      if (val) {
+        renouvelable?.setValue(false, { emitEvent: false });
+        renouvelable?.disable({ emitEvent: false });
+      } else {
+        renouvelable?.enable({ emitEvent: false });
+      }
     });
   }
 
@@ -70,7 +93,8 @@ export class AfficherContratComponent implements OnInit {
   createDateAvenantGroup(): FormGroup {
     return this.fb.group({
       dateAvenant: [''],
-      numeroAvenant: [this.datesAvenants.length + 1]
+      numeroAvenant: [this.datesAvenants.length + 1],
+      details: ['']
     });
   }
 
@@ -107,8 +131,8 @@ export class AfficherContratComponent implements OnInit {
   getAllContrats(): void {
     this.contratService.getAllContrats().subscribe(
       (data: Contrat[]) => {
-        this.contrats = data;
-        this.filteredContrats = data;
+        this.contrats = data.reverse();
+        this.filteredContrats = [...this.contrats];
         this.calculatePagination();
         this.changePage(0);
       },
@@ -142,16 +166,25 @@ export class AfficherContratComponent implements OnInit {
     this.pagedContrats = this.filteredContrats.slice(start, end);
   }
 
+  // Detail panel
+  selectContrat(contrat: Contrat): void {
+    this.selectedContrat = this.selectedContrat?.contratId === contrat.contratId ? null : contrat;
+  }
+
+  closeDetail(): void {
+    this.selectedContrat = null;
+  }
+
   // Modal functions
   openAddModal(): void {
     this.isEditMode = false;
     this.editingContratId = null;
-    
+
     // Réinitialiser les variables de fichier
     this.selectedFile = null;
     this.existingFile = null;
     this.existingFileName = null;
-    
+
     // Vider le FormArray des dates avenants
     while (this.datesAvenants.length) {
       this.datesAvenants.removeAt(0);
@@ -163,8 +196,8 @@ export class AfficherContratComponent implements OnInit {
     this.contratForm.reset({
       client: '',
       objetContrat: '',
-      nbInterventionsPreventives: 0,
-      nbInterventionsCuratives: 0,
+      nbInterventionsPreventives: '',
+      nbInterventionsCuratives: '',
       dateDebut: '',
       dateFin: '',
       renouvelable: false,
@@ -177,12 +210,12 @@ export class AfficherContratComponent implements OnInit {
   openEditModal(contrat: Contrat): void {
     this.isEditMode = true;
     this.editingContratId = contrat.contratId || null;
-    
+
     // Réinitialiser les variables de fichier
     this.selectedFile = null;
     this.existingFile = contrat.fichier || null;
     this.existingFileName = contrat.fichierOriginalName || contrat.fichier || null;
-    
+
     // Vider le FormArray des dates avenants
     while (this.datesAvenants.length) {
       this.datesAvenants.removeAt(0);
@@ -191,25 +224,26 @@ export class AfficherContratComponent implements OnInit {
     while (this.ccMailArray.length) {
       this.ccMailArray.removeAt(0);
     }
-    
+
     // Remplir avec les dates avenants existantes
     if (contrat.datesAvenants && contrat.datesAvenants.length > 0) {
       contrat.datesAvenants.forEach((da) => {
         const group = this.fb.group({
           dateAvenant: [da.dateAvenant, Validators.required],
-          numeroAvenant: [da.numeroAvenant]
+          numeroAvenant: [da.numeroAvenant],
+          details: [da.details || '']
         });
         this.datesAvenants.push(group);
       });
     }
-    
+
     // Remplir avec les emails CC existants
     if (contrat.ccMail && contrat.ccMail.length > 0) {
       contrat.ccMail.forEach((email) => {
         this.ccMailArray.push(this.fb.control(email, Validators.email));
       });
     }
-    
+
     this.contratForm.patchValue({
       client: contrat.client,
       objetContrat: contrat.objetContrat,
@@ -219,7 +253,8 @@ export class AfficherContratComponent implements OnInit {
       dateFin: contrat.dateFin,
       renouvelable: contrat.renouvelable,
       remarque: contrat.remarque,
-      emailCommercial: contrat.emailCommercial || ''
+      emailCommercial: contrat.emailCommercial || '',
+      nomProduit: contrat.nomProduit || ''
     });
     this.showModal = true;
   }
@@ -244,7 +279,7 @@ export class AfficherContratComponent implements OnInit {
         ...formValue,
         ccMail: formValue.ccMail.filter((email: string) => email && email.trim() !== '')
       };
-      
+
       if (this.isEditMode && this.editingContratId) {
         // Update
         this.contratService.updateContrat(this.editingContratId, contratData).subscribe(
@@ -319,7 +354,7 @@ export class AfficherContratComponent implements OnInit {
 
   uploadFileAfterSave(contratId: number, successMessage: string): void {
     if (!this.selectedFile) return;
-    
+
     this.uploading = true;
     this.contratService.uploadFile(contratId, this.selectedFile).subscribe(
       (response) => {
@@ -357,7 +392,7 @@ export class AfficherContratComponent implements OnInit {
 
   deleteExistingFile(): void {
     if (!this.editingContratId) return;
-    
+
     if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?')) {
       this.contratService.deleteFile(this.editingContratId).subscribe(
         (response) => {

@@ -10,10 +10,11 @@ import { Router } from '@angular/router';
 })
 export class AffichageComponent implements OnInit {
   searchTerm: string = '';
-  esets: Eset[] = []; // Tous les ESETs
-  unapprovedEsets: Eset[] = []; // ESETs non approuvés seulement
-  filteredEsets: Eset[] = []; // ESETs filtrés (non approuvés)
-  
+  esets: Eset[] = [];
+  unapprovedEsets: Eset[] = [];
+  filteredEsets: Eset[] = [];
+  selectedEset: Eset | null = null;
+
   currentPage = 0;
   pageSize = 10;
   totalPages: number = 0;
@@ -128,6 +129,14 @@ export class AffichageComponent implements OnInit {
 
   updateEset(eset: Eset): void {
     this.router.navigate(['/edit-eset', eset.esetid]);
+  }
+
+  selectEset(eset: Eset): void {
+    this.selectedEset = this.selectedEset?.esetid === eset.esetid ? null : eset;
+  }
+
+  closeDetail(): void {
+    this.selectedEset = null;
   }
 
   deleteEset(id: number | undefined | null): void {

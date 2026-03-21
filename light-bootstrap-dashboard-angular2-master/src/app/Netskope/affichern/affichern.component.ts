@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { NetskopeService } from 'app/Services/neskope.service';
 import { Netskope } from 'app/Model/Netskope';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AffichernComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedNetskope: Netskope | null = null;
    netskopes: Netskope[] = [];
    filteredNetskopes: Netskope[] = [];
    unapprovedNetskopes: Netskope[] = [];
@@ -44,7 +45,7 @@ export class AffichernComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Netskopes', error);
+          console.error('Erreur rÃ©cupÃ©ration Netskopes', error);
         }
       );
     }
@@ -86,7 +87,7 @@ export class AffichernComponent implements OnInit {
       this.filteredNetskopes = this.filteredNetskopes.filter(netskope => netskope.netskopeId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -95,11 +96,11 @@ export class AffichernComponent implements OnInit {
         this.netskopeService.deleteNetskope(id).subscribe(
           () => {
             this.getAllNetskopes();
-            alert('Netskope supprimé avec succès');
+            alert('Netskope supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression Netskope', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -124,5 +125,7 @@ export class AffichernComponent implements OnInit {
     default: return value;
   }
 }
-  }
   
+  selectNetskope(x: Netskope): void { this.selectedNetskope = this.selectedNetskope?.netskopeId === x.netskopeId ? null : x; }
+  closeDetail(): void { this.selectedNetskope = null; }
+}

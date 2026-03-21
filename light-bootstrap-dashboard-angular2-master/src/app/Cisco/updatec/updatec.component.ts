@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Cisco } from 'app/Model/Cisco';
 import { CiscoService } from 'app/Services/cisco.service';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-cisco',
@@ -11,6 +12,7 @@ import { CommandePasserPar } from 'app/Model/CommandePasserPar';
   styleUrls: ['./updatec.component.scss']
 })
 export class UpdateCiscoComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     ciscoId!: number;
     cisco!: Cisco;
@@ -28,10 +30,11 @@ export class UpdateCiscoComponent implements OnInit {
       public fb: FormBuilder,
       private ciscoService: CiscoService,
       private route: ActivatedRoute,
-      private router: Router
-    ) {}
+      private router: Router,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

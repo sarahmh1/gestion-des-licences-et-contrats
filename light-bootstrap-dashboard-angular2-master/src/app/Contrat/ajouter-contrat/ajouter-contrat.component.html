@@ -5,29 +5,31 @@
     <!-- Client -->
     <div class="form-group mb-3">
       <label for="client" class="form-label">Client</label>
-      <input
-        type="text"
-        id="client"
-        class="form-control"
-        formControlName="client"
-        placeholder="Nom du client"
-      />
+      <select id="client" class="form-control" formControlName="client">
+        <option value="" disabled>-- Selectionner un client --</option>
+        <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
+      </select>
       <div *ngIf="contratForm.get('client')?.touched && contratForm.get('client')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>
     </div>
 
+    <!-- Produit -->
+    <div class="form-group mb-3">
+      <label for="nomProduit" class="form-label">Produit</label>
+      <select id="nomProduit" class="form-control" formControlName="nomProduit">
+        <option value="">-- Sélectionner un produit --</option>
+        <option *ngFor="let p of nomProduitOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
+      </select>
+    </div>
+
     <!-- Objet du Contrat -->
     <div class="form-group mb-3">
       <label for="objetContrat" class="form-label">Objet du Contrat</label>
-      <input
-        type="text"
-        id="objetContrat"
-        class="form-control"
-        formControlName="objetContrat"
-        placeholder="Objet du contrat"
-      />
-      <div *ngIf="contratForm.get('objetContrat')?.touched && contratForm.get('objetContrat')?.invalid" class="text-danger">
+      <input type="text" id="objetContrat" class="form-control" formControlName="objetContrat"
+        placeholder="Objet du contrat" />
+      <div *ngIf="contratForm.get('objetContrat')?.touched && contratForm.get('objetContrat')?.invalid"
+        class="text-danger">
         Ce champ est obligatoire.
       </div>
     </div>
@@ -35,44 +37,34 @@
     <!-- Nombre Interventions Préventives -->
     <div class="form-group mb-3">
       <label for="nbInterventionsPreventives" class="form-label">Nombre d'Interventions Préventives</label>
-      <input
-        type="number"
-        id="nbInterventionsPreventives"
-        class="form-control"
-        formControlName="nbInterventionsPreventives"
-        placeholder="Nombre d'interventions préventives"
-        min="0"
-      />
-      <div *ngIf="contratForm.get('nbInterventionsPreventives')?.touched && contratForm.get('nbInterventionsPreventives')?.invalid" class="text-danger">
-        Ce champ est obligatoire et doit être un nombre positif.
+      <select id="nbInterventionsPreventives" class="form-control" formControlName="nbInterventionsPreventives">
+        <option value="" disabled>-- Selectionner --</option>
+        <option value="2">2</option>
+        <option value="4">4</option>
+      </select>
+      <div
+        *ngIf="contratForm.get('nbInterventionsPreventives')?.touched && contratForm.get('nbInterventionsPreventives')?.invalid"
+        class="text-danger">
+        Ce champ est obligatoire.
       </div>
     </div>
 
     <!-- Nombre Interventions Curatives -->
     <div class="form-group mb-3">
       <label for="nbInterventionsCuratives" class="form-label">Nombre d'Interventions Curatives</label>
-      <input
-        type="number"
-        id="nbInterventionsCuratives"
-        class="form-control"
-        formControlName="nbInterventionsCuratives"
-        placeholder="Nombre d'interventions curatives"
-        min="0"
-      />
-      <div *ngIf="contratForm.get('nbInterventionsCuratives')?.touched && contratForm.get('nbInterventionsCuratives')?.invalid" class="text-danger">
-        Ce champ est obligatoire et doit être un nombre positif.
+      <input type="text" id="nbInterventionsCuratives" class="form-control" formControlName="nbInterventionsCuratives"
+        placeholder="Ex: 10j, 5j" />
+      <div
+        *ngIf="contratForm.get('nbInterventionsCuratives')?.touched && contratForm.get('nbInterventionsCuratives')?.invalid"
+        class="text-danger">
+        Ce champ est obligatoire.
       </div>
     </div>
 
     <!-- Date Début -->
     <div class="form-group mb-3">
       <label for="dateDebut" class="form-label">Date de Début</label>
-      <input
-        type="date"
-        id="dateDebut"
-        class="form-control"
-        formControlName="dateDebut"
-      />
+      <input type="date" id="dateDebut" class="form-control" formControlName="dateDebut" />
       <div *ngIf="contratForm.get('dateDebut')?.touched && contratForm.get('dateDebut')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>
@@ -81,12 +73,7 @@
     <!-- Date Fin -->
     <div class="form-group mb-3">
       <label for="dateFin" class="form-label">Date de Fin</label>
-      <input
-        type="date"
-        id="dateFin"
-        class="form-control"
-        formControlName="dateFin"
-      />
+      <input type="date" id="dateFin" class="form-control" formControlName="dateFin" />
       <div *ngIf="contratForm.get('dateFin')?.touched && contratForm.get('dateFin')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>
@@ -96,12 +83,7 @@
     <div class="form-group mb-3">
       <label class="form-label">Renouvelable</label>
       <div class="form-check">
-        <input
-          type="checkbox"
-          id="renouvelable"
-          class="form-check-input"
-          formControlName="renouvelable"
-        />
+        <input type="checkbox" id="renouvelable" class="form-check-input" formControlName="renouvelable" />
         <label for="renouvelable" class="form-check-label">Oui</label>
       </div>
     </div>
@@ -109,26 +91,17 @@
     <!-- Remarque -->
     <div class="form-group mb-3">
       <label for="remarque" class="form-label">Remarque</label>
-      <textarea
-        id="remarque"
-        class="form-control"
-        formControlName="remarque"
-        placeholder="Remarques éventuelles"
-        rows="3"
-      ></textarea>
+      <textarea id="remarque" class="form-control" formControlName="remarque" placeholder="Remarques éventuelles"
+        rows="3"></textarea>
     </div>
 
     <!-- Email Commercial -->
     <div class="form-group mb-3">
       <label for="emailCommercial" class="form-label">Email Commercial</label>
-      <input
-        type="email"
-        id="emailCommercial"
-        class="form-control"
-        formControlName="emailCommercial"
-        placeholder="Email du commercial"
-      />
-      <div *ngIf="contratForm.get('emailCommercial')?.touched && contratForm.get('emailCommercial')?.invalid" class="text-danger">
+      <input type="email" id="emailCommercial" class="form-control" formControlName="emailCommercial"
+        placeholder="Email du commercial" />
+      <div *ngIf="contratForm.get('emailCommercial')?.touched && contratForm.get('emailCommercial')?.invalid"
+        class="text-danger">
         Veuillez entrer un email valide.
       </div>
     </div>
@@ -138,12 +111,7 @@
       <label class="form-label">Email(s) en Copie</label>
       <div formArrayName="ccMail">
         <div *ngFor="let email of ccMailArray.controls; let i = index" class="input-group mb-2">
-          <input
-            type="email"
-            class="form-control"
-            [formControlName]="i"
-            placeholder="Email en copie"
-          />
+          <input type="email" class="form-control" [formControlName]="i" placeholder="Email en copie" />
           <button type="button" class="btn btn-danger" (click)="removeCcMail(i)">
             <i class="fa fa-minus"></i>
           </button>

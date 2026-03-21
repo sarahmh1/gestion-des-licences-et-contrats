@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AfficherssComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedSentineIOne: SentineIOne | null = null;
    sentineIOnes: SentineIOne[] = [];
    filteredSentineIOnes: SentineIOne[] = [];
    unapprovedSentineIOnes: SentineIOne[] = [];
@@ -39,7 +40,7 @@ export class AfficherssComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération SentineIOnes', error);
+          console.error('Erreur rÃ©cupÃ©ration SentineIOnes', error);
         }
       );
     }
@@ -81,7 +82,7 @@ export class AfficherssComponent implements OnInit {
       this.filteredSentineIOnes = this.filteredSentineIOnes.filter(sentineIOne => sentineIOne.sentineIOneId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -90,11 +91,11 @@ export class AfficherssComponent implements OnInit {
         this.sentineIOneService.deleteSentineIOne(id).subscribe(
           () => {
             this.getAllSentineIOnes();
-            alert('SentineIOne supprimé avec succès');
+            alert('SentineIOne supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression SentineIOne', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -124,5 +125,7 @@ export class AfficherssComponent implements OnInit {
     getFileDownloadUrl(id: number): string {
       return this.sentineIOneService.getFileDownloadUrl(id);
     }
+
+  selectSentineIOne(x: SentineIOne): void { this.selectedSentineIOne = this.selectedSentineIOne?.sentineIOneId === x.sentineIOneId ? null : x; }
+  closeDetail(): void { this.selectedSentineIOne = null; }
 }
-  

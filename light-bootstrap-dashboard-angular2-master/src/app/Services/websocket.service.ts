@@ -11,6 +11,7 @@ export class WebsocketService {
   private connected$ = new BehaviorSubject<boolean>(false);
   private messageSubject = new BehaviorSubject<any>(null);
   private typingSubject = new BehaviorSubject<any>(null);
+  private notificationSubject = new BehaviorSubject<any>(null);
 
   constructor() { }
 
@@ -45,6 +46,13 @@ export class WebsocketService {
       this.stompClient?.subscribe(`/topic/typing/${userId}`, (message: Message) => {
         const typingUserId = JSON.parse(message.body);
         this.typingSubject.next(typingUserId);
+      });
+
+      // S'abonner aux notifications en temps réel
+      this.stompClient?.subscribe(`/topic/notifications/${userId}`, (message: Message) => {
+        const notification = JSON.parse(message.body);
+        console.log('Notification reçue via WebSocket:', notification);
+        this.notificationSubject.next(notification);
       });
     };
 
@@ -110,6 +118,13 @@ export class WebsocketService {
    */
   getTypingIndicators(): Observable<any> {
     return this.typingSubject.asObservable();
+  }
+
+  /**
+   * Observable pour les notifications en temps réel
+   */
+  getNotifications(): Observable<any> {
+    return this.notificationSubject.asObservable();
   }
 
   /**

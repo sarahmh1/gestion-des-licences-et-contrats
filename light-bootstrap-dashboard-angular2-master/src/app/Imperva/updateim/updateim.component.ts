@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Imperva } from 'app/Model/Imperva';
 import { ImpervaService } from 'app/Services/imperva.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-imperva',
@@ -11,6 +12,7 @@ import { ImpervaService } from 'app/Services/imperva.service';
   styleUrls: ['./update.component.scss']
 })
 export class UpdateImpervaComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     impervaId!: number;
     imperva!: Imperva;
@@ -27,10 +29,11 @@ export class UpdateImpervaComponent implements OnInit {
       public fb: FormBuilder,
       private impervaService: ImpervaService,
       private route: ActivatedRoute,
-      private router: Router
-    ) {}
+      private router: Router,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

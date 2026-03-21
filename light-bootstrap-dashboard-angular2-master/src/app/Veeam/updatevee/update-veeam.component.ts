@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Veeam } from 'app/Model/Veeam';
 import { VeeamService } from 'app/Services/veeam.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-veeam',
@@ -11,6 +12,7 @@ import { VeeamService } from 'app/Services/veeam.service';
   styleUrls: ['./update-veeam.component.scss']
 })
 export class UpdateVeeamComponent implements OnInit {
+  clients: Client[] = [];
   updateForm!: FormGroup;
    VeeamId!: number;
    veeam!: Veeam;
@@ -26,10 +28,11 @@ export class UpdateVeeamComponent implements OnInit {
      private veeamService: VeeamService,
      private route: ActivatedRoute,
      private router: Router,
-     private cdr: ChangeDetectorRef
-   ) {}
+     private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
  
    ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
      this.updateForm = this.fb.group({
        client: ['', Validators.required],
        dureeDeLicence: [''],

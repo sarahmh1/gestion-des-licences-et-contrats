@@ -1,112 +1,188 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+<div class="master-detail-container">
+  <!-- En-tête -->
   <div class="header-row">
-    <h2>Listes de licences ESET</h2>
+    <h2>Licences ESET</h2>
     <div class="action-group">
       <button (click)="goToProducts()" class="btn btn-sm action-button">
-        <i class="fa fa-plus"></i> Ajouter
+        <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..."
+          [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
-  <!-- Tableau responsive -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Identifiant</th>
-          <th>Clé de Licence</th>
-          <th>Nom du Produit</th>
-          <th>Durée de licence</th>
-          <th>Date d'Expiration</th>
-          <th>Type d'Achat</th>
-          <th>Nombre</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Sous Contrat</th>
-          <th>Remarque</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let eset of pagedEsets">
-          <td>{{ eset.client }}</td>
-          <td>{{ eset.identifiant }}</td>
-          <td>{{ eset.cle_de_Licence }}</td>
-          <td>{{ getProductName(eset.nom_produit) }}</td>
-          <td>{{ eset.dureeDeLicence }}</td>
-          <td>{{ eset.dateEx | date:'dd/MM/yyyy' }}</td>
-          <td>{{ getTypeAchatName(eset.typeAchat) }}</td>
-          <td>{{ eset.nombre }}</td>
-          <td>{{ eset.nom_contact }}</td>
-          <td>{{ eset.nmb_tlf }}</td>
-          <td>{{ eset.mail }}</td>
-          <td>{{ eset.mailAdmin }}</td>
-          <td>{{ eset.ccMail }}</td>
-          <td>{{ eset.sousContrat ? 'Oui' : 'Non' }}</td>
-          <td>{{ eset.remarque }}</td>
-          <td>{{ getCommandePasserParLabel(eset.commandePasserPar) }}</td>
-          <!-- Fichier -->
-          <td>
-            <div *ngIf="eset.fichier; else noFileEset">
-              <a [href]="getFileDownloadUrlById(eset.esetid)" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="fa fa-download"></i> {{ eset.fichierOriginalName || 'Télécharger' }}
-              </a>
-            </div>
-            <ng-template #noFileEset>
-              <span class="text-muted">-</span>
-            </ng-template>
-          </td>
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button (click)="updateEset(eset)" class="btn btn-sm btn-primary">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteEset(eset.esetid)" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-              </button>
-              <button (click)="aprouve(eset.esetid)" class="btn btn-sm btn-success">
-                <i class="fas fa-check"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="pagedEsets.length === 0">
-          <td colspan="18" class="text-center">
-            <div *ngIf="unapprovedEsets.length === 0" class="alert alert-success">
-              Aucune licence ESET en attente d'approbation.
-            </div>
-            <div *ngIf="unapprovedEsets.length > 0 && filteredEsets.length === 0" class="alert alert-warning">
-              Aucun résultat trouvé pour votre recherche.
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 
-  <!-- Pagination -->
-  <div class="text-center mt-3" *ngIf="totalPages > 1">
-    <button 
-      *ngFor="let page of pageNumbers; let i = index"
-      (click)="changePage(i)"
-      [class.active]="i === currentPage"
-      class="btn btn-sm btn-outline-primary mx-1">
-      {{ i + 1 }}
-    </button>
+  <!-- Layout Master / Detail -->
+  <div class="md-layout" [class.detail-open]="selectedEset">
+
+    <!-- ── MASTER : liste de mini-cartes ── -->
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let eset of pagedEsets" class="md-item"
+          [class.md-item-active]="selectedEset?.esetid === eset.esetid">
+
+          <!-- Infos principales visibles dans la card -->
+          <div class="md-item-info">
+            <div class="md-item-client">{{ eset.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Identifiant :</strong> {{ eset.identifiant || '-' }}</span>
+              <span class="md-field"><strong>Clé de Licence :</strong> {{ eset.cle_de_Licence || '-' }}</span>
+              <span class="md-field"><strong>Produit :</strong> {{ getProductName(eset.nom_produit) }}</span>
+              <span class="md-field"><strong>Expiration :</strong> {{ eset.dateEx | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <!-- Actions : œil + modifier + supprimer + approuver en colonne -->
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectEset(eset)" title="Voir détails">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateEset(eset)" title="Modifier">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteEset(eset.esetid)" title="Supprimer">
+              <i class="fas fa-trash"></i>
+            </button>
+            <button class="md-btn-icon md-btn-approve" (click)="aprouve(eset.esetid)" title="Approuver">
+              <i class="fas fa-check"></i>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="pagedEsets.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune licence ESET trouvée.</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── DETAIL : panneau droit ── -->
+    <div class="md-detail" *ngIf="selectedEset">
+      <div class="md-detail-card">
+        <!-- Header -->
+        <div class="md-detail-header">
+          <h4>{{ selectedEset.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="md-detail-body">
+
+          <!-- Informations Licence -->
+          <div class="md-detail-section-title">Informations Licence</div>
+          <div class="md-detail-row">
+            <span class="md-label">Produit</span>
+            <span class="md-value">
+              <span class="md-badge md-badge-orange">{{ getProductName(selectedEset.nom_produit) }}</span>
+            </span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Identifiant</span>
+            <span class="md-value">{{ selectedEset.identifiant || '-' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Clé de Licence</span>
+            <span class="md-value">{{ selectedEset.cle_de_Licence || '-' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Durée</span>
+            <span class="md-value">{{ selectedEset.dureeDeLicence || '-' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Date d'Expiration</span>
+            <span class="md-value">{{ selectedEset.dateEx | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Type d'Achat</span>
+            <span class="md-value">{{ getTypeAchatName(selectedEset.typeAchat) }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Nombre</span>
+            <span class="md-value">{{ selectedEset.nombre }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Sous Contrat</span>
+            <span class="md-value">
+              <span [class]="selectedEset.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">
+                {{ selectedEset.sousContrat ? 'Oui' : 'Non' }}
+              </span>
+            </span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Commande par</span>
+            <span class="md-value">{{ getCommandePasserParLabel(selectedEset.commandePasserPar) || '-' }}</span>
+          </div>
+
+          <div class="md-detail-divider"></div>
+
+          <!-- Contact Client -->
+          <div class="md-detail-section-title">Contact Client</div>
+          <div class="md-detail-row">
+            <span class="md-label">Nom contact</span>
+            <span class="md-value">{{ selectedEset.nom_contact || '-' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">N° Téléphone</span>
+            <span class="md-value">{{ selectedEset.nmb_tlf || '-' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Email client</span>
+            <span class="md-value">{{ selectedEset.mail || '-' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">Email Commercial</span>
+            <span class="md-value">{{ selectedEset.mailAdmin || '-' }}</span>
+          </div>
+          <div class="md-detail-row">
+            <span class="md-label">CC Mail</span>
+            <span class="md-value">{{ selectedEset.ccMail || '-' }}</span>
+          </div>
+
+          <div class="md-detail-divider"></div>
+
+          <!-- Remarque & Fichier -->
+          <div class="md-detail-row" *ngIf="selectedEset.remarque">
+            <span class="md-label">Remarque</span>
+            <span class="md-value">{{ selectedEset.remarque }}</span>
+          </div>
+
+          <div class="md-detail-row" *ngIf="selectedEset.fichier">
+            <span class="md-label">Fichier</span>
+            <span class="md-value">
+              <a [href]="getFileDownloadUrlById(selectedEset.esetid)" target="_blank"
+                class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ selectedEset.fichierOriginalName || 'Télécharger' }}
+              </a>
+            </span>
+          </div>
+
+          <div class="md-detail-divider"></div>
+
+          <!-- Actions -->
+          <div class="md-detail-actions">
+            <button (click)="updateEset(selectedEset)" class="btn btn-sm btn-primary">
+              <i class="fas fa-pen"></i> Modifier
+            </button>
+            <button (click)="deleteEset(selectedEset.esetid)" class="btn btn-sm btn-danger">
+              <i class="fas fa-trash"></i> Supprimer
+            </button>
+            <button (click)="aprouve(selectedEset.esetid)" class="btn btn-sm btn-success">
+              <i class="fas fa-check"></i> Approuver
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

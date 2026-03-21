@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Fortinet } from 'app/Model/Fortinet';
 import { FortinetService } from 'app/Services/fortinet.service';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { HttpEventType } from '@angular/common/http';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-ajouter',
@@ -12,6 +13,7 @@ import { HttpEventType } from '@angular/common/http';
   styleUrls: ['./ajouter.component.scss']
 })
 export class AjouterComponent implements OnInit {
+  clients: Client[] = [];
   fortinetForm!: FormGroup;
   
   // Variables pour l'upload de fichier
@@ -29,10 +31,11 @@ export class AjouterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private fortinetService: FortinetService
-  ) {}
+    private fortinetService: FortinetService,
+    private clientService: ClientService) {}
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.fortinetForm = this.fb.group({
       client: ['', Validators.required],
       nomDuBoitier: ['', Validators.required],

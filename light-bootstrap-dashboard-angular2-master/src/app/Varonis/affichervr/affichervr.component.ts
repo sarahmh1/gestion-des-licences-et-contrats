@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { VaronisService } from 'app/Services/varonis.service';
 import { Varonis } from 'app/Model/Varonis';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AffichervrComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedVaronis: Varonis | null = null;
    varoniss: Varonis[] = [];
    filteredVaroniss: Varonis[] = [];
    unapprovedVaronis: Varonis[] = [];
@@ -40,7 +41,7 @@ export class AffichervrComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Varoniss', error);
+          console.error('Erreur rÃ©cupÃ©ration Varoniss', error);
         }
       );
     }
@@ -82,7 +83,7 @@ export class AffichervrComponent implements OnInit {
       this.filteredVaroniss = this.filteredVaroniss.filter(varonis=> varonis.varonisId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -91,11 +92,11 @@ export class AffichervrComponent implements OnInit {
         this.varonisService.deleteVaronis(id).subscribe(
           () => {
             this.getAllVaronis();
-            alert('Varonis supprimé avec succès');
+            alert('Varonis supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression Varonis', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -124,5 +125,7 @@ export class AffichervrComponent implements OnInit {
     getFileDownloadUrl(id: number): string {
       return this.varonisService.getFileDownloadUrl(id);
     }
-  }
   
+  selectVaronis(x: Varonis): void { this.selectedVaronis = this.selectedVaronis?.varonisId === x.varonisId ? null : x; }
+  closeDetail(): void { this.selectedVaronis = null; }
+}

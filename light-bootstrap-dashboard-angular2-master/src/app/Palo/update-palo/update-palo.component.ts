@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaloService } from 'app/Services/palo.service';
 import { Palo } from 'app/Model/Palo';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { HttpEventType } from '@angular/common/http';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-palo',
@@ -12,6 +13,7 @@ import { HttpEventType } from '@angular/common/http';
   styleUrls: ['./update-palo.component.scss']
 })
 export class UpdatePaloComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     paloId!: number;
     palo!: Palo;
@@ -36,10 +38,11 @@ export class UpdatePaloComponent implements OnInit {
       private paloService: PaloService,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         nomDuBoitier: ['', Validators.required],

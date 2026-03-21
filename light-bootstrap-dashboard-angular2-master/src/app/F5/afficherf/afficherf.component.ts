@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { F5Service } from 'app/Services/f5.service';
 import { F5 } from 'app/Model/F5';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AfficherfComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedF5: F5 | null = null;
    f5s: F5[] = [];
    filteredF5s: F5[] = [];
  
@@ -44,7 +45,7 @@ export class AfficherfComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération F5s', error);
+          console.error('Erreur rÃ©cupÃ©ration F5s', error);
         }
       );
     }
@@ -86,7 +87,7 @@ export class AfficherfComponent implements OnInit {
       this.filteredF5s= this.filteredF5s.filter(f5 => f5.f5Id !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -95,11 +96,11 @@ export class AfficherfComponent implements OnInit {
         this.f5Service.deleteF5(id).subscribe(
           () => {
             this.getAllF5s();
-            alert('F5 supprimé avec succès');
+            alert('F5 supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression F5', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -124,5 +125,7 @@ export class AfficherfComponent implements OnInit {
     default: return value;
   }
 }
-  }
   
+  selectF5(x: F5): void { this.selectedF5 = this.selectedF5?.f5Id === x.f5Id ? null : x; }
+  closeDetail(): void { this.selectedF5 = null; }
+}

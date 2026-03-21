@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.projet2024.entite.PeriodeLigne;
 
 @Getter
 @Setter
@@ -60,6 +61,10 @@ public class InterventionPreventive {
     @JsonManagedReference
     private List<IntervenantPreventif> intervenants = new ArrayList<>();
 
+    @OneToMany(mappedBy = "interventionPreventive", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("periodeLignes")
+    private List<PeriodeLigne> periodeLignes = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "ContratId")
     private Contrat contrat;
@@ -73,7 +78,7 @@ public class InterventionPreventive {
     private String fichierOriginalName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "Statut")
+    @Column(name = "Statut", length = 50, columnDefinition = "VARCHAR(50)")
     private StatutInterventionPreventive statut = StatutInterventionPreventive.CREE;
 
     @Basic
@@ -84,6 +89,14 @@ public class InterventionPreventive {
     @CollectionTable(name = "intervention_preventive_cc_mail", joinColumns = @JoinColumn(name = "intervention_preventive_id"))
     @Column(name = "cc_mail")
     private List<String> ccMail = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "intervention_preventive_assigned_users",
+        joinColumns = @JoinColumn(name = "intervention_preventive_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> assignedUsers = new ArrayList<>();
 
     // Flags pour les notifications email
     @Basic
@@ -97,4 +110,7 @@ public class InterventionPreventive {
     @Basic
     @Column(name = "Email_Sent_Day_Of")
     private Boolean emailSentDayOf = false;
+
+    @Column(name = "nom_produit", length = 100)
+    private String nomProduit;
 }

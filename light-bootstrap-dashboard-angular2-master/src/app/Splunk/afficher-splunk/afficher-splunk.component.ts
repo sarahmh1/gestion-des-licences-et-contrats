@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { SplunkService } from 'app/Services/splunk.service';
 import { Splunk } from 'app/Model/Splunk';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 })
 export class AfficherSplunkComponent implements OnInit {
  searchTerm: string = '';
+  selectedSplunk: Splunk | null = null;
     splunks: Splunk[] = [];
     filteredSplunks: Splunk[] = [];
     unapprovedSplunks: Splunk[] = [];
@@ -40,7 +41,7 @@ export class AfficherSplunkComponent implements OnInit {
            this.changePage(0);
          },
          (error) => {
-           console.error('Erreur récupération Splunks', error);
+           console.error('Erreur rÃ©cupÃ©ration Splunks', error);
          }
        );
      }
@@ -83,7 +84,7 @@ export class AfficherSplunkComponent implements OnInit {
       this.filteredSplunks = this.filteredSplunks.filter(splunk => splunk.splunkid !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
    
@@ -92,11 +93,11 @@ export class AfficherSplunkComponent implements OnInit {
          this.splunkService.deleteSplunk(id).subscribe(
            () => {
              this.getAllSplunks();
-             alert('Splunk supprimé avec succès');
+             alert('Splunk supprimÃ© avec succÃ¨s');
            },
            error => {
              console.error('Erreur suppression Splunk', error);
-             alert('Échec suppression');
+             alert('Ã‰chec suppression');
            }
          );
        }
@@ -125,5 +126,7 @@ export class AfficherSplunkComponent implements OnInit {
 getFileDownloadUrl(id: number): string {
   return this.splunkService.getFileDownloadUrl(id);
 }
-   }
    
+  selectSplunk(x: Splunk): void { this.selectedSplunk = this.selectedSplunk?.splunkid === x.splunkid ? null : x; }
+  closeDetail(): void { this.selectedSplunk = null; }
+}

@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { SecPoint } from 'app/Model/SecPoint';
 import { SecPointService } from 'app/Services/sec-point.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-sec-point',
@@ -11,6 +12,7 @@ import { SecPointService } from 'app/Services/sec-point.service';
   styleUrls: ['./updates.component.scss']
 })
 export class UpdateSecPointComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     secPointId!: number;
     secPoint!: SecPoint;
@@ -27,10 +29,11 @@ export class UpdateSecPointComponent implements OnInit {
       private secPointService: SecPointService,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

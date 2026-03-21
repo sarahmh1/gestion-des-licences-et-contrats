@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { OneIdentityService } from 'app/Services/oneIdentity.service';
 import { Router } from '@angular/router';
 import { OneIdentity } from 'app/Model/OneIdentity';
@@ -10,6 +10,7 @@ import { OneIdentity } from 'app/Model/OneIdentity';
 export class AfficheroComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedOneIdentity: OneIdentity | null = null;
    oneIdentitys: OneIdentity[] = [];
    filteredOneIdentitys: OneIdentity[] = [];
    unapprovedOneIdentitys: OneIdentity[] = [];
@@ -40,7 +41,7 @@ export class AfficheroComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération OneIdentitys', error);
+          console.error('Erreur rÃ©cupÃ©ration OneIdentitys', error);
         }
       );
     }
@@ -82,7 +83,7 @@ export class AfficheroComponent implements OnInit {
       this.filteredOneIdentitys = this.filteredOneIdentitys.filter(oneIdentity => oneIdentity.oneIdentityId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -91,11 +92,11 @@ export class AfficheroComponent implements OnInit {
         this.oneIdentityService.deleteOneIdentity(id).subscribe(
           () => {
             this.getAllOneIdentitys();
-            alert('OneIdentity supprimé avec succès');
+            alert('OneIdentity supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression OneIdentity', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -124,5 +125,7 @@ export class AfficheroComponent implements OnInit {
 getFileDownloadUrl(id: number): string {
   return this.oneIdentityService.getFileDownloadUrl(id);
 }
-  }
   
+  selectOneIdentity(x: OneIdentity): void { this.selectedOneIdentity = this.selectedOneIdentity?.oneIdentityId === x.oneIdentityId ? null : x; }
+  closeDetail(): void { this.selectedOneIdentity = null; }
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CiscoService } from 'app/Services/cisco.service';
 import { Cisco } from 'app/Model/Cisco';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AffichercComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedCisco: Cisco | null = null;
    ciscos: Cisco[] = [];
    filteredCiscos: Cisco[] = [];
    unapprovedCiscos: Cisco[] = [];
@@ -40,7 +41,7 @@ export class AffichercComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Ciscos', error);
+          console.error('Erreur rÃ©cupÃ©ration Ciscos', error);
         }
       );
     }
@@ -82,7 +83,7 @@ export class AffichercComponent implements OnInit {
       this.filteredCiscos = this.filteredCiscos.filter(cisco=> cisco.ciscoId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -91,11 +92,11 @@ export class AffichercComponent implements OnInit {
         this.ciscoService.deleteCisco(id).subscribe(
           () => {
             this.getAllCiscos();
-            alert('Cisco supprimé avec succès');
+            alert('Cisco supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression Cisco', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -124,5 +125,7 @@ export class AffichercComponent implements OnInit {
   getFileDownloadUrl(id: number): string {
     return this.ciscoService.getFileDownloadUrl(id);
   }
-  }
   
+  selectCisco(x: Cisco): void { this.selectedCisco = this.selectedCisco?.ciscoId === x.ciscoId ? null : x; }
+  closeDetail(): void { this.selectedCisco = null; }
+}

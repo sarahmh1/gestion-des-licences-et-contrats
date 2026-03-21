@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FortinetService } from 'app/Services/fortinet.service';
 import { Fortinet } from 'app/Model/Fortinet';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { HttpEventType } from '@angular/common/http';
+import { ClientService, Client } from '../Services/client.service';
 
 @Component({
   selector: 'app-update-fortinet',
@@ -12,6 +13,7 @@ import { HttpEventType } from '@angular/common/http';
   styleUrls: ['./fortinet-update.component.scss']
 })
 export class UpdateFortinetComponent implements OnInit {
+  clients: Client[] = [];
   updateForm!: FormGroup;
   fortinetId!: number;
   fortinet!: Fortinet;
@@ -36,10 +38,11 @@ export class UpdateFortinetComponent implements OnInit {
     private fortinetService: FortinetService,
     private route: ActivatedRoute,
     private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initializeForm();
     
     // Récupérer l'ID depuis l'URL

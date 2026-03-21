@@ -86,4 +86,7 @@ public class InterventionCurative {
     @Basic
     @Column(name = "Fichier_Original_Name")
     private String fichierOriginalName;
+
+    @Column(name = "nom_produit", length = 100)
+    private String nomProduit;
 }

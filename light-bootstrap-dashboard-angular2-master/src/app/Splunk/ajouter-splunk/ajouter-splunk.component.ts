@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Splunk } from 'app/Model/Splunk';
 import { SplunkService } from 'app/Services/splunk.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-ajouter-splunk',
@@ -11,6 +12,7 @@ import { SplunkService } from 'app/Services/splunk.service';
   styleUrls: ['./ajouter-splunk.component.scss']
 })
 export class AjouterSplunkComponent implements OnInit {
+  clients: Client[] = [];
  splunkForm!: FormGroup;
  selectedFile: File | null = null;
  commandePasserParOptions = [
@@ -21,10 +23,11 @@ export class AjouterSplunkComponent implements OnInit {
      constructor(
        private fb: FormBuilder,
        private router: Router,
-       private splunkService: SplunkService
-     ) {}
+       private splunkService: SplunkService,
+    private clientService: ClientService) {}
    
       ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
          this.splunkForm= this.fb.group({
            client: ['', Validators.required],
            dureeLicence: [''],

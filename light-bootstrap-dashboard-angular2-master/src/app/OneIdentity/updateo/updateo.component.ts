@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { OneIdentity } from 'app/Model/OneIdentity';
 import { OneIdentityService } from 'app/Services/oneIdentity.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-oneIdentity',
@@ -11,6 +12,7 @@ import { OneIdentityService } from 'app/Services/oneIdentity.service';
   styleUrls: ['./updateo.component.scss']
 })
 export class UpdateOneIdentityComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     oneIdentityId!: number;
     oneIdentity!: OneIdentity;
@@ -27,10 +29,11 @@ export class UpdateOneIdentityComponent implements OnInit {
       private oneIdentityService: OneIdentityService,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

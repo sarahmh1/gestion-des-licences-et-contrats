@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Wallix } from 'app/Model/Wallix';
 import { WallixService } from 'app/Services/wallix.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterw',
   templateUrl: './ajouterw.component.html',
   styleUrls: ['./ajouterw.component.scss']
 })
 export class AjouterwComponent implements OnInit {
+  clients: Client[] = [];
   wallixForm!: FormGroup;
   selectedFile: File | null = null;
   commandePasserParOptions = [
@@ -20,8 +22,8 @@ export class AjouterwComponent implements OnInit {
    constructor(
      private fb: FormBuilder,
      private router: Router,
-     private wallixService: WallixService
-   ) {}
+     private wallixService: WallixService,
+    private clientService: ClientService) {}
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
@@ -31,6 +33,7 @@ export class AjouterwComponent implements OnInit {
   }
  
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
        this.wallixForm= this.fb.group({
          client: ['', Validators.required],
          dureeDeLicence: ['', Validators.required],

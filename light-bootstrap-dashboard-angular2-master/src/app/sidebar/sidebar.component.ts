@@ -23,6 +23,8 @@ export const ROUTES: RouteInfo[] = [
       { path: '/interventions-preventives', title: 'Interventions Préventives', icon: 'pe-7s-shield', class: '' }
     ]
   },
+  { path: '/historique-contrats', title: 'Historique Contrats', icon: 'pe-7s-clock', class: '' },
+  { path: '/client-stats', title: 'Clients', icon: 'pe-7s-users', class: '' },
   { path: '/messaging', title: 'Messagerie', icon: 'pe-7s-chat', class: '' },
   { path: '/profile', title: 'Profil', icon: 'pe-7s-news-paper', class: '' },
 ];

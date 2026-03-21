@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Varonis} from 'app/Model/Varonis';
 import { VaronisService } from 'app/Services/varonis.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajoutervr',
   templateUrl: './ajoutervr.component.html',
   styleUrls: ['./ajoutervr.component.scss']
 })
 export class AjoutervrComponent implements OnInit {
+  clients: Client[] = [];
    varonisForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjoutervrComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private varonisService: VaronisService
-    ) {}
+      private varonisService: VaronisService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.varonisForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

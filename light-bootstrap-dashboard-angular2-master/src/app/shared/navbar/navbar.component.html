@@ -33,8 +33,13 @@
               </div>
               <div *ngFor="let notif of notifications" class="notif-item" [class.notif-unread]="!notif.read"
                 (click)="markNotifRead(notif)">
-                <div class="notif-message">{{ notif.message }}</div>
-                <div class="notif-time">{{ getTimeAgo(notif.createdAt) }}</div>
+                <div class="notif-content">
+                  <div class="notif-message">{{ notif.message }}</div>
+                  <div class="notif-time">{{ getTimeAgo(notif.createdAt) }}</div>
+                </div>
+                <button class="notif-delete-btn" (click)="deleteNotification(notif, $event)" title="Supprimer">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
               </div>
             </div>
           </div>
@@ -234,27 +239,39 @@
           class="msg-bubble-avatar" alt="" />
 
         <div class="msg-bubble" [class.msg-bubble-sent]="msg.senderId === currentUserId"
-          [class.msg-bubble-received]="msg.senderId !== currentUserId">
-          <!-- Image attachment -->
-          <div *ngIf="msg.fileName && isImage(msg.fileType)" class="msg-attachment-img">
-            <img [src]="getFileDownloadUrl(msg.filePath)" [alt]="msg.originalFileName" />
+          [class.msg-bubble-received]="msg.senderId !== currentUserId"
+          [class.msg-bubble-deleted]="msg.deletedForEveryone">
+
+          <!-- Message supprimé pour tout le monde -->
+          <div *ngIf="msg.deletedForEveryone" class="msg-deleted-text">
+            <i class="fas fa-ban"></i> Ce message a été supprimé
           </div>
-          <!-- Audio attachment -->
-          <div *ngIf="msg.fileName && isAudio(msg.fileType)" class="msg-attachment-audio">
-            <audio controls [src]="getFileDownloadUrl(msg.filePath)"></audio>
-          </div>
-          <!-- Other file attachment -->
-          <div *ngIf="msg.fileName && !isImage(msg.fileType) && !isAudio(msg.fileType)" class="msg-attachment-file">
-            <i class="fas fa-file"></i>
-            <span class="msg-file-name">{{ msg.originalFileName }}</span>
-            <a [href]="getFileDownloadUrl(msg.filePath)" download class="msg-download-btn">
-              <i class="fas fa-download"></i>
-            </a>
-          </div>
-          <!-- Text content -->
-          <div *ngIf="msg.content" class="msg-text">{{ msg.content }}</div>
+
+          <!-- Contenu normal (si pas supprimé) -->
+          <ng-container *ngIf="!msg.deletedForEveryone">
+            <!-- Image attachment -->
+            <div *ngIf="msg.fileName && isImage(msg.fileType)" class="msg-attachment-img">
+              <img [src]="getFileDownloadUrl(msg.filePath)" [alt]="msg.originalFileName" />
+            </div>
+            <!-- Audio attachment -->
+            <div *ngIf="msg.fileName && isAudio(msg.fileType)" class="msg-attachment-audio">
+              <audio controls [src]="getFileDownloadUrl(msg.filePath)"></audio>
+            </div>
+            <!-- Other file attachment -->
+            <div *ngIf="msg.fileName && !isImage(msg.fileType) && !isAudio(msg.fileType)" class="msg-attachment-file">
+              <i class="fas fa-file"></i>
+              <span class="msg-file-name">{{ msg.originalFileName }}</span>
+              <a [href]="getFileDownloadUrl(msg.filePath)" download class="msg-download-btn">
+                <i class="fas fa-download"></i>
+              </a>
+            </div>
+            <!-- Text content -->
+            <div *ngIf="msg.content" class="msg-text">{{ msg.content }}</div>
+          </ng-container>
+
           <div class="msg-time">{{ formatTime(msg.timestamp!) }}</div>
-          <button class="msg-delete-msg-btn" (click)="deleteMessage(msg)" title="Supprimer">
+          <button *ngIf="!msg.deletedForEveryone" class="msg-delete-msg-btn" (click)="deleteMessage(msg)"
+            title="Supprimer">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -264,6 +281,22 @@
         <i *ngIf="msg.senderId === currentUserId && !userProfilePic"
           class="fas fa-user-circle msg-bubble-avatar-icon"></i>
       </div>
+    </div>
+
+    <!-- Delete message dialog -->
+    <div class="msg-delete-dialog-backdrop" *ngIf="deleteMenuMsg" (click)="cancelDelete()"></div>
+    <div class="msg-delete-dialog" *ngIf="deleteMenuMsg">
+      <div class="msg-delete-dialog-title">Supprimer le message ?</div>
+      <button class="msg-delete-option" (click)="deleteForMe()">
+        <i class="fas fa-user"></i> Supprimer pour moi
+      </button>
+      <button class="msg-delete-option msg-delete-everyone" *ngIf="deleteMenuMsg.senderId === currentUserId"
+        (click)="deleteForEveryone()">
+        <i class="fas fa-users"></i> Supprimer pour tout le monde
+      </button>
+      <button class="msg-delete-option msg-delete-cancel" (click)="cancelDelete()">
+        <i class="fas fa-times"></i> Annuler
+      </button>
     </div>
 
     <!-- Typing indicator -->
@@ -278,11 +311,27 @@
       <button class="msg-file-remove" (click)="removeSelectedFile()">&times;</button>
     </div>
 
-    <!-- Input -->
-    <div class="msg-chat-input">
+    <!-- Recording indicator (shown during recording) -->
+    <div *ngIf="isRecording" class="msg-recording-bar">
+      <span class="msg-rec-pulse"></span>
+      <span class="msg-rec-time">{{ formatRecordingTime() }}</span>
+      <span class="msg-rec-label">Enregistrement en cours...</span>
+      <button class="msg-rec-cancel" (click)="cancelRecording()" title="Annuler">
+        <i class="fas fa-times"></i>
+      </button>
+      <button class="msg-rec-send" (click)="stopRecording()" title="Envoyer">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+
+    <!-- Input (hidden during recording) -->
+    <div class="msg-chat-input" *ngIf="!isRecording">
       <input type="file" id="msgFileInput" (change)="onFileSelected($event)" style="display: none;" />
       <button class="msg-attach-btn" (click)="triggerFileInput()" title="Joindre un fichier">
         <i class="fas fa-paperclip"></i>
+      </button>
+      <button class="msg-voice-btn" (click)="startRecording()" title="Message vocal">
+        <i class="fas fa-microphone"></i>
       </button>
       <input type="text" [(ngModel)]="newMessage" (keyup.enter)="selectedFile ? sendFile() : sendMessage()"
         (input)="onTyping()" placeholder="Écrire un message..." class="msg-input" />
@@ -291,4 +340,5 @@
       </button>
     </div>
   </div>
+
 </div>

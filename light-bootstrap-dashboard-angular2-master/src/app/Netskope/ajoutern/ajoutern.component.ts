@@ -4,12 +4,14 @@ import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Netskope } from 'app/Model/Netskope';
 import { NetskopeService } from 'app/Services/neskope.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajoutern',
   templateUrl: './ajouter.component.html',
   styleUrls: ['./ajouter.component.scss']
 })
 export class AjouternComponent implements OnInit {
+   clients: Client[] = [];
    netskopeForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,12 @@ export class AjouternComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private netskopeService: NetskopeService
+      private netskopeService: NetskopeService,
+      private clientService: ClientService
     ) {}
   
      ngOnInit(): void {
+        this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.netskopeForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

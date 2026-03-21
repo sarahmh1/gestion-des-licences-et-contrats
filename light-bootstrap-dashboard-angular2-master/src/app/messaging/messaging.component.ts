@@ -338,7 +338,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
         if (!message.id) return;
 
         if (confirm('Voulez-vous vraiment supprimer ce message ?')) {
-            this.messageService.deleteMessage(message.id).subscribe(
+            this.messageService.deleteMessageForMe(message.id, this.currentUserId).subscribe(
                 () => {
                     // Retirer le message de la liste
                     this.messages = this.messages.filter(m => m.id !== message.id);

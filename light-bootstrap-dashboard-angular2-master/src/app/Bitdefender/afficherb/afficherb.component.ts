@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { BitdefenderService } from 'app/Services/bitdefender.service';
 import { Bitdefender } from 'app/Model/Bitdefender';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AfficherbComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedBitdefender: Bitdefender | null = null;
    bitdefenders: Bitdefender[] = [];
    filteredBitdefenders: Bitdefender[] = [];
  unapprovedBitdefenders: Bitdefender[] = [];
@@ -39,7 +40,7 @@ export class AfficherbComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération bitdefenders', error);
+          console.error('Erreur rÃ©cupÃ©ration bitdefenders', error);
         }
       );
     }
@@ -81,7 +82,7 @@ export class AfficherbComponent implements OnInit {
       this.filteredBitdefenders = this.filteredBitdefenders.filter(bitdefender => bitdefender.bitdefenderId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -90,11 +91,11 @@ export class AfficherbComponent implements OnInit {
         this.bitdefenderService.deleteBitdefender(id).subscribe(
           () => {
             this.getAllBitdefenders();
-            alert('Bitdefender supprimé avec succès');
+            alert('Bitdefender supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression Bitdefender', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -123,5 +124,7 @@ export class AfficherbComponent implements OnInit {
 getFileDownloadUrl(id: number): string {
   return this.bitdefenderService.getFileDownloadUrl(id);
 }
-  }
   
+  selectBitdefender(x: Bitdefender): void { this.selectedBitdefender = this.selectedBitdefender?.bitdefenderId === x.bitdefenderId ? null : x; }
+  closeDetail(): void { this.selectedBitdefender = null; }
+}

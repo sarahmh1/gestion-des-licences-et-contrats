@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { VMware } from 'app/Model/VMware';
 import { VMwareService } from 'app/Services/vmware.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterv',
   templateUrl: './ajouterv.component.html',
   styleUrls: ['./ajouterv.component.scss']
 })
 export class AjoutervComponent implements OnInit {
+  clients: Client[] = [];
    vmwareForm!: FormGroup;
    selectedFile: File | null = null;
     commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjoutervComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private vmwareService: VMwareService
-    ) {}
+      private vmwareService: VMwareService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.vmwareForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

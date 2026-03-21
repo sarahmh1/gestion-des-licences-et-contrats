@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Rapid7 } from 'app/Model/Rapid7';
 import { Rapid7Service } from 'app/Services/rapid7.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-ajouter-rapid7',
@@ -11,6 +12,7 @@ import { Rapid7Service } from 'app/Services/rapid7.service';
   styleUrls: ['./ajouter-rapid7.component.scss']
 })
 export class AjouterRapid7Component implements OnInit {
+  clients: Client[] = [];
   rapid7Form!: FormGroup;
   selectedFile: File | null = null;
   commandePasserParOptions = [
@@ -21,8 +23,8 @@ export class AjouterRapid7Component implements OnInit {
    constructor(
      private fb: FormBuilder,
      private router: Router,
-     private rapid7Service: Rapid7Service
-   ) {}
+     private rapid7Service: Rapid7Service,
+    private clientService: ClientService) {}
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
@@ -32,6 +34,7 @@ export class AjouterRapid7Component implements OnInit {
   }
  
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
        this.rapid7Form= this.fb.group({
          client: ['', Validators.required],
          dureeDeLicence: [''],

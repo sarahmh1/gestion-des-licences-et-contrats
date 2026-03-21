@@ -18,6 +18,8 @@ export interface MessageDTO {
     filePath?: string;
     fileType?: string;
     originalFileName?: string;
+    // Delete flags
+    deletedForEveryone?: boolean;
 }
 
 export interface ConversationDTO {
@@ -57,9 +59,7 @@ export class MessageService {
      * Marque les messages comme lus
      */
     markMessagesAsRead(senderId: number, receiverId: number): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/mark-read`, null, {
-            params: { senderId: senderId.toString(), receiverId: receiverId.toString() }
-        });
+        return this.http.post<void>(`${this.apiUrl}/mark-read`, { senderId, receiverId });
     }
 
     /**
@@ -89,17 +89,24 @@ export class MessageService {
     }
 
     /**
-     * Supprime un message
+     * Supprime un message pour moi seulement
      */
-    deleteMessage(messageId: number): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/${messageId}`);
+    deleteMessageForMe(messageId: number, userId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/delete-for-me/${messageId}/${userId}`);
+    }
+
+    /**
+     * Supprime un message pour tout le monde
+     */
+    deleteMessageForEveryone(messageId: number, userId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/delete-for-everyone/${messageId}/${userId}`);
     }
 
     /**
      * Supprime une conversation pour un utilisateur (soft delete)
      */
     deleteConversation(conversationId: number, userId: number): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/conversation/${conversationId}?userId=${userId}`);
+        return this.http.delete<void>(`${this.apiUrl}/conversation/${conversationId}/user/${userId}`);
     }
 
     /**

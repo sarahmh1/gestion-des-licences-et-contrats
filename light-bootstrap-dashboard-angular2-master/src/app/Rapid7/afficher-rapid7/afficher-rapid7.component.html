@@ -1,110 +1,76 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
-    <h2>Listes de licences Rapid7</h2>
+    <h2>Licences Rapid7</h2>
     <div class="action-group">
-      <button (click)="goToAddRapid7()" class="btn btn-sm action-button">
-        <i class="fa fa-plus"></i>
-      </button>
+      <button (click)="goToAddRapid7()" class="btn btn-sm action-button"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
-
-  <!-- Tableau responsive (comme Fortinet) -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Licences</th>
-          <th>Clé de licence</th>
-          <th>Durée</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let rapid7 of pagedRapid7s">
-          <td>{{ rapid7.client }}</td>
-
-          <!-- LICENCES (affichage groupé - comme Fortinet) -->
-          <td>
-            <div *ngFor="let lic of rapid7.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
-              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
-              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
-              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+  <div class="md-layout" [class.detail-open]="selectedRapid7">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let x of pagedRapid7s" class="md-item"
+          [class.md-item-active]="selectedRapid7?.rapid7Id === x.rapid7Id" (click)="selectRapid7(x)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ x.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Durée :</strong> {{ x.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of x.licences" class="md-field"><strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}</span>
             </div>
-          </td>
-
-          <td>{{ rapid7.cleLicences }}</td>
-          <td>{{ rapid7.dureeDeLicence }}</td>
-          <td>{{ rapid7.nomDuContact }}</td>
-          <td>{{ rapid7.numero }}</td>
-          <td>{{ rapid7.adresseEmailContact }}</td>
-          <td>{{ rapid7.mailAdmin }}</td>
-          <td>{{ rapid7.ccMail }}</td>
-          <td>{{ rapid7.remarque }}</td>
-          <td>{{ rapid7.sousContrat }}</td>
-          <td>{{ getCommandePasserParLabel(rapid7.commandePasserPar) }}</td>
-
-          <td>
-            <div *ngIf="rapid7.fichier; else noFile">
-              <a [href]="getFileDownloadUrl(rapid7.rapid7Id)" target="_blank" class="btn btn-sm btn-outline-info">
-                <i class="fa fa-download"></i> {{ rapid7.fichierOriginalName }}
-              </a>
-            </div>
-            <ng-template #noFile>
-              <span class="text-muted">-</span>
-            </ng-template>
-          </td>
-
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button (click)="updateRapid7(rapid7)" class="btn btn-sm btn-primary">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteRapid7(rapid7.rapid7Id)" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-              </button>
-              <button (click)="approveRapid7(rapid7.rapid7Id)" class="btn btn-sm btn-success">
-                <i class="fas fa-check"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredRapid7s.length === 0">
-          <td colspan="14" class="text-center">Aucun Rapid7 trouvé.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination (comme Fortinet) -->
-  <div class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectRapid7(x)" title="Voir details"><i class="fas fa-eye"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateRapid7(x)"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteRapid7(x.rapid7Id)"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveRapid7(x.rapid7Id)"><i class="fas fa-check"></i></button>
+          </div>
+        </div>
+        <div *ngIf="pagedRapid7s.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun Rapid7 trouvé.</p></div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)" [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">{{ i + 1 }}</button>
+      </div>
+    </div>
+    <div class="md-detail" *ngIf="selectedRapid7">
+      <div class="md-detail-card">
+        <div class="md-detail-header"><h4>{{ selectedRapid7.client }}</h4><button class="md-detail-close" (click)="closeDetail()">&times;</button></div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Licence</div>
+          <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedRapid7.dureeDeLicence || '-' }}</span></div>
+          <div class='md-detail-row'><span class='md-label'>Clé Licence</span><span class='md-value'>{{ selectedRapid7.cleLicences || '-' }}</span></div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Licences</div>
+          <div *ngFor="let lic of selectedRapid7.licences" class="licence-block">
+            <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Contact Client</div>
+          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedRapid7.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedRapid7.numero || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedRapid7.adresseEmailContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedRapid7.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedRapid7.ccMail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous Contrat</span><span class="md-value"><span [class]="selectedRapid7.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedRapid7.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedRapid7.remarque || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedRapid7.commandePasserPar) || '-' }}</span></div>
+          <div class="md-detail-row" *ngIf="selectedRapid7.fichierOriginalName">
+            <span class="md-label">Fichier</span><span class="md-value"><a [href]="getFileDownloadUrl(selectedRapid7.rapid7Id)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"></i> {{ selectedRapid7.fichierOriginalName }}</a></span>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button (click)="updateRapid7(selectedRapid7)" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i> Modifier</button>
+            <button (click)="deleteRapid7(selectedRapid7.rapid7Id)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="approveRapid7(selectedRapid7.rapid7Id)" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approuver</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+
+

@@ -1,5 +1,5 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+<div class="master-detail-container">
+  <!-- En-tête -->
   <div class="header-row">
     <h2>Suivi des Contrats</h2>
     <div class="action-group">
@@ -7,103 +7,140 @@
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm"
+          (input)="onSearch()" />
       </div>
     </div>
   </div>
 
-  <!-- Tableau responsive -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Objet du Contrat</th>
-          <th>Nb Interventions Préventives</th>
-          <th>Nb Interventions Curatives</th>
-          <th>Dates</th>
-          <th>Date Fin</th>
-          <th>Renouvelable</th>
-          <th>Email Commercial</th>
-          <th>Email(s) en CC</th>
-          <th>Remarque</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let contrat of pagedContrats">
-          <td>{{ contrat.client }}</td>
-          <td>{{ contrat.objetContrat }}</td>
-          <td>{{ contrat.nbInterventionsPreventives }}</td>
-          <td>{{ contrat.nbInterventionsCuratives }}</td>
-          <td>
-            <div class="dates-block">
-              <div class="date-item date-debut-item">
-                <span><strong>Date Début:</strong></span>
-                <span>{{ contrat.dateDebut | date: 'dd/MM/yyyy' }}</span>
-              </div>
-              <div *ngFor="let avenant of contrat.datesAvenants" class="date-item avenant-item">
-                <span><strong>Avenant {{ avenant.numeroAvenant }}:</strong></span>
-                <span>{{ avenant.dateAvenant | date: 'dd/MM/yyyy' }}</span>
-              </div>
-            </div>
-          </td>
-          <td>{{ contrat.dateFin | date: 'dd/MM/yyyy' }}</td>
-          <td>
-            <span [class]="contrat.renouvelable ? 'badge badge-success' : 'badge badge-secondary'">
-              {{ contrat.renouvelable ? 'Oui' : 'Non' }}
-            </span>
-          </td>
-          <td>{{ contrat.emailCommercial || '-' }}</td>
-          <td>
-            <div *ngIf="contrat.ccMail && contrat.ccMail.length > 0">
-              <div *ngFor="let email of contrat.ccMail">{{ email }}</div>
-            </div>
-            <span *ngIf="!contrat.ccMail || contrat.ccMail.length === 0">-</span>
-          </td>
-          <td>{{ contrat.remarque }}</td>
-          <td>
-            <a *ngIf="contrat.fichier" [href]="getFileDownloadUrl(contrat.contratId)" target="_blank" class="btn btn-sm btn-info">
-              <i class="fas fa-download"></i> {{ contrat.fichierOriginalName || 'Télécharger' }}
-            </a>
-            <span *ngIf="!contrat.fichier">-</span>
-          </td>
-          <td>
-            <div class="d-flex flex-row gap-1">
-              <button (click)="openEditModal(contrat)" class="btn btn-sm btn-primary">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteContrat(contrat.contratId)" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredContrats.length === 0">
-          <td colspan="12" class="text-center">Aucun contrat trouvé.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- Layout Master / Detail -->
+  <div class="md-layout" [class.detail-open]="selectedContrat">
 
-  <!-- Pagination -->
-  <div class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+    <!-- ── MASTER : liste de mini-cartes à gauche ── -->
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let contrat of pagedContrats" class="md-item"
+          [class.md-item-active]="selectedContrat?.contratId === contrat.contratId" (click)="selectContrat(contrat)">
+          <!-- Infos principales -->
+          <div class="md-item-info">
+            <div class="md-item-client">{{ contrat.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Objet Contrat :</strong> {{ contrat.objetContrat || '-' }}</span>
+              <span class="md-field"><strong>Intervention Preventive :</strong> {{ contrat.nbInterventionsPreventives ||
+                '-' }}</span>
+              <span class="md-field"><strong>Intervention Curative :</strong> {{ contrat.nbInterventionsCuratives || '-'
+                }}</span>
+              <span class="md-field"><strong>Date Debut :</strong> {{ contrat.dateDebut | date: 'dd/MM/yyyy' }}</span>
+              <span class="md-field"><strong>Date Fin :</strong> {{ contrat.dateFin | date: 'dd/MM/yyyy' }}</span>
+              <span class="md-field" *ngIf="contrat.nomProduit"><strong>Produit :</strong> {{ contrat.nomProduit |
+                replace:'_':' ' }}</span>
+              <span [class]="contrat.renouvelable ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">
+                {{ contrat.renouvelable ? 'Renouvelable' : 'Non renouvelable' }}
+              </span>
+            </div>
+          </div>
+          <!-- Actions -->
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectContrat(contrat)" title="Voir details">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="md-btn-icon md-btn-edit" (click)="openEditModal(contrat)" title="Modifier">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteContrat(contrat.contratId)" title="Supprimer">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="filteredContrats.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucun contrat trouve</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── DETAIL : carte verticale à droite ── -->
+    <div class="md-detail" *ngIf="selectedContrat">
+      <div class="md-detail-card">
+        <!-- Header -->
+        <div class="md-detail-header">
+          <h4>{{ selectedContrat.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="md-detail-body">
+          <!-- Dates avenants -->
+          <div *ngIf="selectedContrat.datesAvenants && selectedContrat.datesAvenants.length > 0">
+            <div class="md-detail-section-title">Avenants</div>
+            <div class="md-detail-row" *ngFor="let av of selectedContrat.datesAvenants">
+              <span class="md-label">Avenant {{ av.numeroAvenant }}</span>
+              <span class="md-value">
+                {{ av.dateAvenant | date: 'dd/MM/yyyy' }}
+                <span *ngIf="av.details" class="avenant-details-text"> — {{ av.details }}</span>
+              </span>
+            </div>
+            <div class="md-detail-divider"></div>
+          </div>
+
+          <!-- Produit -->
+          <div class="md-detail-row" *ngIf="selectedContrat.nomProduit">
+            <span class="md-label">Produit</span>
+            <span class="md-value">
+              <span class="md-badge md-badge-green">{{ selectedContrat.nomProduit }}</span>
+            </span>
+          </div>
+
+          <div class="md-detail-divider" *ngIf="selectedContrat.nomProduit"></div>
+
+          <!-- Email -->
+          <div class="md-detail-section-title">Contact</div>
+          <div class="md-detail-row">
+            <span class="md-label">Email Commercial</span>
+            <span class="md-value">{{ selectedContrat.emailCommercial || '-' }}</span>
+          </div>
+
+          <div class="md-detail-row">
+            <span class="md-label">Email(s) en CC</span>
+            <span class="md-value" *ngIf="selectedContrat.ccMail && selectedContrat.ccMail.length > 0">
+              <div *ngFor="let email of selectedContrat.ccMail" class="md-cc-email">{{ email }}</div>
+            </span>
+            <span class="md-value" *ngIf="!selectedContrat.ccMail || selectedContrat.ccMail.length === 0">-</span>
+          </div>
+
+          <div class="md-detail-divider"></div>
+
+          <!-- Remarque -->
+          <div class="md-detail-row">
+            <span class="md-label">Remarque</span>
+            <span class="md-value md-value-wrap">{{ selectedContrat.remarque || '-' }}</span>
+          </div>
+
+          <div class="md-detail-divider"></div>
+
+          <!-- Fichier -->
+          <div class="md-detail-row">
+            <span class="md-label">Fichier</span>
+            <span class="md-value">
+              <a *ngIf="selectedContrat.fichier" [href]="getFileDownloadUrl(selectedContrat.contratId)" target="_blank"
+                class="md-file-link">
+                <i class="fas fa-download"></i> {{ selectedContrat.fichierOriginalName || 'Telecharger' }}
+              </a>
+              <span *ngIf="!selectedContrat.fichier">-</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -114,19 +151,16 @@
       <h3>{{ isEditMode ? 'Modifier le Contrat' : 'Ajouter un Contrat' }}</h3>
       <button type="button" class="close-btn" (click)="closeModal()">&times;</button>
     </div>
-    
+
     <div class="modal-body">
       <form [formGroup]="contratForm" (ngSubmit)="saveContrat()">
         <!-- Client -->
         <div class="form-group mb-3">
           <label for="client" class="form-label">Client</label>
-          <input
-            type="text"
-            id="client"
-            class="form-control"
-            formControlName="client"
-            placeholder="Nom du client"
-          />
+          <select id="client" class="form-control" formControlName="client">
+            <option value="" disabled>-- Selectionner un client --</option>
+            <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
+          </select>
           <div *ngIf="contratForm.get('client')?.touched && contratForm.get('client')?.invalid" class="text-danger">
             Ce champ est obligatoire.
           </div>
@@ -135,16 +169,21 @@
         <!-- Objet du Contrat -->
         <div class="form-group mb-3">
           <label for="objetContrat" class="form-label">Objet du Contrat</label>
-          <input
-            type="text"
-            id="objetContrat"
-            class="form-control"
-            formControlName="objetContrat"
-            placeholder="Objet du contrat"
-          />
-          <div *ngIf="contratForm.get('objetContrat')?.touched && contratForm.get('objetContrat')?.invalid" class="text-danger">
+          <input type="text" id="objetContrat" class="form-control" formControlName="objetContrat"
+            placeholder="Objet du contrat" />
+          <div *ngIf="contratForm.get('objetContrat')?.touched && contratForm.get('objetContrat')?.invalid"
+            class="text-danger">
             Ce champ est obligatoire.
           </div>
+        </div>
+
+        <!-- Produit -->
+        <div class="form-group mb-3">
+          <label for="nomProduit" class="form-label">Produit</label>
+          <select id="nomProduit" class="form-control" formControlName="nomProduit">
+            <option value="">-- Sélectionner un produit --</option>
+            <option *ngFor="let p of nomProduitOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
+          </select>
         </div>
 
         <div class="row">
@@ -152,14 +191,10 @@
           <div class="col-md-6">
             <div class="form-group mb-3">
               <label for="nbInterventionsPreventives" class="form-label">Interventions Préventives</label>
-              <select
-                id="nbInterventionsPreventives"
-                class="form-control"
-                formControlName="nbInterventionsPreventives"
-              >
-                <option [ngValue]="null">-- Sélectionner --</option>
-                <option [ngValue]="2">2</option>
-                <option [ngValue]="4">4</option>
+              <select id="nbInterventionsPreventives" class="form-control" formControlName="nbInterventionsPreventives">
+                <option value="" disabled>-- Selectionner --</option>
+                <option value="2">2</option>
+                <option value="4">4</option>
               </select>
             </div>
           </div>
@@ -168,14 +203,8 @@
           <div class="col-md-6">
             <div class="form-group mb-3">
               <label for="nbInterventionsCuratives" class="form-label">Interventions Curatives</label>
-              <input
-                type="number"
-                id="nbInterventionsCuratives"
-                class="form-control"
-                formControlName="nbInterventionsCuratives"
-                placeholder="Nombre"
-                min="0"
-              />
+              <input type="text" id="nbInterventionsCuratives" class="form-control"
+                formControlName="nbInterventionsCuratives" placeholder="Ex: 10j, 5j" />
             </div>
           </div>
         </div>
@@ -184,34 +213,26 @@
         <div class="form-group mb-3">
           <label class="form-label">Date de Début du Contrat</label>
           <div class="date-debut-row">
-            <input
-              type="date"
-              class="form-control date-input"
-              formControlName="dateDebut"
-            />
+            <input type="date" class="form-control date-input" formControlName="dateDebut" />
             <button type="button" class="btn btn-add-avenant" (click)="addDateAvenant()">
               <i class="fa fa-plus"></i>
             </button>
           </div>
-          <div *ngIf="contratForm.get('dateDebut')?.touched && contratForm.get('dateDebut')?.invalid" class="text-danger">
+          <div *ngIf="contratForm.get('dateDebut')?.touched && contratForm.get('dateDebut')?.invalid"
+            class="text-danger">
             Ce champ est obligatoire.
           </div>
         </div>
 
         <!-- Dates Avenants -->
         <div formArrayName="datesAvenants" *ngIf="datesAvenants.length > 0">
-          <div
-            *ngFor="let avenant of datesAvenants.controls; let i = index"
-            [formGroupName]="i"
-            class="form-group mb-2"
-          >
-            <label class="form-label">Date Avenant {{ i + 1 }}</label>
+          <div *ngFor="let avenant of datesAvenants.controls; let i = index" [formGroupName]="i"
+            class="form-group mb-2">
+            <label class="form-label">Avenant {{ i + 1 }}</label>
             <div class="date-avenant-row">
-              <input
-                type="date"
-                class="form-control date-input"
-                formControlName="dateAvenant"
-              />
+              <input type="date" class="form-control date-input" formControlName="dateAvenant" placeholder="Date" />
+              <input type="text" class="form-control details-input" formControlName="details"
+                placeholder="Détails de l'avenant..." />
               <button type="button" class="btn btn-add-avenant" (click)="addDateAvenant()">
                 <i class="fa fa-plus"></i>
               </button>
@@ -225,12 +246,7 @@
         <!-- Date Fin -->
         <div class="form-group mb-3">
           <label for="dateFin" class="form-label">Date de Fin</label>
-          <input
-            type="date"
-            id="dateFin"
-            class="form-control"
-            formControlName="dateFin"
-          />
+          <input type="date" id="dateFin" class="form-control" formControlName="dateFin" />
           <div *ngIf="contratForm.get('dateFin')?.touched && contratForm.get('dateFin')?.invalid" class="text-danger">
             Ce champ est obligatoire.
           </div>
@@ -239,12 +255,7 @@
         <!-- Renouvelable -->
         <div class="form-group mb-3">
           <div class="form-check">
-            <input
-              type="checkbox"
-              id="renouvelable"
-              class="form-check-input"
-              formControlName="renouvelable"
-            />
+            <input type="checkbox" id="renouvelable" class="form-check-input" formControlName="renouvelable" />
             <label for="renouvelable" class="form-check-label">Renouvelable</label>
           </div>
         </div>
@@ -252,26 +263,17 @@
         <!-- Remarque -->
         <div class="form-group mb-3">
           <label for="remarque" class="form-label">Remarque</label>
-          <textarea
-            id="remarque"
-            class="form-control"
-            formControlName="remarque"
-            placeholder="Remarques éventuelles"
-            rows="3"
-          ></textarea>
+          <textarea id="remarque" class="form-control" formControlName="remarque" placeholder="Remarques éventuelles"
+            rows="3"></textarea>
         </div>
 
         <!-- Email Commercial -->
         <div class="form-group mb-3">
           <label for="emailCommercial" class="form-label">Email Commercial</label>
-          <input
-            type="email"
-            id="emailCommercial"
-            class="form-control"
-            formControlName="emailCommercial"
-            placeholder="Email du commercial"
-          />
-          <div *ngIf="contratForm.get('emailCommercial')?.touched && contratForm.get('emailCommercial')?.invalid" class="text-danger">
+          <input type="email" id="emailCommercial" class="form-control" formControlName="emailCommercial"
+            placeholder="Email du commercial" />
+          <div *ngIf="contratForm.get('emailCommercial')?.touched && contratForm.get('emailCommercial')?.invalid"
+            class="text-danger">
             Veuillez entrer un email valide.
           </div>
         </div>
@@ -281,12 +283,7 @@
           <label class="form-label">Email(s) en Copie</label>
           <div formArrayName="ccMail">
             <div *ngFor="let email of ccMailArray.controls; let i = index" class="input-group mb-2">
-              <input
-                type="email"
-                class="form-control"
-                [formControlName]="i"
-                placeholder="Email en copie"
-              />
+              <input type="email" class="form-control" [formControlName]="i" placeholder="Email en copie" />
               <button type="button" class="btn btn-danger" (click)="removeCcMail(i)">
                 <i class="fa fa-minus"></i>
               </button>
@@ -300,7 +297,7 @@
         <!-- Upload Fichier -->
         <div class="form-group mb-3">
           <label class="form-label">Fichier joint</label>
-          
+
           <!-- Afficher le fichier existant (en mode édition) -->
           <div *ngIf="isEditMode && existingFile" class="mb-2">
             <span class="text-success">
@@ -313,16 +310,11 @@
               <i class="fas fa-trash"></i> Supprimer
             </button>
           </div>
-          
+
           <!-- Input pour nouveau fichier -->
-          <input
-            type="file"
-            id="fichier"
-            class="form-control"
-            (change)="onFileSelected($event)"
-          />
+          <input type="file" id="fichier" class="form-control" (change)="onFileSelected($event)" />
           <small class="text-muted">Sélectionnez un fichier à joindre au contrat (PDF, Word, etc.)</small>
-          
+
           <!-- Indicateur de fichier sélectionné -->
           <div *ngIf="selectedFile" class="mt-2">
             <span class="text-primary">

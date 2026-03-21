@@ -23,9 +23,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                         @Param("user2Id") Long user2Id);
 
         /**
-         * Compte les messages non lus pour un utilisateur
+         * Compte les messages non lus pour un utilisateur (exclut les supprimés)
          */
-        @Query("SELECT COUNT(m) FROM Message m WHERE m.receiverId = :userId AND m.isRead = false")
+        @Query("SELECT COUNT(m) FROM Message m WHERE m.receiverId = :userId AND m.isRead = false AND m.deletedByReceiver = false AND m.deletedForEveryone = false")
         Long countUnreadMessages(@Param("userId") Long userId);
 
         /**

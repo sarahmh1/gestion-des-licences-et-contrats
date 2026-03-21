@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Crowdstrike } from 'app/Model/Crowdstrike';
 import { CrowdstrikeService } from 'app/Services/crowdstrike.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-ajouter-crowdstrike',
@@ -11,6 +12,7 @@ import { CrowdstrikeService } from 'app/Services/crowdstrike.service';
   styleUrls: ['./ajoutercr.component.scss']
 })
 export class AjouterCrowdstrikeComponent implements OnInit {
+  clients: Client[] = [];
   crowdstrikeForm!: FormGroup;
   selectedFile: File | null = null;
   commandePasserParOptions = [
@@ -22,8 +24,8 @@ export class AjouterCrowdstrikeComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private crowdstrikeService: CrowdstrikeService
-  ) {}
+    private crowdstrikeService: CrowdstrikeService,
+    private clientService: ClientService) {}
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
@@ -33,6 +35,7 @@ export class AjouterCrowdstrikeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.crowdstrikeForm = this.fb.group({
       client: ['', Validators.required],
       dureeLicence: [''],

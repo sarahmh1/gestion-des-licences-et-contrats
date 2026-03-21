@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Bitdefender } from 'app/Model/Bitdefender';
 import { BitdefenderService } from 'app/Services/bitdefender.service';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-bitdefender',
@@ -11,6 +12,7 @@ import { CommandePasserPar } from 'app/Model/CommandePasserPar';
   styleUrls: ['./update.component.scss']
 })
 export class UpdateBitdefenderComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     bitdefenderId!: number;
     bitdefender!: Bitdefender;
@@ -27,10 +29,11 @@ export class UpdateBitdefenderComponent implements OnInit {
       private bitdefenderService: BitdefenderService,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

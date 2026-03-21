@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Cisco } from 'app/Model/Cisco';
 import { CiscoService } from 'app/Services/cisco.service';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterc',
   templateUrl: './ajouterc.component.html',
   styleUrls: ['./ajouterc.component.scss']
 })
 export class AjoutercComponent implements OnInit {
+  clients: Client[] = [];
    ciscoForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjoutercComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private ciscoService: CiscoService
-    ) {}
+      private ciscoService: CiscoService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.ciscoForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

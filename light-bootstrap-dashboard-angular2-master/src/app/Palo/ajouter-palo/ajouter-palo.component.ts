@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Palo } from 'app/Model/Palo';
 import { PaloService } from 'app/Services/palo.service';
 import { HttpEventType } from '@angular/common/http';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-ajouter-palo',
@@ -12,6 +13,7 @@ import { HttpEventType } from '@angular/common/http';
   styleUrls: ['./ajouter-palo.component.scss']
 })
 export class AjouterPaloComponent implements OnInit {
+  clients: Client[] = [];
   PaloForm!: FormGroup;
   
   // Variables pour l'upload de fichier
@@ -27,10 +29,11 @@ export class AjouterPaloComponent implements OnInit {
    constructor(
      private fb: FormBuilder,
      private router: Router,
-     private paloService: PaloService
-   ) {}
+     private paloService: PaloService,
+    private clientService: ClientService) {}
  
    ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
      this.PaloForm = this.fb.group({
        client: ['', Validators.required],
        nomDuBoitier: ['', Validators.required],

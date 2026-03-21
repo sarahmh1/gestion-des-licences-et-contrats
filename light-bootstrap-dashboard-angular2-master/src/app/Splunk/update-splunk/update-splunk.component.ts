@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Splunk } from 'app/Model/Splunk';
 import { SplunkService } from 'app/Services/splunk.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-splunk',
@@ -11,6 +12,7 @@ import { SplunkService } from 'app/Services/splunk.service';
   styleUrls: ['./update-splunk.component.scss']
 })
 export class UpdateSplunkComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
       splunkid!: number;
       splunk!: Splunk;
@@ -26,10 +28,11 @@ export class UpdateSplunkComponent implements OnInit {
         private splunkService: SplunkService,
         private route: ActivatedRoute,
         private router: Router,
-        private cdr: ChangeDetectorRef
-      ) {}
+        private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
     
       ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.updateForm = this.fb.group({
           client: ['', Validators.required],
           dureeLicence: [''],

@@ -29,11 +29,11 @@ public class Contrat {
 
     @Basic
     @Column(name = "Nb_Interventions_Preventives")
-    private Integer nbInterventionsPreventives;
+    private String nbInterventionsPreventives;
 
     @Basic
     @Column(name = "Nb_Interventions_Curatives")
-    private Integer nbInterventionsCuratives;
+    private String nbInterventionsCuratives;
 
     @Basic
     @Column(name = "Date_Debut")
@@ -70,6 +70,9 @@ public class Contrat {
 
     @Column(name = "email_sent_day_of")
     private Boolean emailSentDayOf = false;
+
+    @Column(name = "nom_produit", length = 100)
+    private String nomProduit;
 
     @OneToMany(mappedBy = "contrat", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

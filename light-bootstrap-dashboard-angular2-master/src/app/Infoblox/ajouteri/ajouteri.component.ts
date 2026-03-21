@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Infoblox } from 'app/Model/Infoblox';
 import { InfobloxService } from 'app/Services/infoblox.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouteri',
   templateUrl: './ajouteri.component.html',
   styleUrls: ['./ajouteri.component.scss']
 })
 export class AjouteriComponent implements OnInit {
+  clients: Client[] = [];
    infobloxForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjouteriComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private infobloxService: InfobloxService
-    ) {}
+      private infobloxService: InfobloxService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.infobloxForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

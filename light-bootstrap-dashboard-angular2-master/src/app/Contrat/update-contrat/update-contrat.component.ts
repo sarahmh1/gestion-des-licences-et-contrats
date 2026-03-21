@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ContratService } from 'app/Services/contrat.service';
 import { Contrat } from 'app/Model/Contrat';
+import { ClientService, Client } from '../../Services/client.service';
+import { PRODUIT_LIST } from '../../Model/NomProduit';
 
 @Component({
   selector: 'app-update-contrat',
@@ -10,9 +12,11 @@ import { Contrat } from 'app/Model/Contrat';
   styleUrls: ['./update-contrat.component.scss']
 })
 export class UpdateContratComponent implements OnInit {
+  clients: Client[] = [];
   contratForm!: FormGroup;
   contratId!: number;
-  
+  nomProduitOptions = PRODUIT_LIST;
+
   // Variables pour la gestion des fichiers
   selectedFile: File | null = null;
   existingFile: string | null = null;
@@ -23,11 +27,13 @@ export class UpdateContratComponent implements OnInit {
     private fb: FormBuilder,
     private contratService: ContratService,
     private router: Router,
-    private route: ActivatedRoute
-  ) {}
+    private route: ActivatedRoute,
+    private clientService: ClientService) { }
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initForm();
+    this.watchDateFin();
     this.contratId = +this.route.snapshot.params['id'];
     this.loadContrat();
   }
@@ -36,14 +42,27 @@ export class UpdateContratComponent implements OnInit {
     this.contratForm = this.fb.group({
       client: ['', Validators.required],
       objetContrat: ['', Validators.required],
-      nbInterventionsPreventives: [0, [Validators.required, Validators.min(0)]],
-      nbInterventionsCuratives: [0, [Validators.required, Validators.min(0)]],
+      nbInterventionsPreventives: ['', Validators.required],
+      nbInterventionsCuratives: ['', Validators.required],
       dateDebut: ['', Validators.required],
       dateFin: ['', Validators.required],
       renouvelable: [false],
       remarque: [''],
       emailCommercial: ['', Validators.email],
-      ccMail: this.fb.array([])
+      ccMail: this.fb.array([]),
+      nomProduit: ['']
+    });
+  }
+
+  watchDateFin(): void {
+    this.contratForm.get('dateFin')?.valueChanges.subscribe((val: string) => {
+      const renouvelable = this.contratForm.get('renouvelable');
+      if (val) {
+        renouvelable?.setValue(false, { emitEvent: false });
+        renouvelable?.disable({ emitEvent: false });
+      } else {
+        renouvelable?.enable({ emitEvent: false });
+      }
     });
   }
 
@@ -74,16 +93,17 @@ export class UpdateContratComponent implements OnInit {
           dateFin: contrat.dateFin,
           renouvelable: contrat.renouvelable,
           remarque: contrat.remarque,
-          emailCommercial: contrat.emailCommercial || ''
+          emailCommercial: contrat.emailCommercial || '',
+          nomProduit: contrat.nomProduit || ''
         });
-        
+
         // Charger les emails CC
         if (contrat.ccMail && contrat.ccMail.length > 0) {
           contrat.ccMail.forEach(email => {
             this.ccMailArray.push(this.fb.control(email, Validators.email));
           });
         }
-        
+
         // Charger les informations du fichier
         if (contrat.fichier) {
           this.existingFile = contrat.fichier;
@@ -133,7 +153,7 @@ export class UpdateContratComponent implements OnInit {
 
   uploadFile(): void {
     if (!this.selectedFile) return;
-    
+
     this.uploading = true;
     this.contratService.uploadFile(this.contratId, this.selectedFile).subscribe(
       (response) => {

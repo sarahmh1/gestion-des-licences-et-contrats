@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CrowdstrikeService } from 'app/Services/crowdstrike.service';
 import { Crowdstrike } from 'app/Model/Crowdstrike';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 })
 export class AfficherCrowdstrikeComponent implements OnInit {
   searchTerm: string = '';
+  selectedCrowdstrike: Crowdstrike | null = null;
   crowdstrikes: Crowdstrike[] = [];
   filteredCrowdstrikes: Crowdstrike[] = [];
   unapprovedCrowdstrikes: Crowdstrike[] = [];
@@ -33,12 +34,12 @@ export class AfficherCrowdstrikeComponent implements OnInit {
   }
 
   getAllCrowdstrikes(): void {
-    console.log('Début de la récupération des CrowdStrikes');
+    console.log('DÃ©but de la rÃ©cupÃ©ration des CrowdStrikes');
     this.crowdstrikeService.getAllCrowdstrikes().subscribe(
       (data: Crowdstrike[]) => {
-        console.log('Données reçues du backend:', data);
+        console.log('DonnÃ©es reÃ§ues du backend:', data);
         
-        // Debug: Vérifiez les IDs
+        // Debug: VÃ©rifiez les IDs
         data.forEach((item, index) => {
           console.log(`Item ${index}: ID =`, item.crowdstrikeid, 'Type:', typeof item.crowdstrikeid);
         });
@@ -49,8 +50,8 @@ export class AfficherCrowdstrikeComponent implements OnInit {
         this.changePage(0);
       },
       (error) => {
-        console.error('Erreur récupération Crowdstrikes', error);
-        alert('Erreur lors de la récupération des données');
+        console.error('Erreur rÃ©cupÃ©ration Crowdstrikes', error);
+        alert('Erreur lors de la rÃ©cupÃ©ration des donnÃ©es');
       }
     );
   }
@@ -98,12 +99,12 @@ export class AfficherCrowdstrikeComponent implements OnInit {
 
     this.crowdstrikeService.activate(id).subscribe(
       () => {
-        console.log('Approbation réussie pour ID:', id);
+        console.log('Approbation rÃ©ussie pour ID:', id);
         this.unapprovedCrowdstrikes = this.unapprovedCrowdstrikes.filter(crowdstrike => crowdstrike.crowdstrikeid !== id);
         this.filteredCrowdstrikes = this.filteredCrowdstrikes.filter(crowdstrike => crowdstrike.crowdstrikeid !== id);
         this.calculatePagination();
         this.changePage(this.currentPage);
-        alert('CrowdStrike approuvé avec succès');
+        alert('CrowdStrike approuvÃ© avec succÃ¨s');
       },
       error => {
         console.error('Erreur lors de l\'approbation:', error);
@@ -124,9 +125,9 @@ export class AfficherCrowdstrikeComponent implements OnInit {
     if (confirm('Confirmer la suppression ?')) {
       this.crowdstrikeService.deleteCrowdstrike(id).subscribe(
         () => {
-          console.log('Suppression réussie pour ID:', id);
+          console.log('Suppression rÃ©ussie pour ID:', id);
           this.getAllCrowdstrikes();
-          alert('CrowdStrike supprimé avec succès');
+          alert('CrowdStrike supprimÃ© avec succÃ¨s');
         },
         error => {
           console.error('Erreur suppression CrowdStrike', error);
@@ -137,15 +138,15 @@ export class AfficherCrowdstrikeComponent implements OnInit {
   }
 
   updateCrowdstrike(crowdstrike: Crowdstrike): void {
-    console.log('Tentative de mise à jour avec CrowdStrike:', crowdstrike);
+    console.log('Tentative de mise Ã  jour avec CrowdStrike:', crowdstrike);
     
     if (!crowdstrike.crowdstrikeid) {
       console.error('crowdstrikeid est manquant');
-      alert('Erreur: ID non valide pour la mise à jour');
+      alert('Erreur: ID non valide pour la mise Ã  jour');
       return;
     }
 
-    // VÉRIFIEZ QUE CETTE ROUTE EXISTE DANS VOTRE app-routing.module.ts
+    // VÃ‰RIFIEZ QUE CETTE ROUTE EXISTE DANS VOTRE app-routing.module.ts
     this.router.navigate(['/edit-crowdstrike', crowdstrike.crowdstrikeid]);
   }
 
@@ -169,4 +170,8 @@ export class AfficherCrowdstrikeComponent implements OnInit {
   getFileDownloadUrl(crowdstrikeid: number): string {
     return this.crowdstrikeService.getFileDownloadUrlById(crowdstrikeid);
   }
+
+  selectCrowdstrike(x: Crowdstrike): void { this.selectedCrowdstrike = this.selectedCrowdstrike?.crowdstrikeid === x.crowdstrikeid ? null : x; }
+  closeDetail(): void { this.selectedCrowdstrike = null; }
 }
+

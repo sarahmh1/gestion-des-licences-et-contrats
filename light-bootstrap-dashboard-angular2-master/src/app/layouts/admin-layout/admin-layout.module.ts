@@ -8,6 +8,7 @@ import { LbdModule } from '../../lbd/lbd.module';
 import { NguiMapModule } from '@ngui/map';
 
 import { AdminLayoutRoutes } from './admin-layout.routing';
+import { JhFormatPipe } from '../../shared/jh-format.pipe';
 
 import { HomeComponent } from '../../home/home.component';
 //import { UserComponent } from '../../user/user.component';
@@ -123,6 +124,8 @@ import { AjouterContratComponent } from '../../Contrat/ajouter-contrat/ajouter-c
 import { UpdateContratComponent } from '../../Contrat/update-contrat/update-contrat.component';
 import { AfficherInterventionCurativeComponent } from '../../InterventionCurative/afficher-intervention-curative/afficher-intervention-curative.component';
 import { AfficherInterventionPreventiveComponent } from '../../intervention-preventive/afficher-intervention-preventive/afficher-intervention-preventive.component';
+import { ClientStatsComponent } from '../../client-stats/client-stats/client-stats.component';
+import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/historique-contrat.component';
 
 
 
@@ -249,7 +252,10 @@ import { AfficherInterventionPreventiveComponent } from '../../intervention-prev
     AjouterContratComponent,
     UpdateContratComponent,
     AfficherInterventionCurativeComponent,
-    AfficherInterventionPreventiveComponent
+    AfficherInterventionPreventiveComponent,
+    ClientStatsComponent,
+    HistoriqueContratComponent,
+    JhFormatPipe
 
   ]
 })

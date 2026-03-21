@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Bitdefender } from 'app/Model/Bitdefender';
 import { BitdefenderService } from 'app/Services/bitdefender.service';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterb',
   templateUrl: './ajouterb.component.html',
   styleUrls: ['./ajouterb.component.scss']
 })
 export class AjouterbComponent implements OnInit {
+  clients: Client[] = [];
    bitdefenderForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjouterbComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private bitdefenderService: BitdefenderService
-    ) {}
+      private bitdefenderService: BitdefenderService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.bitdefenderForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

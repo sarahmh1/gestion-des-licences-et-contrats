@@ -1,17 +1,14 @@
-<div class="container mt-5">
+﻿<div class="container mt-5">
   <h2 class="text-center mb-4">Ajouter licence Veeam</h2>
   
   <form [formGroup]="veeamForm" (ngSubmit)="addVeeam()">
     <!-- Client -->
     <div class="form-group mb-3">
       <label for="client" class="form-label">Client</label>
-      <input
-        type="text"
-        id="client"
-        class="form-control"
-        formControlName="client"
-        placeholder="Nom du client"
-      />
+      <select id="client" class="form-control" formControlName="client">
+        <option value="" disabled>-- Selectionner un client --</option>
+        <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
+      </select>
       <div *ngIf="veeamForm.get('client')?.touched && veeamForm.get('client')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>

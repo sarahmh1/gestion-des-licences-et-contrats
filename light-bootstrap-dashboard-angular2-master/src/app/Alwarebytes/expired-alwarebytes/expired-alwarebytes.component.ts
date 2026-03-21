@@ -13,14 +13,14 @@ export class ExpiredAlwarebytesComponent implements OnInit {
   filteredExpiredAlwarebytess: Alwarebytes[] = [];
   pagedExpiredAlwarebytess: Alwarebytes[] = [];
   searchTerm: string = '';
-  
+
   // Propriétés pour la pagination
   currentPage: number = 0;
   pageSize: number = 10;
   totalPages: number = 0;
   pageNumbers: number[] = [];
 
-  constructor(private alwarebytesService: AlwarebytesService) {}
+  constructor(private alwarebytesService: AlwarebytesService) { }
 
   ngOnInit(): void {
     this.loadApprovedAlwarebytess();
@@ -33,10 +33,10 @@ export class ExpiredAlwarebytesComponent implements OnInit {
         console.log('All Alwarebytess from API:', data);
 
         // Filter only the approved Alwarebytess
-        this.expiredAlwarebytess = data.filter(alwarebytes => 
-          alwarebytes.approuve === true 
+        this.expiredAlwarebytess = data.filter(alwarebytes =>
+          alwarebytes.approuve === true
         );
-        
+
         this.filteredExpiredAlwarebytess = [...this.expiredAlwarebytess];
         this.updatePagination();
 
@@ -60,10 +60,10 @@ export class ExpiredAlwarebytesComponent implements OnInit {
         (alwarebytes.adresseEmailContact && alwarebytes.adresseEmailContact.toLowerCase().includes(searchLower)) ||
         (alwarebytes.mailAdmin && alwarebytes.mailAdmin.toLowerCase().includes(searchLower)) ||
         (alwarebytes.remarque && alwarebytes.remarque.toLowerCase().includes(searchLower)) ||
-        (alwarebytes.ccMail && alwarebytes.ccMail.some(email => 
+        (alwarebytes.ccMail && alwarebytes.ccMail.some(email =>
           email && email.toLowerCase().includes(searchLower)
         )) ||
-        (alwarebytes.licences && alwarebytes.licences.some(lic => 
+        (alwarebytes.licences && alwarebytes.licences.some(lic =>
           lic.nomDesLicences && lic.nomDesLicences.toLowerCase().includes(searchLower)
         ))
       );
@@ -104,7 +104,7 @@ export class ExpiredAlwarebytesComponent implements OnInit {
 
   getCommandePasserParLabel(value: CommandePasserPar | any): string {
     if (!value) return 'N/A';
-    
+
     if (typeof value === 'string') {
       return value;
     } else if (typeof value === 'object' && value.value) {
@@ -112,7 +112,7 @@ export class ExpiredAlwarebytesComponent implements OnInit {
     } else if (typeof value === 'object' && value.libelle) {
       return value.libelle;
     }
-    
+
     return String(value);
   }
 

@@ -1,0 +1,18 @@
+proposition 1 : 
+aucune action technique faite /  actions techniques partielle / toutes les actions techniques faites
+proposition 2 :
+À planifier , Partiellement réalisée, Complétée
+proposition 3 : 
+Non commencée / En progression / Finalisée
+proposition 4 :
+À traiter / Traitement partiel / Traitement complet
+
+
+changer la phrase de notification on ajoute produit x ...
+
+notifiation par mail , objet: intervention pre nom du client , nom du produit, periode recommande commence aujoudhui 
+
+La période recommandée de client x pour l'intervention commence AUJOURD'HUI.
+
+on ajoute le champ produit liste deroulante dans le form du intervention pre /cur/contrat
+

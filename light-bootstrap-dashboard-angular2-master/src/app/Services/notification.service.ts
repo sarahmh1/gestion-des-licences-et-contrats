@@ -35,4 +35,16 @@ export class NotificationAppService {
     markAllAsRead(userId: number): Observable<void> {
         return this.http.put<void>(`${this.baseUrl}/mark-all-read/${userId}`, {}, { headers: this.getHeaders() });
     }
+
+    deleteNotification(notificationId: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${notificationId}`, { headers: this.getHeaders() });
+    }
+
+    createNotification(userId: number, message: string, interventionPreventiveId?: number): Observable<any> {
+        const body: any = { userId, message };
+        if (interventionPreventiveId != null) {
+            body.interventionPreventiveId = interventionPreventiveId;
+        }
+        return this.http.post<any>(`${this.baseUrl}/create`, body, { headers: this.getHeaders() });
+    }
 }

@@ -11,15 +11,14 @@ import { Router } from '@angular/router';
 export class AfficherComponent implements OnInit {
   searchTerm: string = '';
   fortinets: Fortinet[] = [];
-   unapprovedFortinets: Fortinet[] = []; // ESETs non approuvés seulement
+  unapprovedFortinets: Fortinet[] = [];
   filteredFortinets: Fortinet[] = [];
+  selectedFortinet: Fortinet | null = null;
 
   currentPage = 0;
   pageSize = 10;
   totalPages: number = 0;
   pagedFortinets: Fortinet[] = [];
-  
-
 
   constructor(private fortinetService: FortinetService, private router: Router) {}
 
@@ -111,6 +110,14 @@ export class AfficherComponent implements OnInit {
 
   updateFortinet(fortinet: Fortinet): void {
     this.router.navigate(['/edit-fortinet', fortinet.fortinetId]);
+  }
+
+  selectFortinet(f: Fortinet): void {
+    this.selectedFortinet = this.selectedFortinet?.fortinetId === f.fortinetId ? null : f;
+  }
+
+  closeDetail(): void {
+    this.selectedFortinet = null;
   }
 
   goToAddFortinet() {

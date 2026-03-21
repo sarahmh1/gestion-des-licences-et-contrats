@@ -2,8 +2,11 @@ package com.example.projet2024.service;
 
 import com.example.projet2024.entite.InterventionPreventive;
 import com.example.projet2024.entite.IntervenantPreventif;
+import com.example.projet2024.entite.PeriodeLigne;
+import com.example.projet2024.entite.User;
 import com.example.projet2024.Enum.StatutInterventionPreventive;
 import com.example.projet2024.repository.InterventionPreventiveRepository;
+import com.example.projet2024.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -11,8 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,8 +29,17 @@ public class InterventionPreventiveServiceImpl implements IInterventionPreventiv
     @Autowired
     private InterventionPreventiveRepository interventionPreventiveRepository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public List<InterventionPreventive> getAllInterventionsPreventives() {
@@ -51,10 +66,34 @@ public class InterventionPreventiveServiceImpl implements IInterventionPreventiv
                 intervenant.setInterventionPreventive(intervention);
             }
         }
+
+        // Associer les lignes de période à l'intervention
+        if (intervention.getPeriodeLignes() != null) {
+            for (PeriodeLigne ligne : intervention.getPeriodeLignes()) {
+                ligne.setInterventionPreventive(intervention);
+                // Associer les intervenants à la ligne de période
+                if (ligne.getIntervenants() != null) {
+                    for (IntervenantPreventif interv : ligne.getIntervenants()) {
+                        interv.setPeriodeLigne(ligne);
+                    }
+                }
+            }
+        }
+
+        // Résoudre les utilisateurs assignés
+        if (intervention.getAssignedUsers() != null && !intervention.getAssignedUsers().isEmpty()) {
+            List<User> resolvedUsers = new ArrayList<>();
+            for (User u : intervention.getAssignedUsers()) {
+                userRepository.findById(u.getId()).ifPresent(resolvedUsers::add);
+            }
+            intervention.setAssignedUsers(resolvedUsers);
+        }
+
         return interventionPreventiveRepository.save(intervention);
     }
 
     @Override
+    @Transactional
     public InterventionPreventive updateInterventionPreventive(Long id, InterventionPreventive intervention) {
         InterventionPreventive existing = getInterventionPreventiveById(id);
 
@@ -71,13 +110,83 @@ public class InterventionPreventiveServiceImpl implements IInterventionPreventiv
         existing.setStatut(intervention.getStatut());
         existing.setEmailCommercial(intervention.getEmailCommercial());
         existing.setCcMail(intervention.getCcMail());
+        existing.setNomProduit(intervention.getNomProduit());
 
-        // Mettre à jour les intervenants
+        // ── Mise à jour des utilisateurs assignés ──
+        existing.getAssignedUsers().clear();
+        if (intervention.getAssignedUsers() != null) {
+            for (User u : intervention.getAssignedUsers()) {
+                User managedUser = userRepository.findById(u.getId()).orElse(null);
+                if (managedUser != null) {
+                    existing.getAssignedUsers().add(managedUser);
+                }
+            }
+        }
+
+        // ── Mise à jour des intervenants (niveau intervention) ──
         existing.getIntervenants().clear();
+        entityManager.flush();
         if (intervention.getIntervenants() != null) {
             for (IntervenantPreventif intervenant : intervention.getIntervenants()) {
+                intervenant.setIntervenantPreventifId(null); // Forcer un INSERT (pas de conflit d'ID)
                 intervenant.setInterventionPreventive(existing);
                 existing.getIntervenants().add(intervenant);
+            }
+        }
+
+        // ── Mise à jour des lignes de période (sans perdre fichier/email flags) ──
+        List<PeriodeLigne> oldLignes = new ArrayList<>(existing.getPeriodeLignes());
+        List<PeriodeLigne> newLignes = intervention.getPeriodeLignes() != null
+                ? intervention.getPeriodeLignes()
+                : new ArrayList<>();
+
+        // Supprimer les lignes en trop
+        while (existing.getPeriodeLignes().size() > newLignes.size()) {
+            existing.getPeriodeLignes().remove(existing.getPeriodeLignes().size() - 1);
+        }
+        entityManager.flush();
+
+        // Mettre à jour les lignes existantes et ajouter les nouvelles
+        for (int i = 0; i < newLignes.size(); i++) {
+            PeriodeLigne src = newLignes.get(i);
+            PeriodeLigne target;
+
+            if (i < oldLignes.size()) {
+                // Mettre à jour la ligne existante (préserve son ID, fichier, flags email)
+                target = oldLignes.get(i);
+            } else {
+                // Créer une nouvelle ligne
+                target = new PeriodeLigne();
+                target.setInterventionPreventive(existing);
+                existing.getPeriodeLignes().add(target);
+            }
+
+            // Copier les champs admin
+            target.setPeriodeDe(src.getPeriodeDe());
+            target.setPeriodeA(src.getPeriodeA());
+            target.setPeriodeRecommandeDe(src.getPeriodeRecommandeDe());
+            target.setPeriodeRecommandeA(src.getPeriodeRecommandeA());
+            target.setDateInterventionExigee(src.getDateInterventionExigee());
+
+            // Copier les champs tech (seulement si envoyés, sinon garder l'existant)
+            if (src.getDateIntervention() != null) {
+                target.setDateIntervention(src.getDateIntervention());
+            }
+            if (src.getDateRapportPreventive() != null) {
+                target.setDateRapportPreventive(src.getDateRapportPreventive());
+            }
+            // Le fichier est géré séparément par l'endpoint d'upload, ne pas l'écraser
+
+            // Mettre à jour les intervenants de cette ligne
+            target.getIntervenants().clear();
+            entityManager.flush();
+            if (src.getIntervenants() != null) {
+                for (IntervenantPreventif interv : src.getIntervenants()) {
+                    interv.setIntervenantPreventifId(null); // Forcer un INSERT
+                    interv.setPeriodeLigne(target);
+                    interv.setInterventionPreventive(null);
+                    target.getIntervenants().add(interv);
+                }
             }
         }
 
@@ -126,16 +235,7 @@ public class InterventionPreventiveServiceImpl implements IInterventionPreventiv
         logger.info("Nombre total d'interventions préventives: {}", interventions.size());
 
         for (InterventionPreventive intervention : interventions) {
-            logger.info(
-                    "Intervention ID: {}, Client: {}, PeriodeRecommandeDe: {}, PeriodeRecommandeA: {}, EmailCommercial: {}, Statut: {}, EmailSent1WeekBefore: {}, EmailSent1MonthBefore: {}, EmailSentDayOf: {}",
-                    intervention.getInterventionPreventiveId(), intervention.getNomClient(),
-                    intervention.getPeriodeRecommandeDe(), intervention.getPeriodeRecommandeA(),
-                    intervention.getEmailCommercial(), intervention.getStatut(),
-                    intervention.getEmailSent1WeekBefore(), intervention.getEmailSent1MonthBefore(),
-                    intervention.getEmailSentDayOf());
-
             // Vérifier si l'intervention nécessite une notification
-            // Condition: dateIntervention est null OU statut != TERMINE
             boolean needsNotification = intervention.getDateIntervention() == null
                     || intervention.getStatut() != StatutInterventionPreventive.TERMINE;
 
@@ -145,93 +245,167 @@ public class InterventionPreventiveServiceImpl implements IInterventionPreventiv
                 continue;
             }
 
-            // Vérifier si un email commercial est configuré
-            if (intervention.getEmailCommercial() == null || intervention.getEmailCommercial().isEmpty()) {
-                logger.info("Intervention {} ignorée: emailCommercial manquant",
+            String nomClient = intervention.getNomClient() != null ? intervention.getNomClient() : "N/A";
+            String nomProduit = intervention.getNomProduit() != null && !intervention.getNomProduit().isEmpty()
+                    ? intervention.getNomProduit()
+                    : null;
+            String prefix = (nomProduit != null ? "Produit " + nomProduit + ", " : "") + "Client " + nomClient;
+
+            // Récupérer les utilisateurs assignés à cette intervention
+            List<User> assignedUsers = intervention.getAssignedUsers();
+            if (assignedUsers == null || assignedUsers.isEmpty()) {
+                logger.info("Intervention {} ignorée pour notif in-app: aucun utilisateur assigné",
                         intervention.getInterventionPreventiveId());
-                continue;
             }
 
-            // 1. Rappel 1 semaine avant periodeRecommandeDe (plage de tolérance 5-9 jours)
-            if (intervention.getPeriodeRecommandeDe() != null) {
-                long daysUntilStart = ChronoUnit.DAYS.between(today, intervention.getPeriodeRecommandeDe());
-                logger.info("Intervention {} - Jours avant periodeRecommandeDe: {}",
-                        intervention.getInterventionPreventiveId(), daysUntilStart);
-                if (daysUntilStart >= 5 && daysUntilStart <= 9 && (intervention.getEmailSent1WeekBefore() == null
-                        || !intervention.getEmailSent1WeekBefore())) {
-                    logger.info(">>> Envoi email 1 semaine avant pour intervention {} (jours restants: {})",
-                            intervention.getInterventionPreventiveId(), daysUntilStart);
-                    sendInterventionNotificationEmail(intervention, "1_WEEK_BEFORE");
-                    intervention.setEmailSent1WeekBefore(true);
-                    interventionPreventiveRepository.save(intervention);
-                    logger.info("Email envoyé avec succès pour intervention {} - 1 semaine avant",
-                            intervention.getInterventionPreventiveId());
+            // ── Parcourir chaque ligne de période ──
+            List<PeriodeLigne> lignes = intervention.getPeriodeLignes();
+            if (lignes != null && !lignes.isEmpty()) {
+                for (int idx = 0; idx < lignes.size(); idx++) {
+                    PeriodeLigne ligne = lignes.get(idx);
+                    int numIntervention = idx + 1;
+
+                    // --- Période (contrat) : periodeDe ---
+                    if (ligne.getPeriodeDe() != null) {
+                        long daysToPeriodeDe = ChronoUnit.DAYS.between(today, ligne.getPeriodeDe());
+
+                        // Aujourd'hui
+                        if (daysToPeriodeDe == 0 && !Boolean.TRUE.equals(ligne.getEmailSentPeriodeDayOf())) {
+                            String msg = prefix + " - Intervention " + numIntervention
+                                    + " : la période commence aujourd'hui (" + ligne.getPeriodeDe() + ")";
+                            sendInAppNotificationToAssignedUsers(assignedUsers, msg,
+                                    intervention.getInterventionPreventiveId());
+                            sendInterventionNotificationEmail(intervention, "PERIODE_DAY_OF");
+                            ligne.setEmailSentPeriodeDayOf(true);
+                        }
+                        // Dans une semaine (5-9 jours)
+                        if (daysToPeriodeDe >= 5 && daysToPeriodeDe <= 9
+                                && !Boolean.TRUE.equals(ligne.getEmailSentPeriode1WeekBefore())) {
+                            String msg = prefix + " - Intervention " + numIntervention
+                                    + " : la période commence dans une semaine (" + ligne.getPeriodeDe() + ")";
+                            sendInAppNotificationToAssignedUsers(assignedUsers, msg,
+                                    intervention.getInterventionPreventiveId());
+                            sendInterventionNotificationEmail(intervention, "PERIODE_1_WEEK_BEFORE");
+                            ligne.setEmailSentPeriode1WeekBefore(true);
+                        }
+                    }
+
+                    // --- Période recommandée : periodeRecommandeDe ---
+                    if (ligne.getPeriodeRecommandeDe() != null) {
+                        long daysToRecommDe = ChronoUnit.DAYS.between(today, ligne.getPeriodeRecommandeDe());
+
+                        // Aujourd'hui
+                        if (daysToRecommDe == 0 && !Boolean.TRUE.equals(ligne.getEmailSentDayOf())) {
+                            String msg = prefix + " - Intervention " + numIntervention
+                                    + " : la période recommandée commence aujourd'hui ("
+                                    + ligne.getPeriodeRecommandeDe() + ")";
+                            sendInAppNotificationToAssignedUsers(assignedUsers, msg,
+                                    intervention.getInterventionPreventiveId());
+                            sendInterventionNotificationEmail(intervention, "RECOMMANDEE_DAY_OF");
+                            ligne.setEmailSentDayOf(true);
+                        }
+                        // Dans une semaine (5-9 jours)
+                        if (daysToRecommDe >= 5 && daysToRecommDe <= 9
+                                && !Boolean.TRUE.equals(ligne.getEmailSent1WeekBefore())) {
+                            String msg = prefix + " - Intervention " + numIntervention
+                                    + " : la période recommandée commence dans une semaine ("
+                                    + ligne.getPeriodeRecommandeDe() + ")";
+                            sendInAppNotificationToAssignedUsers(assignedUsers, msg,
+                                    intervention.getInterventionPreventiveId());
+                            sendInterventionNotificationEmail(intervention, "RECOMMANDEE_1_WEEK_BEFORE");
+                            ligne.setEmailSent1WeekBefore(true);
+                        }
+                        // Dans un mois (25-35 jours)
+                        if (daysToRecommDe >= 25 && daysToRecommDe <= 35
+                                && !Boolean.TRUE.equals(ligne.getEmailSent1MonthBefore())) {
+                            String msg = prefix + " - Intervention " + numIntervention
+                                    + " : la période recommandée commence dans un mois ("
+                                    + ligne.getPeriodeRecommandeDe() + ")";
+                            sendInAppNotificationToAssignedUsers(assignedUsers, msg,
+                                    intervention.getInterventionPreventiveId());
+                            sendInterventionNotificationEmail(intervention, "RECOMMANDEE_1_MONTH_BEFORE");
+                            ligne.setEmailSent1MonthBefore(true);
+                        }
+                    }
                 }
             }
 
-            // 2. Rappel 1 mois avant periodeRecommandeA (plage de tolérance 28-32 jours)
-            if (intervention.getPeriodeRecommandeA() != null) {
-                long daysUntilEnd = ChronoUnit.DAYS.between(today, intervention.getPeriodeRecommandeA());
-                logger.info("Intervention {} - Jours avant periodeRecommandeA: {}",
-                        intervention.getInterventionPreventiveId(), daysUntilEnd);
-                if (daysUntilEnd >= 28 && daysUntilEnd <= 32 && (intervention.getEmailSent1MonthBefore() == null
-                        || !intervention.getEmailSent1MonthBefore())) {
-                    logger.info(">>> Envoi email 1 mois avant pour intervention {} (jours restants: {})",
-                            intervention.getInterventionPreventiveId(), daysUntilEnd);
-                    sendInterventionNotificationEmail(intervention, "1_MONTH_BEFORE");
-                    intervention.setEmailSent1MonthBefore(true);
-                    interventionPreventiveRepository.save(intervention);
-                    logger.info("Email envoyé avec succès pour intervention {} - 1 mois avant",
-                            intervention.getInterventionPreventiveId());
-                }
-            }
-
-            // 3. Rappel le jour de periodeRecommandeA (plage de tolérance 0-1 jours)
-            if (intervention.getPeriodeRecommandeA() != null) {
-                long daysUntilEnd = ChronoUnit.DAYS.between(today, intervention.getPeriodeRecommandeA());
-                if (daysUntilEnd >= 0 && daysUntilEnd <= 1
-                        && (intervention.getEmailSentDayOf() == null || !intervention.getEmailSentDayOf())) {
-                    logger.info(">>> Envoi email JOUR J pour intervention {} (jours restants: {})",
-                            intervention.getInterventionPreventiveId(), daysUntilEnd);
-                    sendInterventionNotificationEmail(intervention, "DAY_OF");
-                    intervention.setEmailSentDayOf(true);
-                    interventionPreventiveRepository.save(intervention);
-                    logger.info("Email envoyé avec succès pour intervention {} - jour de la fin",
-                            intervention.getInterventionPreventiveId());
-                } else if (daysUntilEnd >= 0 && daysUntilEnd <= 1) {
-                    logger.info("Intervention {} - Email jour J déjà envoyé (emailSentDayOf={})",
-                            intervention.getInterventionPreventiveId(), intervention.getEmailSentDayOf());
-                }
-            }
+            // Sauvegarder les flags mis à jour
+            interventionPreventiveRepository.save(intervention);
         }
         logger.info("=== FIN Vérification des notifications Intervention Préventive ===");
+    }
+
+    /**
+     * Envoie une notification in-app uniquement aux utilisateurs assignés
+     */
+    private void sendInAppNotificationToAssignedUsers(List<User> assignedUsers, String message,
+            Long interventionPreventiveId) {
+        if (assignedUsers == null || assignedUsers.isEmpty()) {
+            logger.info("Pas d'utilisateurs assignés, notification in-app ignorée");
+            return;
+        }
+        logger.info(">>> Notification in-app aux {} utilisateurs assignés: {}", assignedUsers.size(), message);
+        for (User user : assignedUsers) {
+            try {
+                notificationService.createNotification(user, message, interventionPreventiveId);
+            } catch (Exception e) {
+                logger.error("Erreur notification in-app pour user {}: {}", user.getId(), e.getMessage());
+            }
+        }
     }
 
     /**
      * Envoie un email de notification pour une intervention préventive
      */
     private void sendInterventionNotificationEmail(InterventionPreventive intervention, String notificationType) {
+        String nomClient = intervention.getNomClient() != null ? intervention.getNomClient() : "N/A";
+        String nomProduit = intervention.getNomProduit() != null && !intervention.getNomProduit().isEmpty()
+                ? intervention.getNomProduit()
+                : null;
+        String clientProduitSuffix = "Client " + nomClient
+                + (nomProduit != null ? ", Produit " + nomProduit : "");
+        String produitInfo = nomProduit != null ? " (Produit : " + nomProduit + ")" : "";
         String subject;
         String urgencyText;
         String actionText;
 
         switch (notificationType) {
-            case "1_WEEK_BEFORE":
-                subject = "🔔 Rappel: Intervention Préventive à planifier dans 1 semaine - "
-                        + intervention.getNomClient();
-                urgencyText = "La période recommandée pour l'intervention commence dans <strong>1 semaine</strong>.";
+            // ── Période (contrat) ──
+            case "PERIODE_1_WEEK_BEFORE":
+                subject = "🔔 Rappel: Intervention Préventive - " + clientProduitSuffix
+                        + " - la période commence dans 1 semaine";
+                urgencyText = "La période de client: <strong>" + nomClient + "</strong> pour l'intervention"
+                        + produitInfo + " commence dans <strong>1 semaine</strong>.";
                 actionText = "Veuillez planifier l'intervention préventive dès que possible.";
                 break;
-            case "1_MONTH_BEFORE":
-                subject = "⚠️ Rappel: Intervention Préventive - 1 mois avant fin de période - "
-                        + intervention.getNomClient();
-                urgencyText = "La période recommandée pour l'intervention se termine dans <strong>1 mois</strong>.";
+            case "PERIODE_DAY_OF":
+                subject = "🚨 URGENT: Intervention Préventive - " + clientProduitSuffix
+                        + " - La période commence AUJOURD'HUI";
+                urgencyText = "La période de client: de <strong>" + nomClient + "</strong> pour l'intervention"
+                        + produitInfo + " commence <strong>AUJOURD'HUI</strong>.";
+                actionText = "Action immédiate requise: l'intervention doit être réalisée.";
+                break;
+            // ── Période recommandée ──
+            case "RECOMMANDEE_1_WEEK_BEFORE":
+                subject = "🔔 Rappel: Intervention Préventive - " + clientProduitSuffix
+                        + " - la période recommandée commence dans 1 semaine";
+                urgencyText = "La période recommandée de client: <strong>" + nomClient + "</strong> pour l'intervention"
+                        + produitInfo + " commence dans <strong>1 semaine</strong>.";
+                actionText = "Veuillez planifier l'intervention préventive dès que possible.";
+                break;
+            case "RECOMMANDEE_1_MONTH_BEFORE":
+                subject = "⚠️ Rappel: Intervention Préventive - " + clientProduitSuffix
+                        + " - la période recommandée commence dans 1 mois";
+                urgencyText = "La période recommandée de client: <strong>" + nomClient + "</strong> pour l'intervention"
+                        + produitInfo + " commence dans <strong>1 mois</strong>.";
                 actionText = "Veuillez vous assurer que l'intervention est planifiée et sera réalisée avant la fin de la période.";
                 break;
-            case "DAY_OF":
-                subject = "🚨 URGENT: Fin de période recommandée pour Intervention Préventive - "
-                        + intervention.getNomClient();
-                urgencyText = "La période recommandée pour l'intervention se termine <strong>AUJOURD'HUI</strong>.";
+            case "RECOMMANDEE_DAY_OF":
+                subject = "🚨 URGENT: Intervention Préventive - " + clientProduitSuffix
+                        + " - La période recommandée commence AUJOURD'HUI";
+                urgencyText = "La période recommandée de client: <strong>" + nomClient + "</strong> pour l'intervention"
+                        + produitInfo + " commence <strong>AUJOURD'HUI</strong>.";
                 actionText = "Action immédiate requise: l'intervention doit être réalisée immédiatement.";
                 break;
             default:

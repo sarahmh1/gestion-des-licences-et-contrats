@@ -12,12 +12,14 @@ export class AffichervComponent implements OnInit {
   searchTerm: string = '';
    vmwares: VMware[] = [];
    filteredVMwares: VMware[] = [];
+   selectedVMware: VMware | null = null;
  
     currentPage = 0;
      pageSize = 10;
      totalPages: number = 0;
      pagedVMwares:VMware[] = [];
      unapprovedVmwares:VMware[] = [];
+
  
    constructor(private vmwareService: VMwareService, private router: Router) {}
  
@@ -104,6 +106,9 @@ export class AffichervComponent implements OnInit {
     updateVMware(vmware: VMware): void {
       this.router.navigate(['/edit-vmware', vmware.vmwareId]);
     }
+
+    selectVMware(v: VMware): void { this.selectedVMware = this.selectedVMware?.vmwareId === v.vmwareId ? null : v; }
+    closeDetail(): void { this.selectedVMware = null; }
   
     goToAddVMware() {
       this.router.navigate(['/Ajoutervmw']);

@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Netskope } from 'app/Model/Netskope';
 import { NetskopeService } from 'app/Services/neskope.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-netskope',
@@ -11,6 +12,7 @@ import { NetskopeService } from 'app/Services/neskope.service';
   styleUrls: ['./update.component.scss']
 })
 export class UpdateNetskopeComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     netskopeId!: number;
     netskope!: Netskope;
@@ -27,10 +29,11 @@ export class UpdateNetskopeComponent implements OnInit {
       private netskopeService: NetskopeService,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

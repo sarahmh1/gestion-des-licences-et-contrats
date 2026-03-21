@@ -22,4 +22,5 @@ export interface InterventionCurative {
   contratId?: number;
   fichier?: string;
   fichierOriginalName?: string;
+  nomProduit?: string;
 }

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { InterventionCurativeService } from 'app/Services/intervention-curative.service';
 import { InterventionCurative } from 'app/Model/InterventionCurative';
+import { ClientService, Client } from '../../Services/client.service';
+import { PRODUIT_LIST } from '../../Model/NomProduit';
 
 @Component({
   selector: 'app-afficher-intervention-curative',
@@ -9,6 +11,7 @@ import { InterventionCurative } from 'app/Model/InterventionCurative';
   styleUrls: ['./afficher-intervention-curative.component.scss']
 })
 export class AfficherInterventionCurativeComponent implements OnInit {
+  clients: Client[] = [];
   searchTerm: string = '';
   interventions: InterventionCurative[] = [];
   filteredInterventions: InterventionCurative[] = [];
@@ -27,6 +30,7 @@ export class AfficherInterventionCurativeComponent implements OnInit {
   // Options
   criticiteOptions = ['C1', 'C2', 'C3'];
   modeInterventionOptions = ['Sur site', 'A distance'];
+  nomProduitOptions = PRODUIT_LIST;
 
   // Variables pour gestion des fichiers
   selectedFile: File | null = null;
@@ -36,10 +40,11 @@ export class AfficherInterventionCurativeComponent implements OnInit {
 
   constructor(
     private interventionCurativeService: InterventionCurativeService,
-    private fb: FormBuilder
-  ) {}
+    private fb: FormBuilder,
+    private clientService: ClientService) { }
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initForm();
     this.getAllInterventions();
   }
@@ -58,7 +63,8 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       visAVisClient: [''],
       enCoursDeResolution: [false],
       resolu: [false],
-      tachesEffectuees: ['']
+      tachesEffectuees: [''],
+      nomProduit: ['']
     });
   }
 
@@ -138,7 +144,7 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       this.intervenants.removeAt(0);
     }
     this.intervenants.push(this.createIntervenantControl());
-    
+
     this.interventionForm.patchValue({
       ficheIntervention: '',
       nomClient: '',
@@ -151,7 +157,8 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       visAVisClient: '',
       enCoursDeResolution: false,
       resolu: false,
-      tachesEffectuees: ''
+      tachesEffectuees: '',
+      nomProduit: ''
     });
     // Réinitialiser les variables de fichier
     this.selectedFile = null;
@@ -163,12 +170,12 @@ export class AfficherInterventionCurativeComponent implements OnInit {
   openEditModal(intervention: InterventionCurative): void {
     this.isEditMode = true;
     this.editingInterventionId = intervention.interventionCurativeId || null;
-    
+
     // Vider et remplir le FormArray des intervenants
     while (this.intervenants.length) {
       this.intervenants.removeAt(0);
     }
-    
+
     if (intervention.intervenants && intervention.intervenants.length > 0) {
       intervention.intervenants.forEach((int: any) => {
         this.intervenants.push(this.fb.group({ nom: [int.nom || int] }));
@@ -179,7 +186,7 @@ export class AfficherInterventionCurativeComponent implements OnInit {
     } else {
       this.intervenants.push(this.createIntervenantControl());
     }
-    
+
     this.interventionForm.patchValue({
       ficheIntervention: intervention.ficheIntervention,
       nomClient: intervention.nomClient,
@@ -192,7 +199,8 @@ export class AfficherInterventionCurativeComponent implements OnInit {
       visAVisClient: intervention.visAVisClient,
       enCoursDeResolution: intervention.enCoursDeResolution,
       resolu: intervention.resolu,
-      tachesEffectuees: intervention.tachesEffectuees
+      tachesEffectuees: intervention.tachesEffectuees,
+      nomProduit: intervention.nomProduit || ''
     });
     // Charger info fichier existant
     this.selectedFile = null;
@@ -208,7 +216,7 @@ export class AfficherInterventionCurativeComponent implements OnInit {
 
   saveIntervention(): void {
     const interventionData: InterventionCurative = this.interventionForm.value;
-    
+
     if (this.isEditMode && this.editingInterventionId) {
       // Update
       this.interventionCurativeService.updateInterventionCurative(this.editingInterventionId, interventionData).subscribe(
@@ -300,7 +308,7 @@ export class AfficherInterventionCurativeComponent implements OnInit {
 
   uploadFileAfterSave(interventionId: number): void {
     if (!this.selectedFile) return;
-    
+
     this.uploading = true;
     this.interventionCurativeService.uploadFile(interventionId, this.selectedFile).subscribe(
       () => {
@@ -329,7 +337,7 @@ export class AfficherInterventionCurativeComponent implements OnInit {
 
   deleteExistingFile(): void {
     if (!this.editingInterventionId) return;
-    
+
     if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?')) {
       this.interventionCurativeService.deleteFile(this.editingInterventionId).subscribe(
         () => {

@@ -1,10 +1,11 @@
-
+﻿
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Proofpoint } from 'app/Model/Proofpoint';
 import { ProofpointService } from 'app/Services/proofpoint.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-proofpoint',
@@ -12,6 +13,7 @@ import { ProofpointService } from 'app/Services/proofpoint.service';
   styleUrls: ['./update-proofpoint.component.scss']
 })
 export class UpdateProofpointComponent implements OnInit {
+  clients: Client[] = [];
   updateForm!: FormGroup;
    proofpointId!: number;
    proofpoint!: Proofpoint;
@@ -28,10 +30,11 @@ export class UpdateProofpointComponent implements OnInit {
      private proofpointService: ProofpointService,
      private route: ActivatedRoute,
      private router: Router,
-     private cdr: ChangeDetectorRef
-   ) {}
+     private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
  
    ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
      this.updateForm = this.fb.group({
        client: ['', Validators.required],
        dureeDeLicence: [''],

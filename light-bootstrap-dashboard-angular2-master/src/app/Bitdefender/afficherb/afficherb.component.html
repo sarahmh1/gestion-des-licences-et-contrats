@@ -1,104 +1,76 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+﻿<div class="master-detail-container">
   <div class="header-row">
-    <h2>Listes de licences Bitdefender</h2>
+    <h2>Licences Bitdefender</h2>
     <div class="action-group">
-      <button (click)="goToAddBitdefender()" class="btn btn-sm action-button">
-        <i class="fa fa-plus"></i>
-      </button>
+      <button (click)="goToAddBitdefender()" class="btn btn-sm action-button"><i class="fa fa-plus"></i></button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
-
-  <!-- Tableau responsive -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Licences</th>
-          <th>Durée</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let bitdefender of pagedBitdefenders">
-          <td>{{ bitdefender.client }}</td>
-
-          <!-- LICENCES (affichage groupé) -->
-          <td>
-            <div *ngFor="let lic of bitdefender.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
-              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
-              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
-              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+  <div class="md-layout" [class.detail-open]="selectedBitdefender">
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let x of pagedBitdefenders" class="md-item"
+          [class.md-item-active]="selectedBitdefender?.bitdefenderId === x.bitdefenderId" (click)="selectBitdefender(x)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ x.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Durée :</strong> {{ x.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of x.licences" class="md-field"><strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}</span>
             </div>
-          </td>
-
-          <td>{{ bitdefender.dureeDeLicence }}</td>
-          <td>{{ bitdefender.nomDuContact }}</td>
-          <td>{{ bitdefender.numero }}</td>
-          <td>{{ bitdefender.adresseEmailContact }}</td>
-          <td>{{ bitdefender.mailAdmin }}</td>
-          <td>{{ bitdefender.ccMail }}</td>
-          <td>{{ bitdefender.remarque }}</td>
-          <td>{{ bitdefender.sousContrat }}</td>
-          <td>{{ getCommandePasserParLabel(bitdefender.commandePasserPar) }}</td>
-
-          <td>
-            <a *ngIf="bitdefender.fichierOriginalName" [href]="getFileDownloadUrl(bitdefender.bitdefenderId)" target="_blank" class="btn btn-sm btn-info">
-              <i class="fa fa-download"></i> {{ bitdefender.fichierOriginalName }}
-            </a>
-            <span *ngIf="!bitdefender.fichierOriginalName">-</span>
-          </td>
-
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button (click)="updateBitdefender(bitdefender)" class="btn btn-sm btn-primary">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteBitdefender(bitdefender.bitdefenderId)" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-              </button>
-              <button (click)="approveBitdefender(bitdefender.bitdefenderId)" class="btn btn-sm btn-success">
-                <i class="fas fa-check"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredBitdefenders.length === 0">
-          <td colspan="13" class="text-center">Aucun Bitdefender trouvé.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  <div class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectBitdefender(x)" title="Voir details"><i class="fas fa-eye"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateBitdefender(x)"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteBitdefender(x.bitdefenderId)"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveBitdefender(x.bitdefenderId)"><i class="fas fa-check"></i></button>
+          </div>
+        </div>
+        <div *ngIf="pagedBitdefenders.length === 0" class="md-empty"><i class="fas fa-folder-open"></i><p>Aucun Bitdefender trouvé.</p></div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)" [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">{{ i + 1 }}</button>
+      </div>
+    </div>
+    <div class="md-detail" *ngIf="selectedBitdefender">
+      <div class="md-detail-card">
+        <div class="md-detail-header"><h4>{{ selectedBitdefender.client }}</h4><button class="md-detail-close" (click)="closeDetail()">&times;</button></div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Licence</div>
+          <div class="md-detail-row"><span class="md-label">Durée</span><span class="md-value">{{ selectedBitdefender.dureeDeLicence || '-' }}</span></div>
+          
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Licences</div>
+          <div *ngFor="let lic of selectedBitdefender.licences" class="licence-block">
+            <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Contact Client</div>
+          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedBitdefender.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedBitdefender.numero || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedBitdefender.adresseEmailContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedBitdefender.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedBitdefender.ccMail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous Contrat</span><span class="md-value"><span [class]="selectedBitdefender.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedBitdefender.sousContrat ? 'Oui' : 'Non' }}</span></span></div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedBitdefender.remarque || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedBitdefender.commandePasserPar) || '-' }}</span></div>
+          <div class="md-detail-row" *ngIf="selectedBitdefender.fichierOriginalName">
+            <span class="md-label">Fichier</span><span class="md-value"><a [href]="getFileDownloadUrl(selectedBitdefender.bitdefenderId)" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"></i> {{ selectedBitdefender.fichierOriginalName }}</a></span>
+          </div>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button (click)="updateBitdefender(selectedBitdefender)" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i> Modifier</button>
+            <button (click)="deleteBitdefender(selectedBitdefender.bitdefenderId)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="approveBitdefender(selectedBitdefender.bitdefenderId)" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approuver</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+
+

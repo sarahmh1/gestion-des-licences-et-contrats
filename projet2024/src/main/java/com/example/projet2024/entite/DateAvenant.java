@@ -25,6 +25,10 @@ public class DateAvenant {
     @Column(name = "Numero_Avenant")
     private Integer numeroAvenant;
 
+    @Basic
+    @Column(name = "Details_Avenant", columnDefinition = "TEXT")
+    private String details;
+
     @ManyToOne
     @JoinColumn(name = "ContratId")
     @JsonBackReference

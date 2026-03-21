@@ -10,6 +10,7 @@ import com.example.projet2024.repository.MessageRepository;
 import com.example.projet2024.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,9 @@ public class MessageService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     /**
      * Envoie un message et met à jour la conversation
@@ -69,7 +73,13 @@ public class MessageService {
         updateOrCreateConversation(senderId, receiverId, lastMessage != null ? lastMessage : "");
 
         // Convertir en DTO
-        return convertToDTO(savedMessage);
+        MessageDTO dto = convertToDTO(savedMessage);
+
+        // Envoyer en temps réel via WebSocket au destinataire ET à l'expéditeur
+        messagingTemplate.convertAndSend("/topic/messages/" + receiverId, dto);
+        messagingTemplate.convertAndSend("/topic/messages/" + senderId, dto);
+
+        return dto;
     }
 
     /**
@@ -97,7 +107,14 @@ public class MessageService {
         for (Message message : messages) {
             // Filtrer les messages antérieurs à la date de suppression
             if (deletedAt != null && message.getTimestamp().isBefore(deletedAt)) {
-                continue; // Ne pas inclure ce message
+                continue;
+            }
+            // Filtrer les messages supprimés pour cet utilisateur
+            if (message.getSenderId().equals(currentUserId) && message.isDeletedBySender()) {
+                continue;
+            }
+            if (message.getReceiverId().equals(currentUserId) && message.isDeletedByReceiver()) {
+                continue;
             }
             messageDTOs.add(convertToDTO(message));
         }
@@ -204,6 +221,7 @@ public class MessageService {
         dto.setFilePath(message.getFilePath());
         dto.setFileType(message.getFileType());
         dto.setOriginalFileName(message.getOriginalFileName());
+        dto.setDeletedForEveryone(message.isDeletedForEveryone());
 
         // Récupérer les informations de l'expéditeur
         Optional<User> sender = userRepository.findById(message.getSenderId());
@@ -256,11 +274,46 @@ public class MessageService {
     }
 
     /**
-     * Supprime un message par son ID
+     * Supprime un message pour l'utilisateur courant seulement
      */
     @Transactional
-    public void deleteMessage(Long messageId) {
-        messageRepository.deleteById(messageId);
+    public void deleteMessageForMe(Long messageId, Long userId) {
+        Optional<Message> msgOpt = messageRepository.findById(messageId);
+        if (msgOpt.isPresent()) {
+            Message msg = msgOpt.get();
+            if (msg.getSenderId().equals(userId)) {
+                msg.setDeletedBySender(true);
+            } else if (msg.getReceiverId().equals(userId)) {
+                msg.setDeletedByReceiver(true);
+            }
+            // Si les deux ont supprimé, supprimer réellement
+            if (msg.isDeletedBySender() && msg.isDeletedByReceiver()) {
+                messageRepository.delete(msg);
+            } else {
+                messageRepository.save(msg);
+            }
+        }
+    }
+
+    /**
+     * Supprime un message pour tout le monde
+     */
+    @Transactional
+    public void deleteMessageForEveryone(Long messageId, Long userId) {
+        Optional<Message> msgOpt = messageRepository.findById(messageId);
+        if (msgOpt.isPresent()) {
+            Message msg = msgOpt.get();
+            // Seul l'expéditeur peut supprimer pour tout le monde
+            if (msg.getSenderId().equals(userId)) {
+                msg.setDeletedForEveryone(true);
+                msg.setContent("");
+                msg.setFileName(null);
+                msg.setFilePath(null);
+                msg.setFileType(null);
+                msg.setOriginalFileName(null);
+                messageRepository.save(msg);
+            }
+        }
     }
 
     /**

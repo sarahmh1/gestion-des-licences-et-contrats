@@ -1,15 +1,17 @@
-import { MicrosoftO365 } from './../../Model/MicrosoftO365';
+﻿import { MicrosoftO365 } from './../../Model/MicrosoftO365';
 import { Component, OnInit } from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { MicrosoftO365Service } from 'app/Services/microsoft-o365.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterm',
   templateUrl: './ajouterm.component.html',
   styleUrls: ['./ajouterm.component.scss']
 })
 export class AjoutermComponent implements OnInit {
+  clients: Client[] = [];
 
  microsoftForm!: FormGroup;
  selectedFile: File | null = null;
@@ -21,10 +23,11 @@ export class AjoutermComponent implements OnInit {
      constructor(
        private fb: FormBuilder,
        private router: Router,
-       private microsoftService: MicrosoftO365Service
-     ) {}
+       private microsoftService: MicrosoftO365Service,
+    private clientService: ClientService) {}
    
       ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
          this.microsoftForm= this.fb.group({
            client: ['', Validators.required],
            dureeDeLicence: [''],

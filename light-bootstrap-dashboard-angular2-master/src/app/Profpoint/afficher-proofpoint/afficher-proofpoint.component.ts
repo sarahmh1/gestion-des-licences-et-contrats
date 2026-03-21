@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { ProofpointService } from 'app/Services/proofpoint.service';
 import { Proofpoint } from 'app/Model/Proofpoint';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 })
 export class AfficherProofpointComponent implements OnInit {
   searchTerm: string = '';
+  selectedProofpoint: Proofpoint | null = null;
   proofpoints: Proofpoint[] = [];
   filteredProofpoints: Proofpoint[] = [];
   unapprovedProofpoints: Proofpoint[] = [];
@@ -40,7 +41,7 @@ export class AfficherProofpointComponent implements OnInit {
          this.changePage(0);
        },
        (error) => {
-         console.error('Erreur récupération Proofpoints', error);
+         console.error('Erreur rÃ©cupÃ©ration Proofpoints', error);
        }
      );
    }
@@ -82,7 +83,7 @@ export class AfficherProofpointComponent implements OnInit {
       this.filteredProofpoints = this.filteredProofpoints.filter(proofpoint => proofpoint.proofpointId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
  
@@ -91,11 +92,11 @@ export class AfficherProofpointComponent implements OnInit {
        this.proofpointService.deleteProofpoint(id).subscribe(
          () => {
            this.getAllProofpoints();
-           alert('proofpoint supprimé avec succès');
+           alert('proofpoint supprimÃ© avec succÃ¨s');
          },
          error => {
            console.error('Erreur suppression proofpoint', error);
-           alert('Échec suppression');
+           alert('Ã‰chec suppression');
          }
        );
      }
@@ -124,5 +125,7 @@ export class AfficherProofpointComponent implements OnInit {
   getFileDownloadUrl(proofpointId: number): string {
     return this.proofpointService.getFileDownloadUrlById(proofpointId);
   }
- }
  
+  selectProofpoint(x: Proofpoint): void { this.selectedProofpoint = this.selectedProofpoint?.proofpointId === x.proofpointId ? null : x; }
+  closeDetail(): void { this.selectedProofpoint = null; }
+}

@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Fortra } from 'app/Model/Fortra';
 import { FortraService } from 'app/Services/fortra.service';
 import { CommandePasserPar } from "app/Model/CommandePasserPar";
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-fortra',
@@ -11,6 +12,7 @@ import { CommandePasserPar } from "app/Model/CommandePasserPar";
   styleUrls: ['./update.component.scss']
 })
 export class UpdateFortraComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     fortraId!: number;
     fortra!: Fortra;
@@ -26,10 +28,11 @@ export class UpdateFortraComponent implements OnInit {
       private fortraService: FortraService,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

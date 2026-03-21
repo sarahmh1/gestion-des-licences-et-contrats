@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { F5 } from 'app/Model/F5';
 import { F5Service } from 'app/Services/f5.service';
 import { CommandePasserPar } from "app/Model/CommandePasserPar";
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-f5',
@@ -11,6 +12,7 @@ import { CommandePasserPar } from "app/Model/CommandePasserPar";
   styleUrls: ['./updatef.component.scss']
 })
 export class UpdateF5Component implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     f5Id!: number;
     f5!: F5;
@@ -27,10 +29,11 @@ export class UpdateF5Component implements OnInit {
       private f5Service: F5Service,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

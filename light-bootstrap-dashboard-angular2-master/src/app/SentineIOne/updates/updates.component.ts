@@ -1,9 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { SentineIOne } from 'app/Model/SentineIOne';
 import { SentineIOneService } from 'app/Services/sentineIOne.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-sentineIOne',
@@ -11,6 +12,7 @@ import { SentineIOneService } from 'app/Services/sentineIOne.service';
   styleUrls: ['./updates.component.scss']
 })
 export class UpdateSentineIOneComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     sentineIOneId!: number;
     sentineIOne!: SentineIOne;
@@ -26,10 +28,11 @@ export class UpdateSentineIOneComponent implements OnInit {
       private sentineIOneService: SentineIOneService,
       private route: ActivatedRoute,
       private router: Router,
-      private cdr: ChangeDetectorRef
-    ) {}
+      private cdr: ChangeDetectorRef,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

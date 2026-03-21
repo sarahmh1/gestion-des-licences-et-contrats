@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { MicrosoftO365Service } from 'app/Services/microsoft-o365.service';
 import { MicrosoftO365 } from 'app/Model/MicrosoftO365';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 export class AffichermComponent implements OnInit {
  
    searchTerm: string = '';
+  selectedMicrosoftO365: MicrosoftO365 | null = null;
     microsofts: MicrosoftO365[] = [];
     filteredMicrosofts: MicrosoftO365[] = [];
   unapprovedMicrosofts: MicrosoftO365[] = [];
@@ -40,7 +41,7 @@ export class AffichermComponent implements OnInit {
            this.changePage(0);
          },
          (error) => {
-           console.error('Erreur récupération MicrosoftO365s', error);
+           console.error('Erreur rÃ©cupÃ©ration MicrosoftO365s', error);
          }
        );
      }
@@ -82,7 +83,7 @@ export class AffichermComponent implements OnInit {
       this.filteredMicrosofts = this.filteredMicrosofts.filter(microsoft => microsoft.microsoftO365Id !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
    
@@ -91,11 +92,11 @@ export class AffichermComponent implements OnInit {
          this.microsoftO365Service.deleteMicrosoftO365(id).subscribe(
            () => {
              this.getAllMicrosoftO365s();
-             alert('MicrosoftO365 supprimé avec succès');
+             alert('MicrosoftO365 supprimÃ© avec succÃ¨s');
            },
            error => {
              console.error('Erreur suppression MicrosoftO365', error);
-             alert('Échec suppression');
+             alert('Ã‰chec suppression');
            }
          );
        }
@@ -124,5 +125,7 @@ export class AffichermComponent implements OnInit {
     getFileDownloadUrl(id: number): string {
       return this.microsoftO365Service.getFileDownloadUrl(id);
     }
-   }
    
+  selectMicrosoftO365(x: MicrosoftO365): void { this.selectedMicrosoftO365 = this.selectedMicrosoftO365?.microsoftO365Id === x.microsoftO365Id ? null : x; }
+  closeDetail(): void { this.selectedMicrosoftO365 = null; }
+}

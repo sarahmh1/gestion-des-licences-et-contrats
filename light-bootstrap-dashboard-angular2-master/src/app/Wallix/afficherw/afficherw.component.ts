@@ -12,9 +12,10 @@ export class AfficherwComponent implements OnInit {
   searchTerm: string = '';
    wallixs: Wallix[] = [];
    filteredWallixs: Wallix[] = [];
+   selectedWallix: Wallix | null = null;
    unapprovedWallixs: Wallix[] = [];
- 
-    currentPage = 0;
+
+     currentPage = 0;
      pageSize = 10;
      totalPages: number = 0;
      pagedWallix: Wallix[] = [];
@@ -124,5 +125,7 @@ export class AfficherwComponent implements OnInit {
   getFileDownloadUrl(wallixId: number): string {
     return this.wallixService.getFileDownloadUrlById(wallixId);
   }
-  }
+  selectWallix(w: Wallix): void { this.selectedWallix = this.selectedWallix?.wallixId === w.wallixId ? null : w; }
+  closeDetail(): void { this.selectedWallix = null; }
+}
   

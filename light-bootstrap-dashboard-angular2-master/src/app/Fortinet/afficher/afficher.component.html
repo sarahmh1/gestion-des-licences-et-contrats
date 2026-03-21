@@ -1,112 +1,105 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
+<div class="master-detail-container">
   <div class="header-row">
-    <h2>Listes de licences Fortinet</h2>
+    <h2>Licences Fortinet</h2>
     <div class="action-group">
       <button (click)="goToAddFortinet()" class="btn btn-sm action-button">
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..."
+          [(ngModel)]="searchTerm" (input)="onSearch()" />
       </div>
     </div>
   </div>
 
-  <!-- Tableau responsive -->
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Client</th>
-          <th>Nom du Boîtier</th>
-          <th>Numéro de Série</th>
-          <th>Licences</th>
-          <th>Durée</th>
-          <th>Contact client</th>
-          <th>N° client</th>
-          <th>Email client</th>
-          <th>Email Commercial</th>
-          <th>Cc mail</th>
-          <th>Remarque</th>
-          <th>Sous Contrat</th>
-          <th>Commande Passer Par</th>
-          <th>Fichier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let fortinet of pagedFortinets">
-          <td>{{ fortinet.client }}</td>
-          <td>{{ fortinet.nomDuBoitier }}</td>
-          <td>{{ fortinet.numeroSerie }}</td>
-
-          <!-- LICENCES (affichage groupé) -->
-          <td>
-            <div *ngFor="let lic of fortinet.licences" class="licence-block d-flex align-items-center gap-3 mb-2">
-              <div><strong>Licence:</strong> {{ lic.nomDesLicences }}</div>
-              <div><strong>Quantité:</strong> {{ lic.quantite }}</div>
-              <div><strong>Expire le:</strong> {{ lic.dateEx | date: 'dd/MM/yyyy' }}</div>
+  <div class="md-layout" [class.detail-open]="selectedFortinet">
+    <!-- MASTER -->
+    <div class="md-master">
+      <div class="md-list">
+        <div *ngFor="let f of pagedFortinets" class="md-item"
+          [class.md-item-active]="selectedFortinet?.fortinetId === f.fortinetId"
+          (click)="selectFortinet(f)">
+          <div class="md-item-info">
+            <div class="md-item-client">{{ f.client }}</div>
+            <div class="md-item-fields">
+              <span class="md-field"><strong>Boîtier :</strong> {{ f.nomDuBoitier || '-' }}</span>
+              <span class="md-field"><strong>N° Série :</strong> {{ f.numeroSerie || '-' }}</span>
+              <span class="md-field"><strong>Durée :</strong> {{ f.dureeDeLicence || '-' }}</span>
+              <span *ngFor="let lic of f.licences" class="md-field">
+                <strong>{{ lic.nomDesLicences }} :</strong> expire {{ lic.dateEx | date:'dd/MM/yyyy' }}
+              </span>
             </div>
-          </td>
+          </div>
+          <div class="md-item-actions" (click)="$event.stopPropagation()">
+            <button class="md-btn-icon md-btn-view" (click)="selectFortinet(f)" title="Voir details"><i class="fas fa-eye"></i></button>
+            <button class="md-btn-icon md-btn-edit" (click)="updateFortinet(f)" title="Modifier"><i class="fas fa-pen"></i></button>
+            <button class="md-btn-icon md-btn-delete" (click)="deleteFortinet(f.fortinetId)" title="Supprimer"><i class="fas fa-trash"></i></button>
+            <button class="md-btn-icon md-btn-approve" (click)="approveFortinet(f.fortinetId)" title="Approuver"><i class="fas fa-check"></i></button>
+          </div>
+        </div>
+        <div *ngIf="pagedFortinets.length === 0" class="md-empty">
+          <i class="fas fa-folder-open"></i><p>Aucun Fortinet trouvé.</p>
+        </div>
+      </div>
+      <div class="md-pagination" *ngIf="totalPages > 1">
+        <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)"
+          [class.active]="i === currentPage" class="btn btn-sm btn-outline-primary mx-1">
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
 
-          <td>{{ fortinet.dureeDeLicence }}</td>
-          <td>{{ fortinet.nomDuContact }}</td>
-          <td>{{ fortinet.numero }}</td>
-          <td>{{ fortinet.adresseEmailContact }}</td>
-          <td>{{ fortinet.mailAdmin }}</td>
-          <td>{{ fortinet.ccMail }}</td>
-          <td>{{ fortinet.remarque }}</td>
-          <td>{{ fortinet.sousContrat }}</td>
-          <td>{{ getCommandePasserParLabel(fortinet.commandePasserPar) }}</td>
-          <!-- Fichier -->
-          <td>
-            <div *ngIf="fortinet.fichier; else noFileFortinet">
-              <a [href]="getFileDownloadUrlById(fortinet.fortinetId)" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="fa fa-download"></i> {{ fortinet.fichierOriginalName || 'Télécharger' }}
+    <!-- DETAIL -->
+    <div class="md-detail" *ngIf="selectedFortinet">
+      <div class="md-detail-card">
+        <div class="md-detail-header">
+          <h4>{{ selectedFortinet.client }}</h4>
+          <button class="md-detail-close" (click)="closeDetail()">&times;</button>
+        </div>
+        <div class="md-detail-body">
+          <div class="md-detail-section-title">Équipement</div>
+          <div class="md-detail-row"><span class="md-label">Nom du Boîtier</span><span class="md-value">{{ selectedFortinet.nomDuBoitier || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Numéro de Série</span><span class="md-value">{{ selectedFortinet.numeroSerie || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Durée de Licence</span><span class="md-value">{{ selectedFortinet.dureeDeLicence || '-' }}</span></div>
+
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Licences</div>
+          <div *ngFor="let lic of selectedFortinet.licences" class="licence-block">
+            <div class="md-detail-row"><span class="md-label">Licence</span><span class="md-value">{{ lic.nomDesLicences }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Quantité</span><span class="md-value">{{ lic.quantite }}</span></div>
+            <div class="md-detail-row"><span class="md-label">Expiration</span><span class="md-value">{{ lic.dateEx | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-section-title">Contact Client</div>
+          <div class="md-detail-row"><span class="md-label">Nom contact</span><span class="md-value">{{ selectedFortinet.nomDuContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">N° Téléphone</span><span class="md-value">{{ selectedFortinet.numero || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email client</span><span class="md-value">{{ selectedFortinet.adresseEmailContact || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Email Commercial</span><span class="md-value">{{ selectedFortinet.mailAdmin || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">CC Mail</span><span class="md-value">{{ selectedFortinet.ccMail || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Sous Contrat</span>
+            <span class="md-value"><span [class]="selectedFortinet.sousContrat ? 'md-badge md-badge-green' : 'md-badge md-badge-gray'">{{ selectedFortinet.sousContrat ? 'Oui' : 'Non' }}</span></span>
+          </div>
+          <div class="md-detail-row"><span class="md-label">Remarque</span><span class="md-value">{{ selectedFortinet.remarque || '-' }}</span></div>
+          <div class="md-detail-row"><span class="md-label">Commande par</span><span class="md-value">{{ getCommandePasserParLabel(selectedFortinet.commandePasserPar) || '-' }}</span></div>
+
+          <div class="md-detail-row" *ngIf="selectedFortinet.fichier">
+            <span class="md-label">Fichier</span>
+            <span class="md-value">
+              <a [href]="getFileDownloadUrlById(selectedFortinet.fortinetId)" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fa fa-download"></i> {{ selectedFortinet.fichierOriginalName || 'Télécharger' }}
               </a>
-            </div>
-            <ng-template #noFileFortinet>
-              <span class="text-muted">-</span>
-            </ng-template>
-          </td>
+            </span>
+          </div>
 
-          <td>
-            <div class="d-flex flex-column gap-1">
-              <button (click)="updateFortinet(fortinet)" class="btn btn-sm btn-primary">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button (click)="deleteFortinet(fortinet.fortinetId)" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-              </button>
-              <button (click)="approveFortinet(fortinet.fortinetId)" class="btn btn-sm btn-success">
-                <i class="fas fa-check"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredFortinets.length === 0">
-          <td colspan="14" class="text-center">Aucun Fortinet trouvé.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Pagination -->
-  <div class="text-center mt-3">
-    <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        (click)="changePage(i)"
-        [class.active]="i === currentPage"
-        class="btn btn-sm btn-outline-primary mx-1">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
+          <div class="md-detail-divider"></div>
+          <div class="md-detail-actions">
+            <button (click)="updateFortinet(selectedFortinet)" class="btn btn-sm btn-primary"><i class="fas fa-pen"></i> Modifier</button>
+            <button (click)="deleteFortinet(selectedFortinet.fortinetId)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+            <button (click)="approveFortinet(selectedFortinet.fortinetId)" class="btn btn-sm btn-success"><i class="fas fa-check"></i> Approuver</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

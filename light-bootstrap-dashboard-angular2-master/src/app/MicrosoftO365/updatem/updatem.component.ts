@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { MicrosoftO365 } from 'app/Model/MicrosoftO365';
 import { MicrosoftO365Service } from 'app/Services/microsoft-o365.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-microsoftO365',
@@ -11,6 +12,7 @@ import { MicrosoftO365Service } from 'app/Services/microsoft-o365.service';
   styleUrls: ['./updatem.component.scss']
 })
 export class UpdateMicrosoftComponent implements OnInit {
+  clients: Client[] = [];
    updateForm!: FormGroup;
     microsoftO365Id!: number;
     microsoftO365!: MicrosoftO365;
@@ -27,10 +29,11 @@ export class UpdateMicrosoftComponent implements OnInit {
       public fb: FormBuilder,
       private microsoftO365Service: MicrosoftO365Service,
       private route: ActivatedRoute,
-      private router: Router
-    ) {}
+      private router: Router,
+    private clientService: ClientService) {}
   
     ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.updateForm = this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

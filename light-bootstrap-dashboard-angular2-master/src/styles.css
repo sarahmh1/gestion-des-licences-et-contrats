@@ -17,6 +17,10 @@ html {
 /* Main content area adjustments */
 .main-panel {
   transition: all 0.3s ease;
+  max-height: none !important;
+  height: auto !important;
+  min-height: 100vh;
+  overflow-y: auto !important;
 }
 
 /* Container responsive */

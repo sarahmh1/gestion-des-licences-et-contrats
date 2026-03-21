@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { Rapid7Service } from 'app/Services/rapid7.service';
 import { Rapid7 } from 'app/Model/Rapid7';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 })
 export class AfficherRapid7Component implements OnInit {
    searchTerm: string = '';
+  selectedRapid7: Rapid7 | null = null;
     rapid7s: Rapid7[] = [];
     filteredRapid7s: Rapid7[] = []; 
     unapprovedRapid7s: Rapid7[] = [];
@@ -40,7 +41,7 @@ export class AfficherRapid7Component implements OnInit {
            this.changePage(0);
          },
          (error) => {
-           console.error('Erreur récupération Rapid7s', error);
+           console.error('Erreur rÃ©cupÃ©ration Rapid7s', error);
          }
        );
      }
@@ -83,7 +84,7 @@ export class AfficherRapid7Component implements OnInit {
       this.filteredRapid7s = this.filteredRapid7s.filter(rapid7 => rapid7.rapid7Id !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
    
@@ -92,11 +93,11 @@ export class AfficherRapid7Component implements OnInit {
          this.rapid7Service.deleteRapid7(id).subscribe(
            () => {
              this.getAllRapid7s();
-             alert('rapid7 supprimé avec succès');
+             alert('rapid7 supprimÃ© avec succÃ¨s');
            },
            error => {
              console.error('Erreur suppression rapid7', error);
-             alert('Échec suppression');
+             alert('Ã‰chec suppression');
            }
          );
        }
@@ -125,5 +126,7 @@ export class AfficherRapid7Component implements OnInit {
   getFileDownloadUrl(rapid7Id: number): string {
     return this.rapid7Service.getFileDownloadUrlById(rapid7Id);
   }
-   }
    
+  selectRapid7(x: Rapid7): void { this.selectedRapid7 = this.selectedRapid7?.rapid7Id === x.rapid7Id ? null : x; }
+  closeDetail(): void { this.selectedRapid7 = null; }
+}

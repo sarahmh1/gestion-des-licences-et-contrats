@@ -13,11 +13,13 @@ export class AfficherveeComponent implements OnInit {
   veeams: Veeam[] = [];
   filteredVeeams: Veeam[] = [];
   unapprovedVeeams : Veeam[] = [];
+  selectedVeeam: Veeam | null = null;
 
   currentPage = 0;
   pageSize = 10;
   totalPages: number = 0;
   pagedVeeams: Veeam[] = [];
+
 
   constructor(private veeamService: VeeamService, private router: Router) {}
 
@@ -104,6 +106,9 @@ export class AfficherveeComponent implements OnInit {
   updateVeeam(veeam: Veeam): void {
     this.router.navigate(['/edit-veeam', veeam.veeamId]);
   }
+
+  selectVeeam(v: Veeam): void { this.selectedVeeam = this.selectedVeeam?.veeamId === v.veeamId ? null : v; }
+  closeDetail(): void { this.selectedVeeam = null; }
 
   goToAddVeeam() {
     this.router.navigate(['/Ajouterveeam']);

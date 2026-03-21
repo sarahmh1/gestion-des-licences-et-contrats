@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { PaloService } from 'app/Services/palo.service';
 import { Palo } from 'app/Model/Palo';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 })
 export class AfficherPaloComponent implements OnInit {
   searchTerm: string = '';
+  selectedPalo: Palo | null = null;
     palos: Palo[] = [];
     filteredPalos: Palo[] = [];
     unapprovedPalos: Palo[] = [];
@@ -40,7 +41,7 @@ export class AfficherPaloComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Fortinets', error);
+          console.error('Erreur rÃ©cupÃ©ration Fortinets', error);
         }
       );
     }
@@ -80,12 +81,12 @@ export class AfficherPaloComponent implements OnInit {
   
     approvePalo(id: number): void {
       this.paloService.activate(id).subscribe(() => {
-      // Retirer l'ESET approuvé de la liste des non approuvés
+      // Retirer l'ESET approuvÃ© de la liste des non approuvÃ©s
       this.unapprovedPalos = this.unapprovedPalos.filter(palo => palo.paloId !== id);
       this.filteredPalos = this.filteredPalos.filter(palo => palo.paloId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -94,11 +95,11 @@ export class AfficherPaloComponent implements OnInit {
         this.paloService.deletePalo(id).subscribe(
           () => {
             this.getAllPalos();
-            alert('Palo supprimé avec succès');
+            alert('Palo supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression Palo', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -127,5 +128,7 @@ export class AfficherPaloComponent implements OnInit {
     getFileDownloadUrl(paloId: number): string {
       return this.paloService.getFileDownloadUrlById(paloId);
     }
-  }
   
+  selectPalo(x: Palo): void { this.selectedPalo = this.selectedPalo?.paloId === x.paloId ? null : x; }
+  closeDetail(): void { this.selectedPalo = null; }
+}

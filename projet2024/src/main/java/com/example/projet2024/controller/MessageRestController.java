@@ -126,11 +126,20 @@ public class MessageRestController {
     }
 
     /**
-     * Supprime un message
+     * Supprime un message pour moi seulement
      */
-    @DeleteMapping("/delete/{messageId}")
-    public ResponseEntity<Void> deleteMessage(@PathVariable Long messageId) {
-        messageService.deleteMessage(messageId);
+    @DeleteMapping("/delete-for-me/{messageId}/{userId}")
+    public ResponseEntity<Void> deleteMessageForMe(@PathVariable Long messageId, @PathVariable Long userId) {
+        messageService.deleteMessageForMe(messageId, userId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /**
+     * Supprime un message pour tout le monde
+     */
+    @DeleteMapping("/delete-for-everyone/{messageId}/{userId}")
+    public ResponseEntity<Void> deleteMessageForEveryone(@PathVariable Long messageId, @PathVariable Long userId) {
+        messageService.deleteMessageForEveryone(messageId, userId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

@@ -49,12 +49,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
     isTyping: boolean = false;
     typingTimeout: any;
     selectedFile: File | null = null;
+    deleteMenuMsg: MessageDTO | null = null;
+
+    // Voice recording
+    isRecording: boolean = false;
+    mediaRecorder: MediaRecorder | null = null;
+    audioChunks: Blob[] = [];
+    recordingTime: number = 0;
+    recordingInterval: any = null;
 
     // Notifications
     notifications: AppNotification[] = [];
     unreadNotifCount: number = 0;
     showNotifPanel: boolean = false;
     private notifInterval: any;
+    private notifSubscription?: Subscription;
 
     // Calendar
     showCalendarModal: boolean = false;
@@ -102,6 +111,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.messageSubscription?.unsubscribe();
         this.typingSubscription?.unsubscribe();
+        this.notifSubscription?.unsubscribe();
         if (this.notifInterval) clearInterval(this.notifInterval);
     }
 
@@ -160,6 +170,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
                     }, 3000);
                 }
             });
+
+            // S'abonner aux notifications en temps réel
+            this.notifSubscription = this.websocketService.getNotifications().subscribe(notif => {
+                if (notif) {
+                    this.notifications.unshift(notif);
+                    this.unreadNotifCount++;
+                }
+            });
         }
     }
 
@@ -188,10 +206,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
     toggleMessagingPanel() {
         this.showMessagingPanel = !this.showMessagingPanel;
         this.showDropdown = false;
+        this.showNotifPanel = false;
+        this.showCalendarModal = false;
         if (this.showMessagingPanel) {
             this.messagingView = 'conversations';
             this.loadConversations();
-            this.unreadTotal = 0;
+            this.loadUnreadCount();
         }
     }
 
@@ -303,12 +323,41 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     deleteMessage(msg: any) {
         if (!msg.id) return;
-        this.messageService.deleteMessage(msg.id).subscribe(
+        this.deleteMenuMsg = msg;
+    }
+
+    deleteForMe() {
+        if (!this.deleteMenuMsg || !this.deleteMenuMsg.id) return;
+        this.messageService.deleteMessageForMe(this.deleteMenuMsg.id, this.currentUserId).subscribe(
             () => {
-                this.messages = this.messages.filter(m => m.id !== msg.id);
+                this.messages = this.messages.filter(m => m.id !== this.deleteMenuMsg!.id);
+                this.deleteMenuMsg = null;
+                this.loadConversations();
             },
-            error => { console.error('Error deleting message:', error); }
+            error => { console.error('Error deleting message:', error); this.deleteMenuMsg = null; }
         );
+    }
+
+    deleteForEveryone() {
+        if (!this.deleteMenuMsg || !this.deleteMenuMsg.id) return;
+        this.messageService.deleteMessageForEveryone(this.deleteMenuMsg.id, this.currentUserId).subscribe(
+            () => {
+                const msg = this.messages.find(m => m.id === this.deleteMenuMsg!.id);
+                if (msg) {
+                    msg.deletedForEveryone = true;
+                    msg.content = '';
+                    msg.fileName = undefined;
+                    msg.filePath = undefined;
+                }
+                this.deleteMenuMsg = null;
+                this.loadConversations();
+            },
+            error => { console.error('Error deleting message:', error); this.deleteMenuMsg = null; }
+        );
+    }
+
+    cancelDelete() {
+        this.deleteMenuMsg = null;
     }
 
     sendMessage() {
@@ -320,27 +369,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
             receiverId: this.selectedChatUser.id
         };
 
-        const tempMessage: MessageDTO = {
-            ...message,
-            timestamp: new Date()
-        };
-        this.messages.push(tempMessage);
         this.newMessage = '';
-        setTimeout(() => this.scrollToBottom(), 100);
 
         this.messageService.sendMessage(message).subscribe(
             savedMessage => {
-                const index = this.messages.indexOf(tempMessage);
-                if (index > -1) {
-                    this.messages[index] = savedMessage;
-                }
-                this.loadConversations();
+                // Le message arrivera via WebSocket, pas besoin de l'ajouter ici
             },
             error => {
-                const index = this.messages.indexOf(tempMessage);
-                if (index > -1) {
-                    this.messages.splice(index, 1);
-                }
                 console.error('Error sending message:', error);
             }
         );
@@ -357,21 +392,23 @@ export class NavbarComponent implements OnInit, OnDestroy {
             (message.senderId === this.selectedChatUser.id || message.receiverId === this.selectedChatUser.id);
 
         if (isCurrentChat) {
-            // We're in the chat — add message and mark as read immediately
+            // Avoid duplicates
             if (!this.messages.find(m => m.id === message.id)) {
                 this.messages.push(message);
                 setTimeout(() => this.scrollToBottom(), 100);
             }
-            // Mark as read on server so unread count stays correct
+            // Mark as read on server if received from the other user
             if (message.senderId !== this.currentUserId) {
                 this.messageService.markMessagesAsRead(message.senderId, this.currentUserId).subscribe();
             }
         } else {
             // Message from someone else — update the unread badge
-            if (message.senderId !== this.currentUserId && !this.showMessagingPanel) {
+            if (message.senderId !== this.currentUserId) {
                 this.loadUnreadCount();
             }
         }
+        // Always reload conversations so latest message appears at top
+        this.loadConversations();
     }
 
     scrollToBottom() {
@@ -431,18 +468,89 @@ export class NavbarComponent implements OnInit, OnDestroy {
             this.selectedFile
         ).subscribe(
             message => {
-                this.messages.push(message);
+                // Le message arrivera via WebSocket
                 this.newMessage = '';
                 this.selectedFile = null;
                 const fileInput = document.getElementById('msgFileInput') as HTMLInputElement;
                 if (fileInput) { fileInput.value = ''; }
-                setTimeout(() => this.scrollToBottom(), 100);
-                this.loadConversations();
             },
             error => {
                 console.error('Error sending file:', error);
             }
         );
+    }
+
+    // ========== Voice Recording ==========
+
+    async startRecording(): Promise<void> {
+        if (!this.selectedChatUser) return;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.audioChunks = [];
+            this.recordingTime = 0;
+
+            this.mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) { this.audioChunks.push(event.data); }
+            };
+
+            this.mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                this.sendVoiceMessage(audioBlob);
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            this.mediaRecorder.start();
+            this.isRecording = true;
+            this.recordingInterval = setInterval(() => { this.recordingTime++; }, 1000);
+        } catch (error) {
+            console.error('Erreur accès microphone:', error);
+            alert('Impossible d\'accéder au microphone. Veuillez autoriser l\'accès.');
+        }
+    }
+
+    stopRecording(): void {
+        if (this.mediaRecorder && this.isRecording) {
+            this.mediaRecorder.stop();
+            this.isRecording = false;
+            clearInterval(this.recordingInterval);
+            this.recordingInterval = null;
+        }
+    }
+
+    cancelRecording(): void {
+        if (this.mediaRecorder && this.isRecording) {
+            this.audioChunks = [];
+            this.mediaRecorder.onstop = () => { }; // prevent sendVoiceMessage
+            this.mediaRecorder.stop();
+            this.isRecording = false;
+            clearInterval(this.recordingInterval);
+            this.recordingInterval = null;
+            if ((this.mediaRecorder as any).stream) {
+                (this.mediaRecorder as any).stream.getTracks().forEach((t: any) => t.stop());
+            }
+        }
+    }
+
+    sendVoiceMessage(audioBlob: Blob): void {
+        if (!this.selectedChatUser) return;
+        const fileName = `voice_${Date.now()}.webm`;
+        const audioFile = new File([audioBlob], fileName, { type: 'audio/webm' });
+        this.messageService.sendMessageWithFile(
+            this.currentUserId,
+            this.selectedChatUser.id,
+            '',
+            audioFile
+        ).subscribe(
+            () => { this.recordingTime = 0; },
+            error => { console.error('Erreur envoi message vocal:', error); }
+        );
+    }
+
+    formatRecordingTime(): string {
+        const minutes = Math.floor(this.recordingTime / 60);
+        const seconds = this.recordingTime % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
     // ========== User Dropdown ==========
@@ -535,7 +643,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         if (!notif.read) {
             this.notificationAppService.markAsRead(notif.id).subscribe(() => {
                 notif.read = true;
-                this.unreadNotifCount = Math.max(0, this.unreadNotifCount - 1);
+                this.loadNotifUnreadCount();
             });
         }
     }
@@ -545,6 +653,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.notificationAppService.markAllAsRead(this.currentUserId).subscribe(() => {
             this.notifications.forEach(n => n.read = true);
             this.unreadNotifCount = 0;
+        });
+    }
+
+    deleteNotification(notif: AppNotification, event: Event): void {
+        event.stopPropagation();
+        this.notificationAppService.deleteNotification(notif.id).subscribe(() => {
+            this.notifications = this.notifications.filter(n => n.id !== notif.id);
+            this.loadNotifUnreadCount();
         });
     }
 

@@ -50,6 +50,15 @@ public class Message implements Serializable {
     @Column(name = "original_file_name")
     private String originalFileName;
 
+    @Column(name = "deleted_by_sender", nullable = false)
+    private boolean deletedBySender = false;
+
+    @Column(name = "deleted_by_receiver", nullable = false)
+    private boolean deletedByReceiver = false;
+
+    @Column(name = "deleted_for_everyone", nullable = false)
+    private boolean deletedForEveryone = false;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();

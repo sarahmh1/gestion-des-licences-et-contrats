@@ -1,4 +1,4 @@
-import { TypeAchat } from './../Model/TypeAchat';
+﻿import { TypeAchat } from './../Model/TypeAchat';
 import { EsetService } from './../Services/eset.service';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -7,6 +7,7 @@ import { Eset } from 'app/Model/Eset';
 import { NomProduit } from 'app/Model/NomProduit';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { HttpEventType } from '@angular/common/http';
+import { ClientService, Client } from '../Services/client.service';
 
 @Component({
   selector: 'app-products',
@@ -14,6 +15,7 @@ import { HttpEventType } from '@angular/common/http';
   styleUrls: ['./products.component.scss']
 })
 export class ProductsComponent implements OnInit {
+  clients: Client[] = [];
 
   productForm!: FormGroup;
   
@@ -62,9 +64,11 @@ export class ProductsComponent implements OnInit {
 
   constructor(private fb: FormBuilder, 
               private router: Router,
-              private esetService: EsetService) { }
+              private esetService: EsetService,
+    private clientService: ClientService) { }
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     
     this.productForm = this.fb.group({
       client: ['', Validators.required],

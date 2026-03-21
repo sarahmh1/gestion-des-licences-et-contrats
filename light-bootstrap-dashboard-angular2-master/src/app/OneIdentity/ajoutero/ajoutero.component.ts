@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { OneIdentity } from 'app/Model/OneIdentity';
 import { OneIdentityService } from 'app/Services/oneIdentity.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajoutero',
   templateUrl: './ajoutero.component.html',
   styleUrls: ['./ajoutero.component.scss']
 })
 export class AjouteroComponent implements OnInit {
+  clients: Client[] = [];
    oneIdentityForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjouteroComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private oneIdentityService: OneIdentityService
-    ) {}
+      private oneIdentityService: OneIdentityService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.oneIdentityForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

@@ -12,11 +12,16 @@ export interface PeriodeLigne {
     dateInterventionExigee?: string;
     dateIntervention?: string;
     dateRapportPreventive?: string;
+    intervenants?: IntervenantPreventif[];
+    fichier?: string;
+    fichierOriginalName?: string;
+    remarque?: string;
 }
 
 export enum StatutInterventionPreventive {
     CREE = 'CREE',
     EN_ATTENTE_INTERVENTION = 'EN_ATTENTE_INTERVENTION',
+    EN_COURS = 'EN_COURS',
     TERMINE = 'TERMINE'
 }
 
@@ -39,4 +44,6 @@ export interface InterventionPreventive {
     statut?: StatutInterventionPreventive;
     emailCommercial?: string;
     ccMail?: string[];
+    assignedUsers?: any[];
+    nomProduit?: string;
 }

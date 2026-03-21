@@ -7,7 +7,10 @@
       <!-- Client -->
       <div class="form-group mb-3">
         <label for="client">Client</label>
-        <input id="client" type="text" class="form-control" formControlName="client" placeholder="Nom du client" />
+        <select id="client" class="form-control" formControlName="client">
+          <option value="" disabled>-- Sélectionner un client --</option>
+          <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
+        </select>
         <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
           Ce champ est obligatoire.
         </div>
@@ -38,25 +41,29 @@
       <!-- Durée de la Licence -->
       <div class="form-group mb-3">
         <label for="dureeDeLicence">Durée de la Licence</label>
-        <input id="dureeDeLicence" type="text" class="form-control" formControlName="dureeDeLicence" placeholder="Durée de la licence" />
+        <input id="dureeDeLicence" type="text" class="form-control" formControlName="dureeDeLicence"
+          placeholder="Durée de la licence" />
       </div>
 
       <!-- Nom du Contact -->
       <div class="form-group mb-3">
         <label for="nomDuContact">Contact Client</label>
-        <input id="nomDuContact" type="text" class="form-control" formControlName="nomDuContact" placeholder="Nom du contact" />
+        <input id="nomDuContact" type="text" class="form-control" formControlName="nomDuContact"
+          placeholder="Nom du contact" />
       </div>
 
       <!-- Email Contact -->
       <div class="form-group mb-3">
         <label for="adresseEmailContact">Email Client</label>
-        <input id="adresseEmailContact" type="email" class="form-control" formControlName="adresseEmailContact" placeholder="Email du contact" />
+        <input id="adresseEmailContact" type="email" class="form-control" formControlName="adresseEmailContact"
+          placeholder="Email du contact" />
       </div>
 
       <!-- Email Admin -->
       <div class="form-group mb-3">
         <label for="mailAdmin">Email Commercial</label>
-        <input id="mailAdmin" type="email" class="form-control" formControlName="mailAdmin" placeholder="Email de l'administrateur" />
+        <input id="mailAdmin" type="email" class="form-control" formControlName="mailAdmin"
+          placeholder="Email de l'administrateur" />
         <div *ngIf="updateForm.get('mailAdmin')?.touched && updateForm.get('mailAdmin')?.invalid" class="text-danger">
           <div *ngIf="updateForm.get('mailAdmin')?.errors?.['email']">Format email invalide</div>
         </div>
@@ -67,9 +74,11 @@
         <label>Emails en copie (CC)</label>
         <div *ngFor="let ccCtrl of ccMail.controls; let i = index" class="d-flex mb-2">
           <input [formControlName]="i" type="email" class="form-control me-2" placeholder="Email CC" />
-          <button type="button" class="btn btn-danger btn-sm" (click)="ccMail.removeAt(i)" *ngIf="ccMail.length > 1">Supprimer</button>
+          <button type="button" class="btn btn-danger btn-sm" (click)="ccMail.removeAt(i)"
+            *ngIf="ccMail.length > 1">Supprimer</button>
         </div>
-        <button type="button" class="btn btn-secondary mt-2" (click)="ccMail.push(fb.control('', Validators.email))">Ajouter Email CC</button>
+        <button type="button" class="btn btn-secondary mt-2"
+          (click)="ccMail.push(fb.control('', Validators.email))">Ajouter Email CC</button>
       </div>
 
       <!-- Numéro -->
@@ -81,7 +90,8 @@
       <!-- Remarque -->
       <div class="form-group mb-3">
         <label for="remarque">Remarque</label>
-        <textarea id="remarque" class="form-control" formControlName="remarque" placeholder="Ajouter une remarque"></textarea>
+        <textarea id="remarque" class="form-control" formControlName="remarque"
+          placeholder="Ajouter une remarque"></textarea>
       </div>
 
       <!-- Sous Contrat -->
@@ -89,7 +99,7 @@
         <input id="sousContrat" type="checkbox" class="form-check-input" formControlName="sousContrat" />
         <label class="form-check-label" for="sousContrat">Sous Contrat</label>
       </div>
-<!-- Commande Passer Par -->
+      <!-- Commande Passer Par -->
       <div class="form-group mb-3">
         <label for="commandePasserPar" class="form-label">Commande Passer Par</label>
         <select id="commandePasserPar" formControlName="commandePasserPar" class="form-control">

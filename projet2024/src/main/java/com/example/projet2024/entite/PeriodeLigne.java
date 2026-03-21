@@ -49,6 +49,18 @@ public class PeriodeLigne {
     @Column(name = "Date_Rapport_Preventive")
     private LocalDate dateRapportPreventive;
 
+    @Basic
+    @Column(name = "Fichier")
+    private String fichier;
+
+    @Basic
+    @Column(name = "Fichier_Original_Name")
+    private String fichierOriginalName;
+
+    @Basic
+    @Column(name = "Remarque", columnDefinition = "TEXT")
+    private String remarque;
+
     @OneToMany(mappedBy = "periodeLigne", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("intervenants")
     private List<IntervenantPreventif> intervenants = new ArrayList<>();

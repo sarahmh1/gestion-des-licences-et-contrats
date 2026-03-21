@@ -1,0 +1,398 @@
+/* ==================== CLIENT STATS – TUILES KPI ==================== */
+
+:host {
+  display: block;
+  min-height: calc(100vh - 123px);
+  padding: 30px 15px;
+  box-sizing: border-box;
+}
+
+.cs-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 14px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+}
+
+.cs-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-add-client {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: #f36e24;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(243, 110, 36, 0.3);
+
+  &:hover {
+    background: #e85d10;
+    transform: scale(1.1);
+  }
+}
+
+.cs-search {
+  width: 260px;
+
+  .form-control {
+    border-radius: 20px;
+    border: 1px solid #dce1e6;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    background: #fff;
+
+    &:focus {
+      border-color: #f36e24;
+      box-shadow: 0 0 0 3px rgba(243, 110, 36, 0.12);
+    }
+  }
+}
+
+.cs-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: #95a5a6;
+  font-size: 1rem;
+
+  i {
+    font-size: 1.6rem;
+    display: block;
+    margin-bottom: 8px;
+  }
+}
+
+/* --- TUILES --- */
+.cs-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cs-tile {
+  display: flex;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Bande d'accentuation gauche */
+.cs-tile-accent {
+  width: 6px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #f36e24, #e85d10);
+}
+
+/* Contenu de la tuile */
+.cs-tile-content {
+  flex: 1;
+  padding: 20px 28px;
+}
+
+/* Header de la tuile */
+.cs-tile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+
+  i {
+    font-size: 1.15rem;
+    color: #f36e24;
+  }
+}
+
+.cs-tile-client {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.cs-badge-produit {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f36e24, #e85d10);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.btn-delete-suivi {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(231, 76, 60, 0.08);
+  color: #e74c3c;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+
+  &:hover {
+    background: #e74c3c;
+    color: #fff;
+    transform: scale(1.1);
+  }
+}
+
+/* Labels de section */
+.cs-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+.cs-section-prev {
+  margin-top: 14px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+/* Bloc KPI horizontal */
+.cs-tile-kpis {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.cs-kpi {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 10px;
+  background: #f8f9fb;
+  border-radius: 10px;
+}
+
+.cs-kpi-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.cs-kpi-label {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.cs-kpi-separator {
+  width: 1px;
+  height: 40px;
+  background: #e0e4e8;
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+
+.cs-blue {
+  color: #3498db;
+}
+
+.cs-orange {
+  color: #f39c12;
+}
+
+.cs-green {
+  color: #2ecc71;
+}
+
+/* --- PAGINATION --- */
+.cs-pagination {
+  text-align: center;
+  margin-top: 28px;
+
+  .btn.active {
+    background-color: #f36e24;
+    color: #fff;
+    border-color: #f36e24;
+  }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .cs-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cs-search {
+    width: 100%;
+  }
+
+  .cs-tile-content {
+    padding: 16px 18px;
+  }
+
+  .cs-tile-kpis {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cs-kpi {
+    width: 100%;
+  }
+
+  .cs-kpi-separator {
+    width: 60%;
+    height: 1px;
+    margin: 0 auto;
+  }
+}
+
+/* --- POPUP AJOUTER CLIENT --- */
+.cs-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cs-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: csModalIn 0.2s ease;
+}
+
+@keyframes csModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cs-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: #fff;
+
+  h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+}
+
+.cs-modal-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.cs-modal-body {
+  padding: 24px;
+
+  .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-control {
+    border-radius: 8px;
+    border: 1px solid #dce1e6;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+
+    &:focus {
+      border-color: #f36e24;
+      box-shadow: 0 0 0 3px rgba(243, 110, 36, 0.12);
+    }
+  }
+}
+
+.cs-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+
+  .btn-primary {
+    background: #f36e24;
+    border-color: #f36e24;
+
+    &:hover {
+      background: #e85d10;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}

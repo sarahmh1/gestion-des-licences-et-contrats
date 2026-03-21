@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Fortra } from 'app/Model/Fortra';
 import { FortraService } from 'app/Services/fortra.service';
 import { CommandePasserPar } from "app/Model/CommandePasserPar";
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterfortra',
   templateUrl: './ajouterfortra.component.html',
   styleUrls: ['./ajouterfortra.component.scss']
 })
 export class AjouterfortraComponent implements OnInit {
+  clients: Client[] = [];
    fortraForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -21,10 +23,11 @@ export class AjouterfortraComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private fortraService: FortraService
-    ) {}
+      private fortraService: FortraService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.fortraForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

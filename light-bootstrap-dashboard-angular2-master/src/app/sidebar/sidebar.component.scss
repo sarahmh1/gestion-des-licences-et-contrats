@@ -22,14 +22,15 @@
 
   .logo {
     margin: 0;
-    padding: 25px 15px;
+    padding: 10px 15px 15px;
     text-align: center;
     background: transparent;
-    border-bottom: 2px solid rgba(243, 110, 36, 0.3);
+    border-bottom: none;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
+    margin-bottom: 55px;
 
     .logo-img {
       display: flex;
@@ -85,11 +86,13 @@
         }
 
         p {
-          color: #fff;
+          color: rgba(255, 255, 255, 0.9);
           margin: 0;
-          font-weight: 500;
-          font-size: 14px;
-          text-transform: uppercase;
+          font-weight: 600;
+          font-size: 15px;
+          text-transform: none;
+          letter-spacing: 0.3px;
+          font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
           display: flex;
           align-items: center;
           justify-content: space-between;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { InfobloxService } from 'app/Services/infoblox.service';
 import { Infoblox } from 'app/Model/Infoblox';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AfficheriComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedInfoblox: Infoblox | null = null;
    infobloxs: Infoblox[] = [];
    filteredInfobloxs: Infoblox[] = [];
  
@@ -51,7 +52,7 @@ export class AfficheriComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Infobloxs', error);
+          console.error('Erreur rÃ©cupÃ©ration Infobloxs', error);
         }
       );
     }
@@ -93,7 +94,7 @@ export class AfficheriComponent implements OnInit {
       this.filteredInfobloxs = this.filteredInfobloxs.filter(infoblox => infoblox.infobloxId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -102,11 +103,11 @@ export class AfficheriComponent implements OnInit {
         this.infobloxService.deleteInfoblox(id).subscribe(
           () => {
             this.getAllInfobloxs();
-            alert('Infoblox supprimé avec succès');
+            alert('Infoblox supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression Infoblox', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -131,5 +132,7 @@ export class AfficheriComponent implements OnInit {
     default: return value;
   }
 }
-  }
   
+  selectInfoblox(x: Infoblox): void { this.selectedInfoblox = this.selectedInfoblox?.infobloxId === x.infobloxId ? null : x; }
+  closeDetail(): void { this.selectedInfoblox = null; }
+}

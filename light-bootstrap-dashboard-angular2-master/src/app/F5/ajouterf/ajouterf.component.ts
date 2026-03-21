@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { F5 } from 'app/Model/F5';
 import { F5Service } from 'app/Services/f5.service';
 import { CommandePasserPar } from "app/Model/CommandePasserPar";
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterf',
   templateUrl: './ajouterf.component.html',
   styleUrls: ['./ajouterf.component.scss']
 })
 export class AjouterfComponent implements OnInit {
+  clients: Client[] = [];
    f5Form!: FormGroup;
    selectedFile: File | null = null;
     commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjouterfComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private f5Service: F5Service
-    ) {}
+      private f5Service: F5Service,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.f5Form= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

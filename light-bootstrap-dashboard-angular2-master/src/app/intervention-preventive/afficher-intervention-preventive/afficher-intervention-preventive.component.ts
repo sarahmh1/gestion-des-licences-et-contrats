@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { InterventionPreventiveService } from '../../Services/intervention-preventive.service';
+import { NotificationAppService } from '../../Services/notification.service';
 import { InterventionPreventive, IntervenantPreventif, StatutInterventionPreventive } from '../../Model/InterventionPreventive';
+import { ClientService, Client } from '../../Services/client.service';
+import { PRODUIT_LIST } from '../../Model/NomProduit';
 
 @Component({
   selector: 'app-afficher-intervention-preventive',
@@ -10,6 +13,7 @@ import { InterventionPreventive, IntervenantPreventif, StatutInterventionPrevent
   styleUrls: ['./afficher-intervention-preventive.component.scss']
 })
 export class AfficherInterventionPreventiveComponent implements OnInit {
+  clients: Client[] = [];
 
   interventions: InterventionPreventive[] = [];
   interventionForm: FormGroup;
@@ -19,6 +23,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   currentInterventionId: number | null = null;
   searchTerm: string = '';
   interventionToDelete: InterventionPreventive | null = null;
+
+  nomProduitOptions = PRODUIT_LIST;
 
   // Variables pour gestion des fichiers
   selectedFile: File | null = null;
@@ -46,17 +52,20 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   constructor(
     private interventionPreventiveService: InterventionPreventiveService,
     private fb: FormBuilder,
-    private http: HttpClient
-  ) {
+    private http: HttpClient,
+    private notificationService: NotificationAppService,
+    private clientService: ClientService) {
     this.initForm();
     this.techSubForm = this.fb.group({
       dateIntervention: [''],
       dateRapportPreventive: [''],
-      techIntervenants: this.fb.array([this.fb.control('')])
+      techIntervenants: this.fb.array([this.fb.control('')]),
+      remarque: ['']
     });
   }
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.loadCurrentUserRole();
     this.loadInterventions();
     this.loadAllUsers();
@@ -95,9 +104,10 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     if (this.isAdmin()) return false;
     // Si statut TERMINE, personne ne peut modifier
     if (this.currentEditingStatut === StatutInterventionPreventive.TERMINE) return false;
-    // Le technique peut modifier ses champs si le statut est EN_ATTENTE_INTERVENTION
+    // Le technique peut modifier ses champs si le statut est EN_ATTENTE_INTERVENTION ou EN_COURS
     if (this.isTechnique()) {
-      return this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
+      return this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION
+        || this.currentEditingStatut === StatutInterventionPreventive.EN_COURS;
     }
     return false;
   }
@@ -106,31 +116,116 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   selectedIntervention: InterventionPreventive | null = null;
   showDetailPopup = false;
 
-  // ── Méthodes de groupement par statut ──────────────────────────────────────
-  getEnAttenteInterventions(): InterventionPreventive[] {
-    const filtered = this.searchTerm
-      ? this.interventions.filter(i =>
-        i.nomClient?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        i.emailCommercial?.toLowerCase().includes(this.searchTerm.toLowerCase()))
-      : this.interventions;
-    return filtered.filter(i =>
-      i.statut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
-      i.statut === StatutInterventionPreventive.CREE ||
-      !i.statut
+  // États des accordéons
+  isOpenPlanifier = true;
+  isOpenTerminees = false;
+  isOpenRetard = true;
+
+  // Variables pour la pagination (10 par page pour le tableau compact)
+  pageSize = 10;
+  pageAPlanifier = 1;
+  pageTerminees = 1;
+  pageEnRetard = 1;
+
+  // ── Helper : vérifie si une ligne de période est "en retard" ────────────────
+  // Une ligne est en retard si : periodeA < aujourd'hui ET dateIntervention OU dateRapportPreventive est vide
+  private isPeriodeLigneEnRetard(ligne: any): boolean {
+    if (!ligne) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const periodeA = ligne.periodeA ? new Date(ligne.periodeA) : null;
+    if (!periodeA || periodeA >= today) return false;
+    // La date de fin est dépassée : vérifier si les champs tech sont vides
+    const dateIntervention = ligne.dateIntervention;
+    const dateRapport = ligne.dateRapportPreventive;
+    return !dateIntervention || !dateRapport;
+  }
+
+  // Vérifie si UNE INTERVENTION a au moins une ligne de période en retard
+  isInterventionEnRetard(intervention: InterventionPreventive): boolean {
+    if (intervention.statut === StatutInterventionPreventive.TERMINE) return false;
+    const lignes = this.buildAllPeriodeLines(intervention);
+    return lignes.some(l => this.isPeriodeLigneEnRetard(l));
+  }
+
+  // ── Méthodes de groupement par bloc ──────────────────────────────────────
+  private getFilteredInterventions(): InterventionPreventive[] {
+    if (!this.searchTerm) return this.interventions;
+    const term = this.searchTerm.toLowerCase();
+    return this.interventions.filter(i =>
+      i.nomClient?.toLowerCase().includes(term) ||
+      i.emailCommercial?.toLowerCase().includes(term)
     );
   }
 
-  getTermineInterventions(): InterventionPreventive[] {
-    const filtered = this.searchTerm
-      ? this.interventions.filter(i =>
-        i.nomClient?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        i.emailCommercial?.toLowerCase().includes(this.searchTerm.toLowerCase()))
-      : this.interventions;
-    return filtered.filter(i => i.statut === StatutInterventionPreventive.TERMINE);
+  // Bloc 1 : À Planifier (EN_ATTENTE + EN_COURS + CREE, EXCLUANT ceux en retard)
+  // Triés par date de début de période (periodeDe) la plus proche en premier
+  getAPlanifierInterventions(): InterventionPreventive[] {
+    const filtered = this.getFilteredInterventions().filter(i =>
+      (i.statut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
+        i.statut === StatutInterventionPreventive.EN_COURS ||
+        i.statut === StatutInterventionPreventive.CREE ||
+        !i.statut) &&
+      !this.isInterventionEnRetard(i)
+    );
+
+    // Trier par la date periodeDe de la première ligne de période (la plus proche en haut)
+    return filtered.sort((a, b) => {
+      const getEarliestDe = (intervention: InterventionPreventive): number => {
+        const lignes = this.buildAllPeriodeLines(intervention);
+        if (lignes.length === 0) return Number.MAX_SAFE_INTEGER;
+        const firstDe = lignes[0].periodeDe;
+        if (!firstDe) return Number.MAX_SAFE_INTEGER;
+        return new Date(firstDe).getTime();
+      };
+      return getEarliestDe(a) - getEarliestDe(b);
+    });
   }
 
-  getEnAttenteCount(): number { return this.getEnAttenteInterventions().length; }
-  getTermineCount(): number { return this.getTermineInterventions().length; }
+  // Bloc 2 : Terminées (statut TERMINE)
+  getTermineesInterventions(): InterventionPreventive[] {
+    return this.getFilteredInterventions().filter(i =>
+      i.statut === StatutInterventionPreventive.TERMINE
+    );
+  }
+
+  // Bloc 3 (conditionnel) : En Retard (periodeA dépassée ET champs tech non remplis)
+  getEnRetardInterventions(): InterventionPreventive[] {
+    return this.getFilteredInterventions().filter(i =>
+      i.statut !== StatutInterventionPreventive.TERMINE &&
+      this.isInterventionEnRetard(i)
+    );
+  }
+
+  getAPlanifierCount(): number { return this.getAPlanifierInterventions().length; }
+  getTermineesCount(): number { return this.getTermineesInterventions().length; }
+  getEnRetardCount(): number { return this.getEnRetardInterventions().length; }
+  hasEnRetard(): boolean { return this.getEnRetardCount() > 0; }
+
+  // ── Pagination ────────────────────────────────────────────────────────────
+  getPagedAPlanifier(): InterventionPreventive[] {
+    const all = this.getAPlanifierInterventions();
+    const start = (this.pageAPlanifier - 1) * this.pageSize;
+    return all.slice(start, start + this.pageSize);
+  }
+
+  getPagedTerminees(): InterventionPreventive[] {
+    const all = this.getTermineesInterventions();
+    const start = (this.pageTerminees - 1) * this.pageSize;
+    return all.slice(start, start + this.pageSize);
+  }
+
+  getPagedEnRetard(): InterventionPreventive[] {
+    const all = this.getEnRetardInterventions();
+    const start = (this.pageEnRetard - 1) * this.pageSize;
+    return all.slice(start, start + this.pageSize);
+  }
+
+  getTotalPagesAPlanifier(): number { return Math.ceil(this.getAPlanifierCount() / this.pageSize) || 1; }
+  getTotalPagesTerminees(): number { return Math.ceil(this.getTermineesCount() / this.pageSize) || 1; }
+  getTotalPagesEnRetard(): number { return Math.ceil(this.getEnRetardCount() / this.pageSize) || 1; }
+
+  getPagesArray(total: number): number[] { return Array.from({ length: total }, (_, i) => i + 1); }
 
   // ── Popup de détail ────────────────────────────────────────────────────────
   openDetailPopup(intervention: InterventionPreventive): void {
@@ -187,6 +282,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
         return 'Créé';
       case StatutInterventionPreventive.EN_ATTENTE_INTERVENTION:
         return 'En attente d\'intervention';
+      case StatutInterventionPreventive.EN_COURS:
+        return 'En cours';
       case StatutInterventionPreventive.TERMINE:
         return 'Terminé';
       default:
@@ -200,6 +297,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
         return 'badge-warning';
       case StatutInterventionPreventive.EN_ATTENTE_INTERVENTION:
         return 'badge-info';
+      case StatutInterventionPreventive.EN_COURS:
+        return 'badge-primary';
       case StatutInterventionPreventive.TERMINE:
         return 'badge-success';
       default:
@@ -217,7 +316,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
       intervenants: this.fb.array([]),
       statut: [StatutInterventionPreventive.CREE],
       emailCommercial: [''],
-      ccMail: this.fb.array([])
+      ccMail: this.fb.array([]),
+      nomProduit: ['']
     });
   }
 
@@ -281,19 +381,23 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   loadAllUsers(): void {
     const token = localStorage.getItem('token');
     const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-    this.http.get<any[]>('http://localhost:8080/api/utilisateurs', { headers }).subscribe({
+    this.http.get<any[]>('http://localhost:8089/Users', { headers }).subscribe({
       next: (users) => { this.allUsers = users; },
       error: () => { this.allUsers = []; }
     });
   }
 
-  searchAssignableUsers(): void {
-    const q = this.userSearchQuery.toLowerCase().trim();
-    if (!q) { this.filteredAssignableUsers = []; return; }
-    this.filteredAssignableUsers = this.allUsers.filter(u =>
-      (`${u.firstname} ${u.lastname}`).toLowerCase().includes(q) ||
-      (u.email || '').toLowerCase().includes(q)
-    ).filter(u => !this.assignedUsers.find(a => a.id === u.id));
+  getUnassignedUsers(): any[] {
+    return this.allUsers.filter(u => !this.assignedUsers.find(a => a.id === u.id));
+  }
+
+  assignUserFromDropdown(event: any): void {
+    const userId = Number(event.target.value);
+    const user = this.allUsers.find(u => u.id === userId);
+    if (user) {
+      this.assignUser(user);
+    }
+    event.target.value = '';
   }
 
   assignUser(user: any): void {
@@ -341,11 +445,19 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     // Reset form
     this.techSubForm.patchValue({
       dateIntervention: line?.get('dateIntervention')?.value || '',
-      dateRapportPreventive: line?.get('dateRapportPreventive')?.value || ''
+      dateRapportPreventive: line?.get('dateRapportPreventive')?.value || '',
+      remarque: line?.get('remarque')?.value || ''
     });
-    // Reset intervenants
+    // Reset intervenants et pré-remplir depuis la ligne
     while (this.techIntervenantsArray.length) { this.techIntervenantsArray.removeAt(0); }
-    this.techIntervenantsArray.push(this.fb.control(''));
+    const savedIntervenants = line?.get('techIntervenants')?.value;
+    if (savedIntervenants && savedIntervenants.length > 0) {
+      savedIntervenants.forEach((interv: any) => {
+        this.techIntervenantsArray.push(this.fb.control(interv.nom || interv));
+      });
+    } else {
+      this.techIntervenantsArray.push(this.fb.control(''));
+    }
     this.techSelectedFile = null;
     this.showTechSubPopup = true;
   }
@@ -370,15 +482,146 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     } else {
       line.get('dateRapportPreventive')!.setValue(techValues.dateRapportPreventive || '');
     }
+    // Stocker les intervenants techniques dans la ligne de période
+    const techIntervenants = techValues.techIntervenants
+      ? techValues.techIntervenants.filter((nom: string) => nom && nom.trim() !== '').map((nom: string) => ({ nom }))
+      : [];
+    if (!line.get('techIntervenants')) {
+      line.addControl('techIntervenants', this.fb.control(techIntervenants));
+    } else {
+      line.get('techIntervenants')!.setValue(techIntervenants);
+    }
+    // Stocker la remarque dans la ligne de période
+    if (!line.get('remarque')) {
+      line.addControl('remarque', this.fb.control(techValues.remarque || ''));
+    } else {
+      line.get('remarque')!.setValue(techValues.remarque || '');
+    }
+    // Stocker le fichier technique sélectionné pour cette ligne
+    const techFile = this.techSelectedFile;
+    const lineIndex = this.techSubPopupLineIndex;
     this.closeTechSubPopup();
-    // Sauvegarder automatiquement
-    this.saveIntervention();
+    // Sauvegarder automatiquement, puis uploader le fichier si nécessaire
+    this.saveInterventionThenUploadTechFile(techFile, lineIndex);
+  }
+
+  /**
+   * Calcule automatiquement le statut technique en fonction du nombre
+   * de lignes de période ayant une dateIntervention renseignée.
+   *   0 remplies → EN_ATTENTE_INTERVENTION
+   *   partiellement remplies → EN_COURS
+   *   toutes remplies → TERMINE
+   */
+  computeTechStatut(): StatutInterventionPreventive {
+    const lines = this.periodeLinesArray.controls;
+    if (!lines || lines.length === 0) return StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
+    const total = lines.length;
+    const filled = lines.filter((c: any) => {
+      const v = c.value;
+      return v.dateIntervention && v.dateIntervention.toString().trim() !== '';
+    }).length;
+    if (filled === 0) return StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
+    if (filled < total) return StatutInterventionPreventive.EN_COURS;
+    return StatutInterventionPreventive.TERMINE;
+  }
+
+  // Sauvegarde l'intervention puis upload le fichier technique sur la bonne ligne de période
+  saveInterventionThenUploadTechFile(techFile: File | null, lineIndex: number): void {
+    const formValue = this.interventionForm.value;
+    const firstLine = this.periodeLinesArray.length > 0 ? this.periodeLinesArray.at(0).value : {};
+    let newStatut = formValue.statut || StatutInterventionPreventive.CREE;
+
+    if (this.isAdmin() && !this.isEditMode) {
+      newStatut = StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
+    } else if (this.isTechnique() &&
+      (this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
+        this.currentEditingStatut === StatutInterventionPreventive.EN_COURS)) {
+      newStatut = this.computeTechStatut();
+    }
+
+    const periodeLignes = this.periodeLinesArray.controls.map((ctrl: any) => {
+      const v = ctrl.value;
+      return {
+        periodeDe: v.periodeDe || null,
+        periodeA: v.periodeA || null,
+        periodeRecommandeDe: v.periodeRecommandeDe || null,
+        periodeRecommandeA: v.periodeRecommandeA || null,
+        dateInterventionExigee: v.dateInterventionExigee || null,
+        dateIntervention: v.dateIntervention || null,
+        dateRapportPreventive: v.dateRapportPreventive || null,
+        intervenants: v.techIntervenants || [],
+        remarque: v.remarque || null,
+      };
+    });
+
+    const intervention: InterventionPreventive = {
+      nomClient: formValue.nomClient,
+      nbInterventionsParAn: formValue.nbInterventionsParAn,
+      periodeDe: firstLine.periodeDe || null,
+      periodeA: firstLine.periodeA || null,
+      periodeRecommandeDe: firstLine.periodeRecommandeDe || null,
+      periodeRecommandeA: firstLine.periodeRecommandeA || null,
+      dateInterventionExigee: firstLine.dateInterventionExigee || null,
+      dateIntervention: firstLine.dateIntervention || formValue.dateIntervention || null,
+      dateRapportPreventive: firstLine.dateRapportPreventive || formValue.dateRapportPreventive || null,
+      intervenants: formValue.intervenants ? formValue.intervenants.filter((i: IntervenantPreventif) => i.nom && i.nom.trim() !== '') : [],
+      periodeLignes: periodeLignes,
+      statut: newStatut,
+      emailCommercial: formValue.emailCommercial,
+      ccMail: formValue.ccMail ? formValue.ccMail.filter((email: string) => email && email.trim() !== '') : [],
+      assignedUsers: this.assignedUsers.map(u => ({ id: u.id }))
+    };
+
+    if (this.isEditMode && this.currentInterventionId) {
+      this.interventionPreventiveService.updateInterventionPreventive(this.currentInterventionId, intervention).subscribe({
+        next: (saved: InterventionPreventive) => {
+          if (techFile && saved.periodeLignes && saved.periodeLignes[lineIndex]) {
+            const periodeLigneId = saved.periodeLignes[lineIndex].periodeLigneId;
+            if (periodeLigneId) {
+              this.interventionPreventiveService.uploadPeriodeLigneFile(periodeLigneId, techFile).subscribe({
+                next: () => { this.loadInterventions(); this.closeModal(); },
+                error: (err) => { console.error('Erreur upload fichier technique', err); this.loadInterventions(); this.closeModal(); }
+              });
+            } else {
+              this.loadInterventions(); this.closeModal();
+            }
+          } else {
+            this.loadInterventions(); this.closeModal();
+          }
+        },
+        error: (err) => {
+          console.error('Erreur lors de la mise à jour', err);
+          console.error('Payload envoyé:', JSON.stringify(intervention, null, 2));
+          if (err.error) console.error('Réponse serveur:', JSON.stringify(err.error, null, 2));
+          alert('Erreur mise à jour: ' + (err.error?.error || err.error?.message || err.message || JSON.stringify(err.error)));
+        }
+      });
+    } else {
+      this.interventionPreventiveService.addInterventionPreventive(intervention).subscribe({
+        next: (saved: InterventionPreventive) => {
+          if (techFile && saved.periodeLignes && saved.periodeLignes[lineIndex]) {
+            const periodeLigneId = saved.periodeLignes[lineIndex].periodeLigneId;
+            if (periodeLigneId) {
+              this.interventionPreventiveService.uploadPeriodeLigneFile(periodeLigneId, techFile).subscribe({
+                next: () => { this.loadInterventions(); this.closeModal(); },
+                error: (err) => { console.error('Erreur upload fichier technique', err); this.loadInterventions(); this.closeModal(); }
+              });
+            } else {
+              this.loadInterventions(); this.closeModal();
+            }
+          } else {
+            this.loadInterventions(); this.closeModal();
+          }
+        },
+        error: (err) => { console.error('Erreur lors de l\'ajout', err); }
+      });
+    }
   }
 
   loadInterventions(): void {
     this.interventionPreventiveService.getAllInterventionsPreventives().subscribe({
       next: (data) => {
-        this.interventions = data;
+        this.interventions = data.reverse();
       },
       error: (err) => {
         console.error('Erreur lors du chargement des interventions préventives', err);
@@ -432,7 +675,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
       dateIntervention: intervention.dateIntervention,
       dateRapportPreventive: intervention.dateRapportPreventive,
       statut: intervention.statut || StatutInterventionPreventive.CREE,
-      emailCommercial: intervention.emailCommercial || ''
+      emailCommercial: intervention.emailCommercial || '',
+      nomProduit: intervention.nomProduit || ''
     });
     // Charger periodeLines depuis periodeLignes du backend (ou créer 1 ligne par défaut)
     while (this.periodeLinesArray.length) { this.periodeLinesArray.removeAt(0); }
@@ -444,7 +688,11 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
           periodeA: [l.periodeA || ''],
           periodeRecommandeDe: [l.periodeRecommandeDe || ''],
           periodeRecommandeA: [l.periodeRecommandeA || ''],
-          dateInterventionExigee: [l.dateInterventionExigee || '']
+          dateInterventionExigee: [l.dateInterventionExigee || ''],
+          dateIntervention: [l.dateIntervention || ''],
+          dateRapportPreventive: [l.dateRapportPreventive || ''],
+          techIntervenants: [l.intervenants || []],
+          remarque: [l.remarque || '']
         }));
       });
     } else {
@@ -457,8 +705,8 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
         dateInterventionExigee: [intervention.dateInterventionExigee || '']
       }));
     }
-    // Réinitialiser utilisateurs assignés
-    this.assignedUsers = [];
+    // Charger utilisateurs assignés
+    this.assignedUsers = intervention.assignedUsers || [];
 
     // Charger ccMail
     while (this.ccMailArray.length) {
@@ -502,15 +750,33 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     if (this.isAdmin() && !this.isEditMode) {
       // Admin crée une nouvelle intervention -> statut EN_ATTENTE_INTERVENTION
       newStatut = StatutInterventionPreventive.EN_ATTENTE_INTERVENTION;
-    } else if (this.isTechnique() && this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION) {
-      // Technique complète l'intervention -> statut TERMINE
-      newStatut = StatutInterventionPreventive.TERMINE;
+    } else if (this.isTechnique() &&
+      (this.currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION ||
+        this.currentEditingStatut === StatutInterventionPreventive.EN_COURS)) {
+      // Technique remplit des lignes -> calcul automatique du statut
+      newStatut = this.computeTechStatut();
     }
+
+    // Construire le tableau periodeLignes à partir du FormArray
+    const periodeLignes = this.periodeLinesArray.controls.map((ctrl: any) => {
+      const v = ctrl.value;
+      return {
+        periodeDe: v.periodeDe || null,
+        periodeA: v.periodeA || null,
+        periodeRecommandeDe: v.periodeRecommandeDe || null,
+        periodeRecommandeA: v.periodeRecommandeA || null,
+        dateInterventionExigee: v.dateInterventionExigee || null,
+        dateIntervention: v.dateIntervention || null,
+        dateRapportPreventive: v.dateRapportPreventive || null,
+        intervenants: v.techIntervenants || [],
+        remarque: v.remarque || null,
+      };
+    });
 
     const intervention: InterventionPreventive = {
       nomClient: formValue.nomClient,
       nbInterventionsParAn: formValue.nbInterventionsParAn,
-      // Dates de période lues depuis la 1ère ligne du FormArray
+      // Dates de période lues depuis la 1ère ligne du FormArray (compatibilité ancien format)
       periodeDe: firstLine.periodeDe || null,
       periodeA: firstLine.periodeA || null,
       periodeRecommandeDe: firstLine.periodeRecommandeDe || null,
@@ -520,9 +786,12 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
       dateIntervention: firstLine.dateIntervention || formValue.dateIntervention || null,
       dateRapportPreventive: firstLine.dateRapportPreventive || formValue.dateRapportPreventive || null,
       intervenants: formValue.intervenants ? formValue.intervenants.filter((i: IntervenantPreventif) => i.nom && i.nom.trim() !== '') : [],
+      periodeLignes: periodeLignes,
       statut: newStatut,
       emailCommercial: formValue.emailCommercial,
-      ccMail: formValue.ccMail ? formValue.ccMail.filter((email: string) => email && email.trim() !== '') : []
+      ccMail: formValue.ccMail ? formValue.ccMail.filter((email: string) => email && email.trim() !== '') : [],
+      assignedUsers: this.assignedUsers.map(u => ({ id: u.id })),
+      nomProduit: formValue.nomProduit || null
     };
 
     if (this.isEditMode && this.currentInterventionId) {
@@ -538,6 +807,9 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
         },
         error: (err) => {
           console.error('Erreur lors de la mise à jour', err);
+          console.error('Payload envoyé:', JSON.stringify(intervention, null, 2));
+          if (err.error) console.error('Réponse serveur:', JSON.stringify(err.error, null, 2));
+          alert('Erreur mise à jour: ' + (err.error?.error || err.error?.message || err.message || JSON.stringify(err.error)));
         }
       });
     } else {
@@ -579,10 +851,14 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   }
 
   search(): void {
+    // Réinitialiser les pages lors de la recherche
+    this.pageAPlanifier = 1;
+    this.pageTerminees = 1;
+    this.pageEnRetard = 1;
     if (this.searchTerm && this.searchTerm.trim() !== '') {
       this.interventionPreventiveService.searchInterventionsPreventives(this.searchTerm).subscribe({
         next: (data) => {
-          this.interventions = data;
+          this.interventions = data.reverse();
         },
         error: (err) => {
           console.error('Erreur lors de la recherche', err);
@@ -623,6 +899,11 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   getFileDownloadUrl(id: number | null | undefined): string {
     if (!id) return '';
     return this.interventionPreventiveService.getFileDownloadUrl(id);
+  }
+
+  getPeriodeLigneFileDownloadUrl(periodeLigneId: number | null | undefined): string {
+    if (!periodeLigneId) return '';
+    return this.interventionPreventiveService.getPeriodeLigneFileDownloadUrl(periodeLigneId);
   }
 
   uploadFileAfterSave(interventionId: number): void {

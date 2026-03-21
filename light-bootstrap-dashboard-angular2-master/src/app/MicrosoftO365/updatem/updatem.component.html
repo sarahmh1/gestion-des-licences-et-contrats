@@ -1,9 +1,12 @@
-<div class="container mt-5">
+﻿<div class="container mt-5">
   <h2 class="text-center mb-4">Mettre à jour MicrosoftO365</h2>
   <form [formGroup]="updateForm" (ngSubmit)="onSubmit()">
     <div class="form-group mb-3">
       <label for="client">Client</label>
-      <input id="client" type="text" class="form-control" formControlName="client" />
+      <select id="client" class="form-control" formControlName="client">
+        <option value="" disabled>-- Selectionner un client --</option>
+        <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
+      </select>
       <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>

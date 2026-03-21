@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EsetService } from 'app/Services/eset.service';
@@ -6,6 +6,7 @@ import { Eset } from 'app/Model/Eset';
 import { TypeAchat } from 'app/Model/TypeAchat';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { HttpEventType } from '@angular/common/http';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-update-eset',
@@ -13,6 +14,7 @@ import { HttpEventType } from '@angular/common/http';
   styleUrls: ['./update-eset.component.scss']
 })
 export class UpdateEsetComponent implements OnInit {
+  clients: Client[] = [];
   Validators = Validators;
   updateForm!: FormGroup;
   esetid!: number;
@@ -37,10 +39,11 @@ export class UpdateEsetComponent implements OnInit {
     public fb: FormBuilder,
     private esetService: EsetService,
     private route: ActivatedRoute,
-    public router: Router
-  ) {}
+    public router: Router,
+    private clientService: ClientService) {}
 
   ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initializeForm();
     this.loadEsetData();
   }

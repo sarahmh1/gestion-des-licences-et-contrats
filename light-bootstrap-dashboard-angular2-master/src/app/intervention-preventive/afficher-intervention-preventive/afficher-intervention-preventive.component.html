@@ -1,114 +1,312 @@
-<div class="container">
-  <!-- En-tête avec titre et boutons alignés -->
-  <div class="header-row">
-    <h2>Interventions Préventives</h2>
-    <div class="action-group">
-      <button (click)="openAddModal()" class="btn btn-sm action-button">
-        <i class="fa fa-plus"></i>
-      </button>
-      <div class="input-group search-box">
-        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm"
+<div class="ip-container">
+
+  <!-- ─── En-tête ──────────────────────────────────────────────────── -->
+  <div class="ip-header-row">
+    <div class="ip-header-left">
+      <div class="ip-page-icon"><i class="fas fa-shield-alt"></i></div>
+      <div>
+        <h2 class="ip-page-title">Interventions Préventives</h2>
+        <p class="ip-page-sub">Gestion et suivi des interventions planifiées</p>
+      </div>
+    </div>
+    <div class="ip-header-right">
+      <div class="ip-search-wrap">
+        <i class="fas fa-search ip-search-icon"></i>
+        <input type="text" class="ip-search-input" placeholder="Rechercher un client, email…" [(ngModel)]="searchTerm"
           (input)="search()" />
+      </div>
+      <button (click)="openAddModal()" class="ip-btn-add" title="Ajouter une intervention">
+        <i class="fas fa-plus"></i> Nouvelle intervention
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Bandeau résumé ─────────────────────────────────────────── -->
+  <div class="ip-summary-bar">
+    <div class="ip-summary-chip chip-planifier">
+      <i class="fas fa-calendar-plus"></i>
+      <span class="chip-count">{{ getAPlanifierCount() }}</span>
+      <span class="chip-label">À planifier</span>
+    </div>
+    <div class="ip-summary-chip chip-terminee">
+      <i class="fas fa-check-circle"></i>
+      <span class="chip-count">{{ getTermineesCount() }}</span>
+      <span class="chip-label">Terminées</span>
+    </div>
+    <div class="ip-summary-chip chip-retard" *ngIf="hasEnRetard()">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span class="chip-count">{{ getEnRetardCount() }}</span>
+      <span class="chip-label">En retard</span>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ACCORDÉON 1 : À Planifier
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="accordion-section acc-planifier">
+
+    <div class="accordion-header" (click)="isOpenPlanifier = !isOpenPlanifier">
+      <div class="acc-header-left">
+        <i class="fas fa-calendar-plus acc-icon"></i>
+        <span class="acc-title">Interventions Préventives à Planifier</span>
+        <span class="acc-badge">{{ getAPlanifierCount() }}</span>
+      </div>
+      <div class="acc-header-right">
+        <i class="fas fa-chevron-down acc-chevron" [class.open]="isOpenPlanifier"></i>
+      </div>
+    </div>
+
+    <div class="accordion-body" [class.open]="isOpenPlanifier">
+      <div class="acc-table-wrap">
+        <div *ngIf="getAPlanifierInterventions().length === 0" class="acc-empty">
+          <i class="fas fa-inbox"></i> Aucune intervention à planifier
+        </div>
+        <table *ngIf="getAPlanifierInterventions().length > 0" class="compact-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Client</th>
+              <th>Produit</th>
+              <th>Nb/an</th>
+              <th>Email technique</th>
+              <th>Périodes</th>
+              <th>Statut</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let intervention of getPagedAPlanifier(); let i = index" (click)="openDetailPopup(intervention)"
+              class="ct-row">
+              <td class="ct-num">{{ (pageAPlanifier - 1) * pageSize + i + 1 }}</td>
+              <td class="ct-client">
+                <div class="ct-client-name">{{ intervention.nomClient }}</div>
+              </td>
+              <td class="ct-center">
+                <span *ngIf="intervention.nomProduit" style="font-size:0.75rem; color:#666;">{{
+                  intervention.nomProduit.replace('_',' ') }}</span>
+                <span *ngIf="!intervention.nomProduit" class="ct-muted">—</span>
+              </td>
+              <td class="ct-center">{{ intervention.nbInterventionsParAn }}</td>
+              <td class="ct-email">{{ intervention.emailCommercial || '—' }}</td>
+              <td class="ct-center">
+                <span class="ct-periode-count" *ngIf="buildAllPeriodeLines(intervention).length > 0">
+                  <i class="fas fa-calendar-alt"></i> {{ buildAllPeriodeLines(intervention).length }}
+                </span>
+                <span *ngIf="buildAllPeriodeLines(intervention).length === 0" class="ct-muted">—</span>
+              </td>
+              <td>
+                <span class="ct-badge" [ngClass]="getStatutBadgeClass(intervention.statut)">
+                  {{ getStatutLabel(intervention.statut) }}
+                </span>
+              </td>
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <button class="btn-row-action btn-row-edit" (click)="openEditModal(intervention)" title="Modifier">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="acc-pagination" *ngIf="getTotalPagesAPlanifier() > 1">
+        <button class="pg-btn" (click)="pageAPlanifier = pageAPlanifier - 1" [disabled]="pageAPlanifier === 1">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button *ngFor="let p of getPagesArray(getTotalPagesAPlanifier())" class="pg-btn"
+          [class.active]="p === pageAPlanifier" (click)="pageAPlanifier = p">{{ p }}</button>
+        <button class="pg-btn" (click)="pageAPlanifier = pageAPlanifier + 1"
+          [disabled]="pageAPlanifier === getTotalPagesAPlanifier()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <span class="pg-info">{{ pageAPlanifier }}/{{ getTotalPagesAPlanifier() }}</span>
       </div>
     </div>
   </div>
 
 
-  <!-- ── Colonnes de cartes groupées par statut ───────────────────────── -->
-  <div class="cards-grid">
+  <!-- ══════════════════════════════════════════════════════════════
+       ACCORDÉON 2 : Terminées
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="accordion-section acc-terminee">
 
-    <!-- Colonne EN ATTENTE D'INTERVENTION -->
-    <div class="status-column">
-      <div class="status-header status-attente">
-        <span class="status-badge-header">En attente d'intervention</span>
-        <span class="status-count">{{ getEnAttenteCount() }}</span>
+    <div class="accordion-header" (click)="isOpenTerminees = !isOpenTerminees">
+      <div class="acc-header-left">
+        <i class="fas fa-check-circle acc-icon"></i>
+        <span class="acc-title">Interventions Préventives Terminées</span>
+        <span class="acc-badge">{{ getTermineesCount() }}</span>
       </div>
-      <div class="cards-list">
-        <div *ngIf="getEnAttenteInterventions().length === 0" class="empty-column">
-          <i class="fas fa-inbox"></i> Aucune intervention en attente
-        </div>
-        <div class="interv-card card-attente" *ngFor="let intervention of getEnAttenteInterventions()"
-          (click)="openDetailPopup(intervention)">
-          <div class="card-accent-left accent-attente"></div>
-          <div class="card-body-inner">
-            <div class="card-client-name">{{ intervention.nomClient }}</div>
-            <div class="card-info">
-              <i class="fas fa-redo-alt"></i>
-              <span>{{ intervention.nbInterventionsParAn }} int/an</span>
-            </div>
-            <div class="card-info" *ngIf="intervention.emailCommercial">
-              <i class="fas fa-envelope"></i>
-              <span>{{ intervention.emailCommercial }}</span>
-            </div>
-            <div class="card-info" *ngIf="intervention.intervenants && intervention.intervenants.length > 0">
-              <i class="fas fa-users"></i>
-              <span>{{ intervention.intervenants.length }} ligne(s)</span>
-            </div>
-            <div class="card-info" *ngIf="intervention.fichier">
-              <i class="fas fa-paperclip"></i>
-              <span>{{ intervention.fichierOriginalName }}</span>
-            </div>
-          </div>
-          <div class="card-actions" (click)="$event.stopPropagation()">
-            <button (click)="openEditModal(intervention)" class="btn-card-action btn-edit" title="Modifier">
-              <i class="fas fa-pen"></i>
-            </button>
-            <button (click)="confirmDelete(intervention)" class="btn-card-action btn-delete" title="Supprimer">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
+      <div class="acc-header-right">
+        <i class="fas fa-chevron-down acc-chevron" [class.open]="isOpenTerminees"></i>
       </div>
     </div>
 
-    <!-- Colonne TERMINÉ -->
-    <div class="status-column">
-      <div class="status-header status-termine">
-        <span class="status-badge-header">Terminé</span>
-        <span class="status-count">{{ getTermineCount() }}</span>
-      </div>
-      <div class="cards-list">
-        <div *ngIf="getTermineInterventions().length === 0" class="empty-column">
+    <div class="accordion-body" [class.open]="isOpenTerminees">
+      <div class="acc-table-wrap">
+        <div *ngIf="getTermineesInterventions().length === 0" class="acc-empty">
           <i class="fas fa-inbox"></i> Aucune intervention terminée
         </div>
-        <div class="interv-card card-termine" *ngFor="let intervention of getTermineInterventions()"
-          (click)="openDetailPopup(intervention)">
-          <div class="card-accent-left accent-termine"></div>
-          <div class="card-body-inner">
-            <div class="card-client-name">{{ intervention.nomClient }}</div>
-            <div class="card-info">
-              <i class="fas fa-redo-alt"></i>
-              <span>{{ intervention.nbInterventionsParAn }} int/an</span>
-            </div>
-            <div class="card-info" *ngIf="intervention.emailCommercial">
-              <i class="fas fa-envelope"></i>
-              <span>{{ intervention.emailCommercial }}</span>
-            </div>
-            <div class="card-info" *ngIf="intervention.intervenants && intervention.intervenants.length > 0">
-              <i class="fas fa-users"></i>
-              <span>{{ intervention.intervenants.length }} ligne(s)</span>
-            </div>
-            <div class="card-info" *ngIf="intervention.fichier">
-              <i class="fas fa-paperclip"></i>
-              <span>{{ intervention.fichierOriginalName }}</span>
-            </div>
-          </div>
-          <div class="card-actions" (click)="$event.stopPropagation()">
-            <button (click)="openEditModal(intervention)" class="btn-card-action btn-edit" title="Modifier">
-              <i class="fas fa-pen"></i>
-            </button>
-            <button (click)="confirmDelete(intervention)" class="btn-card-action btn-delete" title="Supprimer">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
+        <table *ngIf="getTermineesInterventions().length > 0" class="compact-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Client</th>
+              <th>Produit</th>
+              <th>Nb/an</th>
+              <th>Email technique</th>
+              <th>Périodes</th>
+              <th>Statut</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let intervention of getPagedTerminees(); let i = index" (click)="openDetailPopup(intervention)"
+              class="ct-row">
+              <td class="ct-num">{{ (pageTerminees - 1) * pageSize + i + 1 }}</td>
+              <td class="ct-client">
+                <div class="ct-client-name">{{ intervention.nomClient }}</div>
+              </td>
+              <td class="ct-center">
+                <span *ngIf="intervention.nomProduit" style="font-size:0.75rem; color:#666;">{{
+                  intervention.nomProduit.replace('_',' ') }}</span>
+                <span *ngIf="!intervention.nomProduit" class="ct-muted">—</span>
+              </td>
+              <td class="ct-center">{{ intervention.nbInterventionsParAn }}</td>
+              <td class="ct-email">{{ intervention.emailCommercial || '—' }}</td>
+              <td class="ct-center">
+                <span class="ct-periode-count" *ngIf="buildAllPeriodeLines(intervention).length > 0">
+                  <i class="fas fa-calendar-alt"></i> {{ buildAllPeriodeLines(intervention).length }}
+                </span>
+                <span *ngIf="buildAllPeriodeLines(intervention).length === 0" class="ct-muted">—</span>
+              </td>
+              <td>
+                <span class="ct-badge badge-success">Terminé</span>
+              </td>
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <button class="btn-row-action btn-row-edit" (click)="openEditModal(intervention)" title="Modifier">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="acc-pagination" *ngIf="getTotalPagesTerminees() > 1">
+        <button class="pg-btn" (click)="pageTerminees = pageTerminees - 1" [disabled]="pageTerminees === 1">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button *ngFor="let p of getPagesArray(getTotalPagesTerminees())" class="pg-btn"
+          [class.active]="p === pageTerminees" (click)="pageTerminees = p">{{ p }}</button>
+        <button class="pg-btn" (click)="pageTerminees = pageTerminees + 1"
+          [disabled]="pageTerminees === getTotalPagesTerminees()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <span class="pg-info">{{ pageTerminees }}/{{ getTotalPagesTerminees() }}</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ACCORDÉON 3 (conditionnel) : En Retard
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="accordion-section acc-retard" *ngIf="hasEnRetard()">
+
+    <div class="accordion-header acc-header-retard" (click)="isOpenRetard = !isOpenRetard">
+      <div class="acc-header-left">
+        <i class="fas fa-exclamation-triangle acc-icon"></i>
+        <span class="acc-title">Interventions Non Complétées — Période Échue</span>
+        <span class="acc-badge acc-badge-retard">{{ getEnRetardCount() }}</span>
+      </div>
+      <div class="acc-header-right">
+        <i class="fas fa-chevron-down acc-chevron" [class.open]="isOpenRetard"></i>
       </div>
     </div>
 
-  </div><!-- /cards-grid -->
-</div><!-- /container -->
+    <div class="accordion-body" [class.open]="isOpenRetard">
+      <div class="acc-retard-alert">
+        <i class="fas fa-info-circle"></i>
+        Ces interventions ont une période de fin dépassée et le technicien n'a pas encore complété les champs requis.
+      </div>
+      <div class="acc-table-wrap">
+        <table class="compact-table ct-retard">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Client</th>
+              <th>Produit</th>
+              <th>Nb/an</th>
+              <th>Email technique</th>
+              <th>Périodes</th>
+              <th>Statut</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let intervention of getPagedEnRetard(); let i = index" (click)="openDetailPopup(intervention)"
+              class="ct-row ct-row-retard">
+              <td class="ct-num">{{ (pageEnRetard - 1) * pageSize + i + 1 }}</td>
+              <td class="ct-client">
+                <div class="ct-client-name">{{ intervention.nomClient }}</div>
+              </td>
+              <td class="ct-center">
+                <span *ngIf="intervention.nomProduit" style="font-size:0.75rem; color:#666;">{{
+                  intervention.nomProduit.replace('_',' ') }}</span>
+                <span *ngIf="!intervention.nomProduit" class="ct-muted">—</span>
+              </td>
+              <td class="ct-center">{{ intervention.nbInterventionsParAn }}</td>
+              <td class="ct-email">{{ intervention.emailCommercial || '—' }}</td>
+              <td class="ct-center">
+                <span class="ct-periode-count" *ngIf="buildAllPeriodeLines(intervention).length > 0">
+                  <i class="fas fa-calendar-alt"></i> {{ buildAllPeriodeLines(intervention).length }}
+                </span>
+              </td>
+              <td>
+                <span class="ct-badge badge-danger">En Retard</span>
+              </td>
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <button class="btn-row-action btn-row-edit" (click)="openEditModal(intervention)" title="Modifier">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-<!-- ── Popup Détail Intervention (nouveau design) ─────────────────────── -->
+      <!-- Pagination -->
+      <div class="acc-pagination" *ngIf="getTotalPagesEnRetard() > 1">
+        <button class="pg-btn" (click)="pageEnRetard = pageEnRetard - 1" [disabled]="pageEnRetard === 1">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button *ngFor="let p of getPagesArray(getTotalPagesEnRetard())" class="pg-btn"
+          [class.active]="p === pageEnRetard" (click)="pageEnRetard = p">{{ p }}</button>
+        <button class="pg-btn" (click)="pageEnRetard = pageEnRetard + 1"
+          [disabled]="pageEnRetard === getTotalPagesEnRetard()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <span class="pg-info">{{ pageEnRetard }}/{{ getTotalPagesEnRetard() }}</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /ip-container -->
+
+
+<!-- ── Popup Détail Intervention ────────────────────────────────── -->
 <div class="detail-overlay" *ngIf="showDetailPopup" (click)="closeDetailPopup()">
   <div class="detail-popup-v2" (click)="$event.stopPropagation()">
 
@@ -136,8 +334,13 @@
             <span class="detail-info-label">NB INTERVENTIONS/AN</span>
             <span class="detail-info-value">{{ selectedIntervention?.nbInterventionsParAn }}</span>
           </div>
+          <div class="detail-info-cell" *ngIf="selectedIntervention?.nomProduit">
+            <span class="detail-info-label">PRODUIT</span>
+            <span class="detail-info-value" style="font-weight:600; color:#f36e24;">{{ selectedIntervention?.nomProduit
+              }}</span>
+          </div>
           <div class="detail-info-cell">
-            <span class="detail-info-label">EMAIL COMMERCIAL</span>
+            <span class="detail-info-label">EMAIL TECHNIQUE</span>
             <span class="detail-info-value">{{ selectedIntervention?.emailCommercial || '—' }}</span>
           </div>
           <div class="detail-info-cell" *ngIf="selectedIntervention?.ccMail?.length">
@@ -147,17 +350,16 @@
         </div>
       </div>
 
-      <!-- Section : Lignes de Période -->
+      <!-- Section : Interventions -->
       <div class="detail-section">
         <div class="detail-section-title">
-          <i class="fas fa-calendar-alt" style="color:#f36e24"></i> Lignes de Période
+          <i class="fas fa-calendar-alt" style="color:#f36e24"></i> Interventions
         </div>
 
-        <!-- Toutes les lignes via la méthode TS buildAllPeriodeLines() -->
         <ng-container *ngIf="buildAllPeriodeLines(selectedIntervention).length > 0; else noPeriode">
           <div *ngFor="let ligne of buildAllPeriodeLines(selectedIntervention); let i = index"
             class="periode-ligne-card">
-            <div class="periode-ligne-title">LIGNE {{ i + 1 }}</div>
+            <div class="periode-ligne-title">Intervention {{ i + 1 }}</div>
             <div class="periode-ligne-grid">
               <div class="periode-cell">
                 <span class="periode-cell-label">PÉRIODE</span>
@@ -181,18 +383,43 @@
                   {{ ligne.dateIntervention ? formatDate(ligne.dateIntervention) : 'En attente' }}
                 </span>
               </div>
+              <div class="periode-cell">
+                <span class="periode-cell-label">DATE RAPPORT PRÉVENTIVE</span>
+                <span class="periode-cell-value" [class.en-attente-text]="!ligne.dateRapportPreventive">
+                  {{ ligne.dateRapportPreventive ? formatDate(ligne.dateRapportPreventive) : 'En attente' }}
+                </span>
+              </div>
+              <div class="periode-cell" *ngIf="ligne.intervenants && ligne.intervenants.length > 0">
+                <span class="periode-cell-label">INTERVENANTS</span>
+                <span class="periode-cell-value">
+                  <span *ngFor="let interv of ligne.intervenants; let last = last">
+                    {{ interv.nom }}<span *ngIf="!last">, </span>
+                  </span>
+                </span>
+              </div>
+              <div class="periode-cell" *ngIf="ligne.fichier">
+                <span class="periode-cell-label">FICHIER TECHNIQUE</span>
+                <span class="periode-cell-value">
+                  <a [href]="getPeriodeLigneFileDownloadUrl(ligne.periodeLigneId)" target="_blank"
+                    class="detail-file-link">
+                    <i class="fa fa-download"></i> {{ ligne.fichierOriginalName || 'Télécharger' }}
+                  </a>
+                </span>
+              </div>
+              <div class="periode-cell" *ngIf="ligne.remarque">
+                <span class="periode-cell-label">REMARQUE</span>
+                <span class="periode-cell-value">{{ ligne.remarque }}</span>
+              </div>
             </div>
           </div>
         </ng-container>
 
         <ng-template #noPeriode>
           <div class="text-muted" style="font-size:0.85rem; padding:8px 0">
-            <i class="fas fa-info-circle"></i> Aucune ligne de période enregistrée.
+            <i class="fas fa-info-circle"></i> Aucune intervention enregistrée.
           </div>
         </ng-template>
       </div>
-
-
 
       <!-- Fichier joint si présent -->
       <div class="detail-section" *ngIf="selectedIntervention?.fichier">
@@ -206,7 +433,7 @@
       </div>
     </div>
 
-    <!-- Footer avec bouton Modifier -->
+    <!-- Footer -->
     <div class="detail-popup-footer-v2">
       <button class="btn btn-secondary" (click)="closeDetailPopup()">Fermer</button>
       <button class="btn btn-primary" (click)="openEditModal(selectedIntervention!); closeDetailPopup()">
@@ -218,7 +445,6 @@
 
 
 <!-- Modal Ajout/Modification -->
-
 <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -234,8 +460,8 @@
           <i class="fas fa-user-shield"></i> Informations Administrateur
         </h5>
 
-        <!-- Message pour technique quand statut != EN_ATTENTE_INTERVENTION -->
-        <div *ngIf="isTechnique() && currentEditingStatut !== StatutInterventionPreventive.EN_ATTENTE_INTERVENTION"
+        <div
+          *ngIf="isTechnique() && currentEditingStatut !== StatutInterventionPreventive.EN_ATTENTE_INTERVENTION && currentEditingStatut !== StatutInterventionPreventive.EN_COURS"
           class="alert alert-info">
           <i class="fas fa-info-circle"></i> Ces champs sont remplis par l'administrateur.
         </div>
@@ -243,8 +469,21 @@
         <!-- Nom du client -->
         <div class="form-group mb-3">
           <label for="nomClient" class="form-label">Nom du Client</label>
-          <input type="text" id="nomClient" class="form-control" formControlName="nomClient" placeholder="Nom du client"
-            [attr.disabled]="!canEditAdminFields() ? '' : null" />
+          <select id="nomClient" class="form-control" formControlName="nomClient"
+            [attr.disabled]="!canEditAdminFields() ? '' : null">
+            <option value="" disabled>-- Sélectionner un client --</option>
+            <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
+          </select>
+        </div>
+
+        <!-- Produit -->
+        <div class="form-group mb-3">
+          <label for="nomProduit" class="form-label">Produit</label>
+          <select id="nomProduit" class="form-control" formControlName="nomProduit"
+            [attr.disabled]="!canEditAdminFields() ? '' : null">
+            <option value="">-- Sélectionner un produit --</option>
+            <option *ngFor="let p of nomProduitOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
+          </select>
         </div>
 
         <!-- Nombre d'interventions par an -->
@@ -258,12 +497,10 @@
           </select>
         </div>
 
-        <!-- ─── BLOC PÉRIODES (Période + Période Recommandée + Date Exigée) ─── -->
+        <!-- BLOC PÉRIODES -->
         <div class="form-group mb-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label mb-0">
-              Périodes / Périodes Recommandées / Date Exigée
-            </label>
+            <label class="form-label mb-0">Périodes / Périodes Recommandées / Date Exigée</label>
             <button type="button" class="btn btn-sm btn-success period-add-btn" (click)="addPeriodeLine()"
               *ngIf="canEditAdminFields()">
               <i class="fa fa-plus"></i>
@@ -296,14 +533,13 @@
                   [attr.disabled]="!canEditAdminFields() ? '' : null" />
               </div>
 
-              <!-- Ligne 3 : Date Exigée + bouton supprimer + bouton tech -->
+              <!-- Ligne 3 : Date Exigée + boutons -->
               <div class="period-row period-row-last">
                 <span class="period-label-mini">Date Exigée</span>
                 <input type="date" class="form-control date-input-sm date-exigee"
                   formControlName="dateInterventionExigee" [attr.disabled]="!canEditAdminFields() ? '' : null" />
-                <!-- Bouton orange pour technique : ouvre le sous-popup technique pour cette ligne -->
                 <button type="button" class="btn btn-sm btn-tech-trigger" (click)="openTechSubPopup(i)"
-                  *ngIf="isTechnique() && currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION"
+                  *ngIf="isTechnique() && (currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION || currentEditingStatut === StatutInterventionPreventive.EN_COURS)"
                   title="Saisir informations techniques">
                   <i class="fas fa-tools"></i>
                 </button>
@@ -316,11 +552,11 @@
           </div>
         </div>
 
-        <!-- Email Commercial -->
+        <!-- Email Technique -->
         <div class="form-group mb-3">
-          <label for="emailCommercial" class="form-label">Email Commercial</label>
+          <label for="emailCommercial" class="form-label">Email Technique</label>
           <input type="email" id="emailCommercial" class="form-control" formControlName="emailCommercial"
-            placeholder="Email du commercial" [attr.disabled]="!canEditAdminFields() ? '' : null" />
+            placeholder="Email technique" [attr.disabled]="!canEditAdminFields() ? '' : null" />
         </div>
 
         <!-- Email CC -->
@@ -346,20 +582,12 @@
         <!-- Utilisateurs Assignés -->
         <div class="form-group mb-3" *ngIf="canEditAdminFields()">
           <label class="form-label">Utilisateurs assignés</label>
-          <div class="user-assign-search">
-            <input type="text" class="form-control" [(ngModel)]="userSearchQuery" [ngModelOptions]="{standalone: true}"
-              (input)="searchAssignableUsers()" placeholder="Rechercher un utilisateur..." />
-            <i class="fas fa-search user-search-icon"></i>
-          </div>
-          <!-- Résultats de recherche -->
-          <div class="user-search-results" *ngIf="filteredAssignableUsers.length > 0">
-            <div *ngFor="let u of filteredAssignableUsers" class="user-search-item" (click)="assignUser(u)">
-              <i class="fas fa-user-circle"></i>
-              <span>{{ u.firstname }} {{ u.lastname }}</span>
-              <span class="user-role-badge">{{ u.role }}</span>
-            </div>
-          </div>
-          <!-- Utilisateurs déjà assignés -->
+          <select class="form-control" (change)="assignUserFromDropdown($event)">
+            <option value="" selected disabled>-- Sélectionner un utilisateur --</option>
+            <option *ngFor="let u of getUnassignedUsers()" [value]="u.id">
+              {{ u.firstname }} {{ u.lastname }} ({{ u.role }})
+            </option>
+          </select>
           <div class="assigned-users-chips" *ngIf="assignedUsers.length > 0">
             <span *ngFor="let u of assignedUsers; let i = index" class="assigned-chip">
               <i class="fas fa-user"></i> {{ u.firstname }} {{ u.lastname }}
@@ -371,43 +599,11 @@
       </div><!-- /.admin-section -->
 
       <!-- Message technique -->
-      <div *ngIf="isTechnique() && currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION"
+      <div
+        *ngIf="isTechnique() && (currentEditingStatut === StatutInterventionPreventive.EN_ATTENTE_INTERVENTION || currentEditingStatut === StatutInterventionPreventive.EN_COURS)"
         class="alert alert-success">
         <i class="fas fa-tools"></i> Cliquez sur le bouton <strong>🔧</strong> à côté de chaque période pour saisir les
         informations techniques.
-      </div>
-
-      <!-- Upload de fichier -->
-      <div class="form-group mb-3">
-        <label class="form-label">Fichier Joint</label>
-
-        <!-- Afficher le fichier existant en mode édition -->
-        <div *ngIf="isEditMode && existingFile" class="mb-2">
-          <span class="text-success">
-            <i class="fas fa-file"></i> Fichier actuel: {{ existingFileName }}
-          </span>
-          <a [href]="getFileDownloadUrl(currentInterventionId)" target="_blank"
-            class="btn btn-sm btn-outline-primary ms-2">
-            <i class="fa fa-download"></i>
-          </a>
-          <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteExistingFile()">
-            <i class="fa fa-trash"></i>
-          </button>
-        </div>
-
-        <!-- Input pour nouveau fichier -->
-        <input type="file" id="fichierInterventionPreventive" class="form-control" (change)="onFileSelected($event)" />
-        <small class="text-muted">Sélectionnez un fichier à joindre (PDF, Word, etc.)</small>
-
-        <!-- Indicateur de fichier sélectionné -->
-        <div *ngIf="selectedFile" class="mt-2">
-          <span class="text-primary">
-            <i class="fas fa-paperclip"></i> Fichier sélectionné: {{ selectedFile.name }}
-          </span>
-          <button type="button" class="btn btn-sm btn-danger ms-2" (click)="clearSelectedFile()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
       </div>
 
       <!-- Boutons de soumission -->
@@ -437,22 +633,20 @@
   </div>
 </div>
 
-<!-- ── Sous-popup Technique (par ligne de période) ───────────────────────── -->
+<!-- ── Sous-popup Technique (par ligne de période) ───────────────── -->
 <div class="tech-sub-overlay" *ngIf="showTechSubPopup" (click)="closeTechSubPopup()">
   <div class="tech-sub-popup" (click)="$event.stopPropagation()">
 
-    <!-- Header orange technique -->
     <div class="tech-sub-header">
       <div class="tech-sub-title">
         <i class="fas fa-tools"></i>
-        Informations Techniques - Ligne {{ (techSubPopupLineIndex ?? 0) + 1 }}
+        Informations Techniques - Intervention {{ (techSubPopupLineIndex ?? 0) + 1 }}
       </div>
       <button class="detail-close-btn" (click)="closeTechSubPopup()">&times;</button>
     </div>
 
     <div class="tech-sub-body" [formGroup]="techSubForm">
 
-      <!-- Date intervention + Date rapport -->
       <div class="row mb-3">
         <div class="col-md-6">
           <div class="form-group">
@@ -498,9 +692,15 @@
           </button>
         </div>
       </div>
+
+      <!-- Remarque -->
+      <div class="form-group mb-3">
+        <label class="form-label tech-label">Remarque</label>
+        <textarea class="form-control" formControlName="remarque" rows="3"
+          placeholder="Ajouter une remarque..."></textarea>
+      </div>
     </div>
 
-    <!-- Footer Valider -->
     <div class="tech-sub-footer">
       <button type="button" class="btn btn-secondary" (click)="closeTechSubPopup()">Annuler</button>
       <button type="button" class="btn btn-tech-valider" (click)="saveTechSubLine()">Valider</button>

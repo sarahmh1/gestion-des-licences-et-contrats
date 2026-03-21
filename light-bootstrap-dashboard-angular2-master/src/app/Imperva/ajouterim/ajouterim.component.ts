@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Imperva} from 'app/Model/Imperva';
 import { ImpervaService } from 'app/Services/imperva.service';
+import { ClientService, Client } from '../../Services/client.service';
 @Component({
   selector: 'app-ajouterim',
   templateUrl: './ajouterim.component.html',
   styleUrls: ['./ajouterim.component.scss']
 })
 export class AjouterimComponent implements OnInit {
+  clients: Client[] = [];
    impervaForm!: FormGroup;
    selectedFile: File | null = null;
    commandePasserParOptions = [
@@ -20,10 +22,11 @@ export class AjouterimComponent implements OnInit {
     constructor(
       private fb: FormBuilder,
       private router: Router,
-      private impervaService: ImpervaService
-    ) {}
+      private impervaService: ImpervaService,
+    private clientService: ClientService) {}
   
      ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
         this.impervaForm= this.fb.group({
           client: ['', Validators.required],
           dureeDeLicence: [''],

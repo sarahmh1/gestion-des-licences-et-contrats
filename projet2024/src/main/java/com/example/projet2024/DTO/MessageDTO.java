@@ -27,4 +27,7 @@ public class MessageDTO {
     private String filePath;
     private String fileType;
     private String originalFileName;
+
+    // Delete flags
+    private boolean deletedForEveryone;
 }

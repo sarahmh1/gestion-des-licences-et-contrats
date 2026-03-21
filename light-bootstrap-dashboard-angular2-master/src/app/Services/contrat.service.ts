@@ -8,11 +8,15 @@ import { Contrat } from 'app/Model/Contrat';
 })
 export class ContratService {
   private baseUrl = 'http://localhost:8089/Contrat';
-  
-  constructor(private http: HttpClient) {}
+
+  constructor(private http: HttpClient) { }
 
   getAllContrats(): Observable<Contrat[]> {
     return this.http.get<Contrat[]>(`${this.baseUrl}/all`);
+  }
+
+  getHistoriqueContrats(): Observable<Contrat[]> {
+    return this.http.get<Contrat[]>(`${this.baseUrl}/historique`);
   }
 
   addContrat(contrat: Contrat): Observable<Contrat> {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { SecPointService } from 'app/Services/sec-point.service';
 import { SecPoint } from 'app/Model/SecPoint';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AffichersComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedSecPoint: SecPoint | null = null;
    secPoints: SecPoint[] = [];
    filteredSecPoints: SecPoint[] = [];
   unapprovedSecPoints:SecPoint[] = [];
@@ -39,7 +40,7 @@ export class AffichersComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération SecPoints', error);
+          console.error('Erreur rÃ©cupÃ©ration SecPoints', error);
         }
       );
     }
@@ -81,7 +82,7 @@ export class AffichersComponent implements OnInit {
       this.filteredSecPoints = this.filteredSecPoints.filter(secPoint => secPoint.secPointId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -90,11 +91,11 @@ export class AffichersComponent implements OnInit {
         this.secPointService.deleteSecPoint(id).subscribe(
           () => {
             this.getAllSecPoints();
-            alert('SecPoint supprimé avec succès');
+            alert('SecPoint supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression SecPoint', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -123,5 +124,7 @@ export class AffichersComponent implements OnInit {
 getFileDownloadUrl(id: number): string {
   return this.secPointService.getFileDownloadUrl(id);
 }
-  }
   
+  selectSecPoint(x: SecPoint): void { this.selectedSecPoint = this.selectedSecPoint?.secPointId === x.secPointId ? null : x; }
+  closeDetail(): void { this.selectedSecPoint = null; }
+}

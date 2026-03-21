@@ -5,7 +5,7 @@ import { AfficherListeComponent } from './afficher-liste.component';
 describe('AfficherListeComponent', () => {
   let component: AfficherListeComponent;
   let fixture: ComponentFixture<AfficherListeComponent>;
-
+ss
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ AfficherListeComponent ]

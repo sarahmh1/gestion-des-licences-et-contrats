@@ -1,0 +1,150 @@
+<div class="page-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <i class="pe-7s-clock header-icon"></i>
+      <div>
+        <h2>Historique des Contrats</h2>
+        <p class="subtitle">Contrats expirés (durée 12 mois dépassée, non renouvelables)</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <i class="pe-7s-search"></i>
+        <input type="text" placeholder="Rechercher client, produit..." [(ngModel)]="searchTerm" (input)="onSearch()" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="loading-state">
+    <i class="pe-7s-refresh spin"></i> Chargement...
+  </div>
+
+  <!-- Aucun résultat -->
+  <div *ngIf="!loading && filteredContrats.length === 0" class="empty-state">
+    <i class="pe-7s-box1"></i>
+    <p>Aucun contrat historique trouvé.</p>
+  </div>
+
+  <!-- Liste des contrats -->
+  <div class="contrats-list" *ngIf="!loading && pagedContrats.length > 0">
+    <div class="contrat-card" *ngFor="let contrat of pagedContrats" (click)="openDetail(contrat)">
+      <div class="card-accent expired-accent"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="client-info">
+            <i class="pe-7s-user"></i>
+            <span class="client-name">{{ contrat.client }}</span>
+            <span class="badge-produit" *ngIf="contrat.nomProduit">{{ contrat.nomProduit }}</span>
+            <span class="badge-expired">Expiré</span>
+          </div>
+          <div class="expiry-date">
+            <i class="pe-7s-clock"></i>
+            <span>Expiré le {{ getExpiredSince(contrat.dateDebut) }}</span>
+          </div>
+        </div>
+        <div class="card-details">
+          <div class="detail-item">
+            <span class="label">Objet</span>
+            <span class="value">{{ contrat.objetContrat || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Début</span>
+            <span class="value">{{ contrat.dateDebut || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Date fin</span>
+            <span class="value">{{ contrat.dateFin || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Interventions curatives</span>
+            <span class="value">{{ contrat.nbInterventionsCuratives }} J/H</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Interventions préventives</span>
+            <span class="value">{{ contrat.nbInterventionsPreventives }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button *ngFor="let page of pageNumbers; let i = index" (click)="changePage(i)" [class.active]="i === currentPage"
+      class="page-btn">{{ i + 1 }}</button>
+  </div>
+</div>
+
+<!-- Panneau de détail -->
+<div class="detail-overlay" *ngIf="selectedContrat" (click)="closeDetail()">
+  <div class="detail-panel" (click)="$event.stopPropagation()">
+    <div class="detail-header">
+      <div class="detail-title">
+        <i class="pe-7s-clock"></i>
+        <span>Détails du Contrat Historique</span>
+      </div>
+      <button class="btn-close-detail" (click)="closeDetail()">
+        <i class="pe-7s-close"></i>
+      </button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section-title">Informations Générales</div>
+      <div class="detail-grid">
+        <div class="detail-row">
+          <span class="dl">Client</span>
+          <span class="dv">{{ selectedContrat.client }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedContrat.nomProduit">
+          <span class="dl">Produit</span>
+          <span class="dv">{{ selectedContrat.nomProduit }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="dl">Objet du contrat</span>
+          <span class="dv">{{ selectedContrat.objetContrat }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="dl">Date début</span>
+          <span class="dv">{{ selectedContrat.dateDebut }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="dl">Date expiration (12 mois)</span>
+          <span class="dv expired-text">{{ getExpiredSince(selectedContrat.dateDebut) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="dl">Date fin contractuelle</span>
+          <span class="dv">{{ selectedContrat.dateFin || '—' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="dl">Interventions curatives</span>
+          <span class="dv">{{ selectedContrat.nbInterventionsCuratives }} J/H</span>
+        </div>
+        <div class="detail-row">
+          <span class="dl">Interventions préventives</span>
+          <span class="dv">{{ selectedContrat.nbInterventionsPreventives }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedContrat.remarque">
+          <span class="dl">Remarque</span>
+          <span class="dv">{{ selectedContrat.remarque }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedContrat.emailCommercial">
+          <span class="dl">Email commercial</span>
+          <span class="dv">{{ selectedContrat.emailCommercial }}</span>
+        </div>
+      </div>
+
+      <!-- Fichier -->
+      <div *ngIf="selectedContrat.fichier" class="detail-section-title" style="margin-top:18px;">Document</div>
+      <div *ngIf="selectedContrat.fichier" class="detail-row">
+        <span class="dl">Fichier</span>
+        <span class="dv">
+          <a [href]="'http://localhost:8089/Contrat/' + selectedContrat.contratId + '/download'" target="_blank"
+            class="file-link">
+            <i class="pe-7s-download"></i> {{ selectedContrat.fichierOriginalName || selectedContrat.fichier }}
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

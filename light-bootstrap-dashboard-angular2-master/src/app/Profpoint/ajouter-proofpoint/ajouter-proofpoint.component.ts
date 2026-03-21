@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Duree } from 'app/Model/Duree';
 import { Proofpoint } from 'app/Model/Proofpoint';
 import { ProofpointService } from 'app/Services/proofpoint.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-ajouter-proofpoint',
@@ -12,6 +13,7 @@ import { ProofpointService } from 'app/Services/proofpoint.service';
   styleUrls: ['./ajouter-proofpoint.component.scss']
 })
 export class AjouterProofpointComponent implements OnInit {
+  clients: Client[] = [];
   proofpointForm!: FormGroup;
   selectedFile: File | null = null;
   commandePasserParOptions = [
@@ -22,10 +24,11 @@ export class AjouterProofpointComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private proofpointService: ProofpointService
-  ) {}
+    private proofpointService: ProofpointService,
+    private clientService: ClientService) {}
 
    ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
       this.proofpointForm= this.fb.group({
         client: ['', Validators.required],
         dureeDeLicence: [''],

@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommandePasserPar } from 'app/Model/CommandePasserPar';
 import { Veeam } from 'app/Model/Veeam';
 import { VeeamService } from 'app/Services/veeam.service';
+import { ClientService, Client } from '../../Services/client.service';
 
 @Component({
   selector: 'app-ajouter-veeam',
@@ -11,6 +12,7 @@ import { VeeamService } from 'app/Services/veeam.service';
   styleUrls: ['./ajoutervee.component.scss']
 })
 export class AjouterVeeComponent implements OnInit {
+  clients: Client[] = [];
   veeamForm!: FormGroup;
   selectedFile: File | null = null;
  commandePasserParOptions = [
@@ -21,10 +23,11 @@ export class AjouterVeeComponent implements OnInit {
    constructor(
      private fb: FormBuilder,
      private router: Router,
-     private veeamService: VeeamService
-   ) {}
+     private veeamService: VeeamService,
+    private clientService: ClientService) {}
  
    ngOnInit(): void {
+    this.clientService.getAllClients().subscribe(data => this.clients = data);
      this.veeamForm= this.fb.group({
        client: ['', Validators.required],
        dureeDeLicence: [''],

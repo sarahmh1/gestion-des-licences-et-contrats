@@ -43,6 +43,25 @@ public class ContratController {
         return new ResponseEntity<>(contrats, HttpStatus.OK);
     }
 
+    @GetMapping("/historique")
+    public ResponseEntity<List<Contrat>> getHistoriqueContrats() {
+        List<Contrat> all = contratService.getAllContrats();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        List<Contrat> historique = all.stream()
+                .filter(c -> c.getDateDebut() != null
+                        && !Boolean.TRUE.equals(c.getRenouvelable()))
+                .filter(c -> {
+                    try {
+                        java.time.LocalDate debut = c.getDateDebut();
+                        return debut.plusMonths(12).isBefore(today);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .collect(java.util.stream.Collectors.toList());
+        return new ResponseEntity<>(historique, HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Contrat> getContratById(@PathVariable Long id) {
         Contrat contrat = contratService.getContratById(id);
@@ -93,7 +112,7 @@ public class ContratController {
         StringBuilder sb = new StringBuilder();
         sb.append("=== DEBUG CONTRATS ===\n");
         sb.append("Date du jour: ").append(java.time.LocalDate.now()).append("\n\n");
-        
+
         for (Contrat c : contrats) {
             sb.append("ID: ").append(c.getContratId()).append("\n");
             sb.append("  Client: ").append(c.getClient()).append("\n");
@@ -111,7 +130,8 @@ public class ContratController {
         return ResponseEntity.ok(sb.toString());
     }
 
-    // TEST: Envoyer un email de test pour un contrat spécifique (sans modifier les flags)
+    // TEST: Envoyer un email de test pour un contrat spécifique (sans modifier les
+    // flags)
     @GetMapping("/{id}/test-email")
     public ResponseEntity<String> testSendEmail(@PathVariable Long id) {
         try {
@@ -119,7 +139,7 @@ public class ContratController {
             if (contrat.getEmailCommercial() == null || contrat.getEmailCommercial().isEmpty()) {
                 return ResponseEntity.badRequest().body("Ce contrat n'a pas d'email commercial défini");
             }
-            
+
             contratServiceImpl.sendTestEmail(contrat);
             return ResponseEntity.ok("Email de test envoyé à " + contrat.getEmailCommercial());
         } catch (Exception e) {
@@ -151,22 +171,22 @@ public class ContratController {
     public ResponseEntity<Map<String, Object>> uploadContratFile(
             @PathVariable("id") Long id,
             @RequestParam("file") MultipartFile file) {
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             // Créer le répertoire s'il n'existe pas
             if (!Files.exists(fileStorageLocation)) {
                 Files.createDirectories(fileStorageLocation);
             }
-            
+
             Contrat contrat = contratService.getContratById(id);
             if (contrat == null) {
                 response.put("success", false);
                 response.put("message", "Contrat non trouvé");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             // Supprimer l'ancien fichier s'il existe
             if (contrat.getFichier() != null && !contrat.getFichier().isEmpty()) {
                 try {
@@ -176,7 +196,7 @@ public class ContratController {
                     System.out.println("Impossible de supprimer l'ancien fichier: " + e.getMessage());
                 }
             }
-            
+
             // Générer un nom de fichier unique
             String originalFilename = file.getOriginalFilename();
             String fileExtension = "";
@@ -184,21 +204,21 @@ public class ContratController {
                 fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
             String newFilename = "contrat_" + id + "_" + UUID.randomUUID().toString().substring(0, 8) + fileExtension;
-            
+
             // Sauvegarder le fichier
             Path targetLocation = fileStorageLocation.resolve(newFilename);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            
+
             // Mettre à jour le Contrat avec le nom du fichier
             contratService.updateContratFile(id, newFilename, originalFilename);
-            
+
             response.put("success", true);
             response.put("message", "Fichier uploadé avec succès");
             response.put("fichier", newFilename);
             response.put("originalName", originalFilename);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (IOException e) {
             response.put("success", false);
             response.put("message", "Erreur lors de l'upload: " + e.getMessage());
@@ -214,20 +234,20 @@ public class ContratController {
             if (contrat == null || contrat.getFichier() == null) {
                 return ResponseEntity.notFound().build();
             }
-            
+
             Path filePath = fileStorageLocation.resolve(contrat.getFichier()).normalize();
             Resource resource = new UrlResource(filePath.toUri());
-            
+
             if (resource.exists() && resource.isReadable()) {
                 String contentType = Files.probeContentType(filePath);
                 if (contentType == null) {
                     contentType = "application/octet-stream";
                 }
-                
+
                 // Utiliser le nom original du fichier pour le téléchargement
-                String downloadFilename = contrat.getFichierOriginalName() != null ? 
-                        contrat.getFichierOriginalName() : resource.getFilename();
-                
+                String downloadFilename = contrat.getFichierOriginalName() != null ? contrat.getFichierOriginalName()
+                        : resource.getFilename();
+
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadFilename + "\"")
@@ -244,7 +264,7 @@ public class ContratController {
     @DeleteMapping("/{id}/delete-file")
     public ResponseEntity<Map<String, Object>> deleteContratFile(@PathVariable("id") Long id) {
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             Contrat contrat = contratService.getContratById(id);
             if (contrat == null) {
@@ -252,17 +272,17 @@ public class ContratController {
                 response.put("message", "Contrat non trouvé");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             if (contrat.getFichier() != null && !contrat.getFichier().isEmpty()) {
                 Path filePath = fileStorageLocation.resolve(contrat.getFichier());
                 Files.deleteIfExists(filePath);
                 contratService.updateContratFile(id, null, null);
             }
-            
+
             response.put("success", true);
             response.put("message", "Fichier supprimé avec succès");
             return ResponseEntity.ok(response);
-            
+
         } catch (IOException e) {
             response.put("success", false);
             response.put("message", "Erreur lors de la suppression: " + e.getMessage());

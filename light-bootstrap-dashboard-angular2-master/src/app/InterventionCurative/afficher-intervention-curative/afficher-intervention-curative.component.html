@@ -7,13 +7,8 @@
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Rechercher..." 
-          [(ngModel)]="searchTerm" 
-          (input)="onSearch()" 
-        />
+        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm"
+          (input)="onSearch()" />
       </div>
     </div>
   </div>
@@ -25,6 +20,7 @@
         <tr>
           <th>Fiche</th>
           <th>Client</th>
+          <th>Produit</th>
           <th>Criticité</th>
           <th>Intervenant</th>
           <th>Demande</th>
@@ -43,6 +39,13 @@
         <tr *ngFor="let intervention of pagedInterventions">
           <td>{{ intervention.ficheIntervention }}</td>
           <td>{{ intervention.nomClient }}</td>
+          <td>
+            <span *ngIf="intervention.nomProduit" class="badge badge-secondary"
+              style="font-size:0.75rem; white-space:normal; word-break:break-word;">
+              {{ intervention.nomProduit.replace('_', ' ') }}
+            </span>
+            <span *ngIf="!intervention.nomProduit" class="text-muted">—</span>
+          </td>
           <td>
             <span class="badge" [ngClass]="getCriticiteClass(intervention.criticite)">
               {{ intervention.criticite }}
@@ -63,15 +66,14 @@
             <div class="status-badges">
               <span *ngIf="intervention.enCoursDeResolution" class="badge badge-warning">En cours</span>
               <span *ngIf="intervention.resolu" class="badge badge-success">Résolu</span>
-              <span *ngIf="!intervention.enCoursDeResolution && !intervention.resolu" class="badge badge-secondary">-</span>
+              <span *ngIf="!intervention.enCoursDeResolution && !intervention.resolu"
+                class="badge badge-secondary">-</span>
             </div>
           </td>
           <td class="taches-cell">{{ intervention.tachesEffectuees }}</td>
           <td>
-            <a *ngIf="intervention.fichier" 
-               [href]="getFileDownloadUrl(intervention.interventionCurativeId)" 
-               target="_blank" 
-               class="btn btn-sm btn-outline-primary">
+            <a *ngIf="intervention.fichier" [href]="getFileDownloadUrl(intervention.interventionCurativeId)"
+              target="_blank" class="btn btn-sm btn-outline-primary">
               <i class="fa fa-download"></i> {{ intervention.fichierOriginalName || 'Télécharger' }}
             </a>
             <span *ngIf="!intervention.fichier" class="text-muted">-</span>
@@ -97,13 +99,8 @@
   <!-- Pagination -->
   <div class="text-center mt-3">
     <ng-container *ngIf="totalPages > 1">
-      <button 
-        *ngFor="let page of pageNumbers; let i = index"
-        class="btn btn-sm mx-1"
-        [class.btn-primary]="currentPage === i"
-        [class.btn-outline-primary]="currentPage !== i"
-        (click)="changePage(i)"
-      >
+      <button *ngFor="let page of pageNumbers; let i = index" class="btn btn-sm mx-1"
+        [class.btn-primary]="currentPage === i" [class.btn-outline-primary]="currentPage !== i" (click)="changePage(i)">
         {{ i + 1 }}
       </button>
     </ng-container>
@@ -117,30 +114,31 @@
       <h4>{{ isEditMode ? 'Modifier l\'Intervention' : 'Ajouter une Intervention' }}</h4>
       <button type="button" class="close-btn" (click)="closeModal()">&times;</button>
     </div>
-    
+
     <form [formGroup]="interventionForm" (ngSubmit)="saveIntervention()">
       <!-- Fiche d'intervention -->
       <div class="form-group mb-3">
         <label for="ficheIntervention" class="form-label">Fiche d'intervention</label>
-        <input
-          type="text"
-          id="ficheIntervention"
-          class="form-control"
-          formControlName="ficheIntervention"
-          placeholder="Numéro de fiche"
-        />
+        <input type="text" id="ficheIntervention" class="form-control" formControlName="ficheIntervention"
+          placeholder="Numéro de fiche" />
       </div>
 
       <!-- Nom du client -->
       <div class="form-group mb-3">
         <label for="nomClient" class="form-label">Nom du Client</label>
-        <input
-          type="text"
-          id="nomClient"
-          class="form-control"
-          formControlName="nomClient"
-          placeholder="Nom du client"
-        />
+        <select id="nomClient" class="form-control" formControlName="nomClient">
+          <option value="" disabled>-- Sélectionner un client --</option>
+          <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
+        </select>
+      </div>
+
+      <!-- Produit -->
+      <div class="form-group mb-3">
+        <label for="nomProduit" class="form-label">Produit</label>
+        <select id="nomProduit" class="form-control" formControlName="nomProduit">
+          <option value="">-- Sélectionner un produit --</option>
+          <option *ngFor="let p of nomProduitOptions" [value]="p">{{ p.replace('_', ' ') }}</option>
+        </select>
       </div>
 
       <div class="row">
@@ -159,13 +157,8 @@
         <div class="col-md-6">
           <div class="form-group mb-3">
             <label for="dureeIntervention" class="form-label">Durée de l'Intervention</label>
-            <input
-              type="text"
-              id="dureeIntervention"
-              class="form-control"
-              formControlName="dureeIntervention"
-              placeholder="Ex: 2h30"
-            />
+            <input type="text" id="dureeIntervention" class="form-control" formControlName="dureeIntervention"
+              placeholder="Ex: 2h30" />
           </div>
         </div>
       </div>
@@ -174,17 +167,15 @@
       <div class="form-group mb-3">
         <label class="form-label">Intervenant(s)</label>
         <div formArrayName="intervenants">
-          <div *ngFor="let intervenant of intervenants.controls; let i = index" [formGroupName]="i" class="intervenant-row">
-            <input
-              type="text"
-              class="form-control intervenant-input"
-              formControlName="nom"
-              placeholder="Nom de l'intervenant"
-            />
+          <div *ngFor="let intervenant of intervenants.controls; let i = index" [formGroupName]="i"
+            class="intervenant-row">
+            <input type="text" class="form-control intervenant-input" formControlName="nom"
+              placeholder="Nom de l'intervenant" />
             <button type="button" class="btn btn-add-intervenant" (click)="addIntervenant()">
               <i class="fa fa-plus"></i>
             </button>
-            <button type="button" class="btn btn-remove-intervenant" *ngIf="intervenants.length > 1" (click)="removeIntervenant(i)">
+            <button type="button" class="btn btn-remove-intervenant" *ngIf="intervenants.length > 1"
+              (click)="removeIntervenant(i)">
               <i class="fa fa-times"></i>
             </button>
           </div>
@@ -194,34 +185,21 @@
       <!-- Date et heure de la demande -->
       <div class="form-group mb-3">
         <label for="dateHeureDemande" class="form-label">Date et Heure de la Demande</label>
-        <input
-          type="datetime-local"
-          id="dateHeureDemande"
-          class="form-control"
-          formControlName="dateHeureDemande"
-        />
+        <input type="datetime-local" id="dateHeureDemande" class="form-control" formControlName="dateHeureDemande" />
       </div>
 
       <!-- Date et heure de l'intervention -->
       <div class="form-group mb-3">
         <label for="dateHeureIntervention" class="form-label">Date et Heure de l'Intervention</label>
-        <input
-          type="datetime-local"
-          id="dateHeureIntervention"
-          class="form-control"
-          formControlName="dateHeureIntervention"
-        />
+        <input type="datetime-local" id="dateHeureIntervention" class="form-control"
+          formControlName="dateHeureIntervention" />
       </div>
 
       <!-- Date et heure de la résolution -->
       <div class="form-group mb-3">
         <label for="dateHeureResolution" class="form-label">Date et Heure de la Résolution</label>
-        <input
-          type="datetime-local"
-          id="dateHeureResolution"
-          class="form-control"
-          formControlName="dateHeureResolution"
-        />
+        <input type="datetime-local" id="dateHeureResolution" class="form-control"
+          formControlName="dateHeureResolution" />
       </div>
 
       <div class="row">
@@ -240,13 +218,8 @@
       <!-- Vis-à-vis client -->
       <div class="form-group mb-3">
         <label for="visAVisClient" class="form-label">Vis-à-vis Client</label>
-        <input
-          type="text"
-          id="visAVisClient"
-          class="form-control"
-          formControlName="visAVisClient"
-          placeholder="Contact client"
-        />
+        <input type="text" id="visAVisClient" class="form-control" formControlName="visAVisClient"
+          placeholder="Contact client" />
       </div>
 
       <!-- Statut: En cours de résolution et Résolu -->
@@ -254,21 +227,12 @@
         <label class="form-label">Statut</label>
         <div class="status-checkboxes">
           <div class="form-check">
-            <input
-              type="checkbox"
-              id="enCoursDeResolution"
-              class="form-check-input"
-              formControlName="enCoursDeResolution"
-            />
+            <input type="checkbox" id="enCoursDeResolution" class="form-check-input"
+              formControlName="enCoursDeResolution" />
             <label for="enCoursDeResolution" class="form-check-label">En cours de résolution</label>
           </div>
           <div class="form-check">
-            <input
-              type="checkbox"
-              id="resolu"
-              class="form-check-input"
-              formControlName="resolu"
-            />
+            <input type="checkbox" id="resolu" class="form-check-input" formControlName="resolu" />
             <label for="resolu" class="form-check-label">Résolu</label>
           </div>
         </div>
@@ -277,41 +241,32 @@
       <!-- Tâches effectuées -->
       <div class="form-group mb-3">
         <label for="tachesEffectuees" class="form-label">Tâches Effectuées</label>
-        <textarea
-          id="tachesEffectuees"
-          class="form-control"
-          formControlName="tachesEffectuees"
-          placeholder="Détail des tâches effectuées"
-          rows="4"
-        ></textarea>
+        <textarea id="tachesEffectuees" class="form-control" formControlName="tachesEffectuees"
+          placeholder="Détail des tâches effectuées" rows="4"></textarea>
       </div>
 
       <!-- Upload de fichier -->
       <div class="form-group mb-3">
         <label class="form-label">Fichier Joint</label>
-        
+
         <!-- Afficher le fichier existant en mode édition -->
         <div *ngIf="isEditMode && existingFile" class="mb-2">
           <span class="text-success">
             <i class="fas fa-file"></i> Fichier actuel: {{ existingFileName }}
           </span>
-          <a [href]="getFileDownloadUrl(editingInterventionId)" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+          <a [href]="getFileDownloadUrl(editingInterventionId)" target="_blank"
+            class="btn btn-sm btn-outline-primary ms-2">
             <i class="fa fa-download"></i>
           </a>
           <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteExistingFile()">
             <i class="fa fa-trash"></i>
           </button>
         </div>
-        
+
         <!-- Input pour nouveau fichier -->
-        <input
-          type="file"
-          id="fichierIntervention"
-          class="form-control"
-          (change)="onFileSelected($event)"
-        />
+        <input type="file" id="fichierIntervention" class="form-control" (change)="onFileSelected($event)" />
         <small class="text-muted">Sélectionnez un fichier à joindre (PDF, Word, etc.)</small>
-        
+
         <!-- Indicateur de fichier sélectionné -->
         <div *ngIf="selectedFile" class="mt-2">
           <span class="text-primary">

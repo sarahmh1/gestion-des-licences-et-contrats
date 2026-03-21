@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { ImpervaService } from 'app/Services/imperva.service';
 import { Imperva} from 'app/Model/Imperva';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AfficherimComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedImperva: Imperva | null = null;
    impervas: Imperva[] = [];
    filteredImpervas: Imperva[] = [];
  unapprovedImpervas: Imperva[] = [];
@@ -39,7 +40,7 @@ export class AfficherimComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération impervas', error);
+          console.error('Erreur rÃ©cupÃ©ration impervas', error);
         }
       );
     }
@@ -81,7 +82,7 @@ export class AfficherimComponent implements OnInit {
       this.filteredImpervas = this.filteredImpervas.filter(imperva=> imperva.impervaId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -90,11 +91,11 @@ export class AfficherimComponent implements OnInit {
         this.impervaService.deleteImperva(id).subscribe(
           () => {
             this.getAllImpervas();
-            alert('Imperva supprimé avec succès');
+            alert('Imperva supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression Imperva', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -123,5 +124,7 @@ export class AfficherimComponent implements OnInit {
     getFileDownloadUrl(id: number): string {
       return this.impervaService.getFileDownloadUrl(id);
     }
-  }
   
+  selectImperva(x: Imperva): void { this.selectedImperva = this.selectedImperva?.impervaId === x.impervaId ? null : x; }
+  closeDetail(): void { this.selectedImperva = null; }
+}

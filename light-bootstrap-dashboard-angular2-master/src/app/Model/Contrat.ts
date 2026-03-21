@@ -2,6 +2,7 @@ export interface DateAvenant {
   dateAvenantId?: number;
   dateAvenant: string;
   numeroAvenant: number;
+  details?: string;
 }
 
 export interface Contrat {
@@ -19,4 +20,5 @@ export interface Contrat {
   emailCommercial?: string;
   ccMail?: string[];
   datesAvenants?: DateAvenant[];
+  nomProduit?: string;
 }

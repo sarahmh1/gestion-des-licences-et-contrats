@@ -114,6 +114,8 @@ import { AjouterContratComponent } from '../../Contrat/ajouter-contrat/ajouter-c
 import { UpdateContratComponent } from '../../Contrat/update-contrat/update-contrat.component';
 import { AfficherInterventionCurativeComponent } from '../../InterventionCurative/afficher-intervention-curative/afficher-intervention-curative.component';
 import { AfficherInterventionPreventiveComponent } from '../../intervention-preventive/afficher-intervention-preventive/afficher-intervention-preventive.component';
+import { ClientStatsComponent } from '../../client-stats/client-stats/client-stats.component';
+import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/historique-contrat.component';
 
 export const AdminLayoutRoutes: Routes = [
   { path: 'dashboard', component: HomeComponent },
@@ -533,11 +535,15 @@ export const AdminLayoutRoutes: Routes = [
   { path: 'contrats', component: AfficherContratComponent },
   { path: 'AjouterContrat', component: AjouterContratComponent },
   { path: 'edit-contrat/:id', component: UpdateContratComponent },
+  { path: 'historique-contrats', component: HistoriqueContratComponent },
 
   // Routes Intervention Curative
   { path: 'interventions-curatives', component: AfficherInterventionCurativeComponent },
 
   // Routes Intervention Préventive
   { path: 'interventions-preventives', component: AfficherInterventionPreventiveComponent },
+
+  // Route Client Stats
+  { path: 'client-stats', component: ClientStatsComponent },
 
 ];

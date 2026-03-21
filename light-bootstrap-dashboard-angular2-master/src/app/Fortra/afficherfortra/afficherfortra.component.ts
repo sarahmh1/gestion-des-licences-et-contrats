@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { FortraService } from 'app/Services/fortra.service';
 import { Fortra } from 'app/Model/Fortra';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class AfficherfortraComponent implements OnInit {
 
   searchTerm: string = '';
+  selectedFortra: Fortra | null = null;
    fortras: Fortra[] = [];
    filteredFortras: Fortra[] = [];
  
@@ -44,7 +45,7 @@ export class AfficherfortraComponent implements OnInit {
           this.changePage(0);
         },
         (error) => {
-          console.error('Erreur récupération Fortras', error);
+          console.error('Erreur rÃ©cupÃ©ration Fortras', error);
         }
       );
     }
@@ -86,7 +87,7 @@ export class AfficherfortraComponent implements OnInit {
       this.filteredFortras = this.filteredFortras.filter(fortra => fortra.fortraId !== id);
       this.calculatePagination();
       this.changePage(this.currentPage);
-      console.log('Article approuvé et retiré de la liste');
+      console.log('Article approuvÃ© et retirÃ© de la liste');
     });
   }
   
@@ -95,11 +96,11 @@ export class AfficherfortraComponent implements OnInit {
         this.fortraService.deleteFortra(id).subscribe(
           () => {
             this.getAllFortras();
-            alert('Fortra supprimé avec succès');
+            alert('Fortra supprimÃ© avec succÃ¨s');
           },
           error => {
             console.error('Erreur suppression fortra', error);
-            alert('Échec suppression');
+            alert('Ã‰chec suppression');
           }
         );
       }
@@ -124,5 +125,7 @@ export class AfficherfortraComponent implements OnInit {
     default: return value;
   }
 }
-  }
   
+  selectFortra(x: Fortra): void { this.selectedFortra = this.selectedFortra?.fortraId === x.fortraId ? null : x; }
+  closeDetail(): void { this.selectedFortra = null; }
+}
