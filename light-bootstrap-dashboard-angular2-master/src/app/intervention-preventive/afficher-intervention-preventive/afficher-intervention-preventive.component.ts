@@ -569,7 +569,7 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
       statut: newStatut,
       emailCommercial: formValue.emailCommercial,
       ccMail: formValue.ccMail ? formValue.ccMail.filter((email: string) => email && email.trim() !== '') : [],
-      assignedUsers: this.assignedUsers.map(u => ({ id: u.id }))
+      assignedUsers: this.assignedUsers.filter(u => u && u.id != null).map(u => ({ id: u.id }))
     };
 
     if (this.isEditMode && this.currentInterventionId) {
@@ -790,7 +790,7 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
       statut: newStatut,
       emailCommercial: formValue.emailCommercial,
       ccMail: formValue.ccMail ? formValue.ccMail.filter((email: string) => email && email.trim() !== '') : [],
-      assignedUsers: this.assignedUsers.map(u => ({ id: u.id })),
+      assignedUsers: this.assignedUsers.filter(u => u && u.id != null).map(u => ({ id: u.id })),
       nomProduit: formValue.nomProduit || null
     };
 
