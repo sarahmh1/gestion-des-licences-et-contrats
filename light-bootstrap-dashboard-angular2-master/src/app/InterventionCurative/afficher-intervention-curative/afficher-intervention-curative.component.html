@@ -1,4 +1,4 @@
-<div class="container">
+﻿<div class="container">
   <!-- En-tête avec titre et boutons alignés -->
   <div class="header-row">
     <h2>Interventions Curatives</h2>
@@ -126,10 +126,7 @@
       <!-- Nom du client -->
       <div class="form-group mb-3">
         <label for="nomClient" class="form-label">Nom du Client</label>
-        <select id="nomClient" class="form-control" formControlName="nomClient">
-          <option value="" disabled>-- Sélectionner un client --</option>
-          <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
-        </select>
+        <app-searchable-client-select formControlName="nomClient" [clients]="clients"></app-searchable-client-select>
       </div>
 
       <!-- Produit -->

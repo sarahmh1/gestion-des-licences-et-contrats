@@ -1,0 +1,51 @@
+<div class="scs-wrapper">
+
+  <!-- Input de recherche -->
+  <div class="scs-input-row" [class.scs-open]="isOpen" [class.scs-has-value]="selectedValue">
+    <i class="fas fa-search scs-icon-left"></i>
+    <input
+      type="text"
+      class="scs-input"
+      [value]="searchTerm"
+      [placeholder]="selectedValue ? selectedValue : placeholder"
+      (focus)="onInputFocus()"
+      (input)="onInputChange($event.target['value'])"
+      autocomplete="off"
+    />
+    <button
+      *ngIf="selectedValue"
+      type="button"
+      class="scs-clear-btn"
+      (click)="clearSelection($event)"
+      title="Effacer">
+      <i class="fas fa-times"></i>
+    </button>
+    <i class="fas scs-icon-right"
+       [class.fa-chevron-down]="!isOpen"
+       [class.fa-chevron-up]="isOpen">
+    </i>
+  </div>
+
+  <!-- Liste déroulante -->
+  <div class="scs-dropdown" *ngIf="isOpen">
+
+    <div class="scs-list">
+      <div
+        *ngFor="let client of filteredClients"
+        class="scs-option"
+        [class.scs-option-active]="client.nomClient === selectedValue"
+        (click)="selectClient(client, $event)">
+
+        <span class="scs-avatar">{{ client.nomClient.charAt(0).toUpperCase() }}</span>
+        <span class="scs-option-name">{{ client.nomClient }}</span>
+        <i class="fas fa-check scs-check" *ngIf="client.nomClient === selectedValue"></i>
+      </div>
+
+      <div class="scs-empty" *ngIf="filteredClients.length === 0">
+        <i class="fas fa-search"></i>
+        Aucun client trouvé pour "{{ searchTerm }}"
+      </div>
+    </div>
+
+  </div>
+</div>

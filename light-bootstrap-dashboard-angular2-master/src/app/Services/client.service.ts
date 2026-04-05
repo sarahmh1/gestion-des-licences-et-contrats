@@ -5,6 +5,10 @@ import { Observable } from 'rxjs';
 export interface Client {
   id?: number;
   nomClient: string;
+  nosVisAVis?: string[];
+  adressesMail?: string[];
+  numTel?: string[];
+  adresses?: string[];
 }
 
 @Injectable({
@@ -21,5 +25,13 @@ export class ClientService {
 
   addClient(client: Client): Observable<Client> {
     return this.http.post<Client>(this.baseUrl, client);
+  }
+
+  updateClient(id: number, client: Client): Observable<Client> {
+    return this.http.put<Client>(`${this.baseUrl}/${id}`, client);
+  }
+
+  deleteClient(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

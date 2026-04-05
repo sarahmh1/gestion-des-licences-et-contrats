@@ -9,6 +9,8 @@ import { NguiMapModule } from '@ngui/map';
 
 import { AdminLayoutRoutes } from './admin-layout.routing';
 import { JhFormatPipe } from '../../shared/jh-format.pipe';
+import { SearchableClientSelectComponent } from '../../shared/searchable-client-select/searchable-client-select.component';
+import { SearchableUserSelectComponent } from '../../shared/searchable-user-select/searchable-user-select.component';
 
 import { HomeComponent } from '../../home/home.component';
 //import { UserComponent } from '../../user/user.component';
@@ -255,7 +257,9 @@ import { HistoriqueContratComponent } from '../../Contrat/historique-contrat/his
     AfficherInterventionPreventiveComponent,
     ClientStatsComponent,
     HistoriqueContratComponent,
-    JhFormatPipe
+    JhFormatPipe,
+    SearchableClientSelectComponent,
+    SearchableUserSelectComponent
 
   ]
 })

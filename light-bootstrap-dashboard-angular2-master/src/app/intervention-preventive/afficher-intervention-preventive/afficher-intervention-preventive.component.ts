@@ -412,6 +412,15 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     this.assignedUsers.splice(index, 1);
   }
 
+  // Appele par app-searchable-user-select via (userSelected)
+  assignUserById(userId: string | number): void {
+    const id = Number(userId);
+    const user = this.allUsers.find(u => u.id === id);
+    if (user) {
+      this.assignUser(user);
+    }
+  }
+
   // ── Sous-popup Technique ─────────────────────────────────────────────
   get techIntervenantsArray(): FormArray {
     return this.techSubForm.get('techIntervenants') as FormArray;

@@ -469,11 +469,7 @@
         <!-- Nom du client -->
         <div class="form-group mb-3">
           <label for="nomClient" class="form-label">Nom du Client</label>
-          <select id="nomClient" class="form-control" formControlName="nomClient"
-            [attr.disabled]="!canEditAdminFields() ? '' : null">
-            <option value="" disabled>-- Sélectionner un client --</option>
-            <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
-          </select>
+          <app-searchable-client-select formControlName="nomClient" [clients]="clients"></app-searchable-client-select>
         </div>
 
         <!-- Produit -->
@@ -582,12 +578,13 @@
         <!-- Utilisateurs Assignés -->
         <div class="form-group mb-3" *ngIf="canEditAdminFields()">
           <label class="form-label">Utilisateurs assignés</label>
-          <select class="form-control" (change)="assignUserFromDropdown($event)">
-            <option value="" selected disabled>-- Sélectionner un utilisateur --</option>
-            <option *ngFor="let u of getUnassignedUsers()" [value]="u.id">
-              {{ u.firstname }} {{ u.lastname }} ({{ u.role }})
-            </option>
-          </select>
+
+          <app-searchable-user-select
+            [users]="getUnassignedUsers()"
+            (userSelected)="assignUserById($event)"
+            placeholder="Rechercher un utilisateur...">
+          </app-searchable-user-select>
+
           <div class="assigned-users-chips" *ngIf="assignedUsers.length > 0">
             <span *ngFor="let u of assignedUsers; let i = index" class="assigned-chip">
               <i class="fas fa-user"></i> {{ u.firstname }} {{ u.lastname }}

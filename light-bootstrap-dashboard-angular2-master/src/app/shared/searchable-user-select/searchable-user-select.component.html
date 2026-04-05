@@ -1,0 +1,46 @@
+<div class="sus-wrapper">
+
+  <!-- Input recherche -->
+  <div class="sus-input-row" [class.sus-open]="isOpen">
+    <i class="fas fa-search sus-icon-left"></i>
+    <input
+      type="text"
+      class="sus-input"
+      [value]="searchTerm"
+      [placeholder]="placeholder"
+      (focus)="onFocus()"
+      (input)="onInputChange($event.target['value'])"
+      autocomplete="off"
+    />
+    <i class="fas sus-icon-right"
+       [class.fa-chevron-down]="!isOpen"
+       [class.fa-chevron-up]="isOpen">
+    </i>
+  </div>
+
+  <!-- Dropdown -->
+  <div class="sus-dropdown" *ngIf="isOpen">
+    <div class="sus-list">
+
+      <div
+        *ngFor="let user of filteredUsers"
+        class="sus-option"
+        (click)="selectUser(user, $event)">
+
+        <span class="sus-avatar">{{ getInitials(user) }}</span>
+        <div class="sus-user-info">
+          <span class="sus-user-name">{{ user.firstname }} {{ user.lastname }}</span>
+          <span class="sus-user-role" *ngIf="user.role">{{ user.role }}</span>
+        </div>
+        <i class="fas fa-plus sus-add-icon"></i>
+      </div>
+
+      <div class="sus-empty" *ngIf="filteredUsers.length === 0">
+        <i class="fas fa-user-slash"></i>
+        Aucun utilisateur trouvé
+      </div>
+
+    </div>
+  </div>
+
+</div>

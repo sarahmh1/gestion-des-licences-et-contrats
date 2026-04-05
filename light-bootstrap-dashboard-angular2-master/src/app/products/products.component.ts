@@ -1,4 +1,4 @@
-﻿import { TypeAchat } from './../Model/TypeAchat';
+import { TypeAchat } from './../Model/TypeAchat';
 import { EsetService } from './../Services/eset.service';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -68,8 +68,26 @@ export class ProductsComponent implements OnInit {
     private clientService: ClientService) { }
 
   ngOnInit(): void {
-    this.clientService.getAllClients().subscribe(data => this.clients = data);
-    
+    this.initForm();
+    this.clientService.getAllClients().subscribe(data => {
+      this.clients = data;
+    });
+
+    // Auto-remplissage quand un client est selectionne
+    this.productForm.get('client')!.valueChanges.subscribe(selectedName => {
+      if (!selectedName) return;
+      const found = this.clients.find(c => c.nomClient === selectedName);
+      if (found) {
+        this.productForm.patchValue({
+          nom_contact: found.nosVisAVis?.[0] || '',
+          nmb_tlf:     found.numTel?.[0]       || '',
+          mail:        found.adressesMail?.[0] || ''
+        }, { emitEvent: false });
+      }
+    });
+  }
+
+  private initForm(): void {
     this.productForm = this.fb.group({
       client: ['', Validators.required],
       identifiant: ['', Validators.required],
@@ -78,7 +96,7 @@ export class ProductsComponent implements OnInit {
       remarque: [''],
       sousContrat: [false],
       nombre: [0, Validators.required],
-      nmb_tlf: [0],
+      nmb_tlf: [''],
       commandePasserPar: ['', Validators.required],
       dureeDeLicence: [''],
       nom_contact: [''],

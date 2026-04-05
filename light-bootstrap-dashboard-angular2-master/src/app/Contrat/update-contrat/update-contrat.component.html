@@ -1,14 +1,11 @@
-<div class="container mt-5">
+﻿<div class="container mt-5">
   <h2 class="text-center mb-4">Modifier le Contrat</h2>
 
   <form [formGroup]="contratForm" (ngSubmit)="updateContrat()">
     <!-- Client -->
     <div class="form-group mb-3">
       <label for="client" class="form-label">Client</label>
-      <select id="client" class="form-control" formControlName="client">
-        <option value="" disabled>-- Selectionner un client --</option>
-        <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
-      </select>
+      <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
       <div *ngIf="contratForm.get('client')?.touched && contratForm.get('client')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>

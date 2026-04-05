@@ -4,10 +4,7 @@
       <!-- Client -->
       <div class="form-group mb-3">
         <label for="client" class="form-label">Client</label>
-        <select id="client" class="form-control" formControlName="client">
-        <option value="" disabled>-- Selectionner un client --</option>
-        <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
-      </select>
+        <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
         <div *ngIf="updateForm.get('client')?.touched && updateForm.get('client')?.invalid" class="text-danger">
           Le nom du client est requis
         </div>
@@ -107,9 +104,9 @@
           La date d'expiration est requise
         </div>
       </div>
-      <!-- Nom du Contact -->
+      <!-- Vis-a-Vis Client -->
       <div class="form-group mb-3">
-        <label for="nom_contact" class="form-label">Contact client</label>
+        <label for="nom_contact" class="form-label">Vis-a-Vis Client</label>
         <input
           type="text"
           id="nom_contact"
@@ -118,9 +115,9 @@
           placeholder="Nom du contact"
         />
       </div>
-      <!-- Numéro de Téléphone -->
+      <!-- Numero de Telephone Client -->
       <div class="form-group mb-3">
-        <label for="nmb_tlf" class="form-label">N° Client</label>
+        <label for="nmb_tlf" class="form-label">N° Telephone Client</label>
         <input
           type="text"
           id="nmb_tlf"
@@ -136,9 +133,9 @@
 
       
 
-      <!-- Email -->
+      <!-- Adresse Mail Client -->
       <div class="form-group mb-3">
-        <label for="mail" class="form-label">Email Client</label>
+        <label for="mail" class="form-label">Adresse Mail Client</label>
         <input
           type="email"
           id="mail"

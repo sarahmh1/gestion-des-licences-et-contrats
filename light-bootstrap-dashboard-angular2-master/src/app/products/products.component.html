@@ -5,10 +5,7 @@
     <!-- Client -->
     <div class="form-group mb-3">
       <label for="client" class="form-label">Client</label>
-      <select id="client" class="form-control" formControlName="client">
-        <option value="" disabled>-- Selectionner un client --</option>
-        <option *ngFor="let c of clients" [value]="c.nomClient">{{ c.nomClient }}</option>
-      </select>
+      <app-searchable-client-select formControlName="client" [clients]="clients"></app-searchable-client-select>
       <div *ngIf="productForm.get('client')?.touched && productForm.get('client')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>
@@ -95,43 +92,55 @@
       />
     </div>
 
-    <!-- Contact client -->
+    <!-- Vis-a-Vis Client (auto-rempli) -->
     <div class="form-group mb-3">
-      <label for="nom_contact" class="form-label">Contact Client</label>
+      <label for="nom_contact" class="form-label">
+        Vis-a-Vis Client
+        <span class="badge-autofill" *ngIf="productForm.get('nom_contact')?.value">Auto</span>
+      </label>
       <input
         type="text"
         id="nom_contact"
         class="form-control"
         formControlName="nom_contact"
-        placeholder="Nom du contact"
+        placeholder="Selectionner un client pour auto-remplir"
       />
+      <small class="text-muted">Rempli automatiquement depuis la fiche client. Modifiable.</small>
     </div>
 
-    <!-- N° client -->
+    <!-- N° Telephone Client (auto-rempli) -->
     <div class="form-group mb-3">
-      <label for="nmb_tlf" class="form-label">N° Client</label>
+      <label for="nmb_tlf" class="form-label">
+        N° Telephone Client
+        <span class="badge-autofill" *ngIf="productForm.get('nmb_tlf')?.value">Auto</span>
+      </label>
       <input
-        type="number"
+        type="text"
         id="nmb_tlf"
         class="form-control"
         formControlName="nmb_tlf"
-        placeholder="Numéro du contact"
+        placeholder="Selectionner un client pour auto-remplir"
       />
+      <small class="text-muted">Rempli automatiquement depuis la fiche client. Modifiable.</small>
     </div>
 
-    <!-- Adresse Email Contact -->
+    <!-- Adresse Mail Client (auto-rempli) -->
     <div class="form-group mb-3">
-      <label for="mail" class="form-label">Email Client</label>
+      <label for="mail" class="form-label">
+        Adresse Mail Client
+        <span class="badge-autofill" *ngIf="productForm.get('mail')?.value">Auto</span>
+      </label>
       <input
         type="email"
         id="mail"
         class="form-control"
         formControlName="mail"
-        placeholder="Email du contact"
+        placeholder="Selectionner un client pour auto-remplir"
       />
       <div *ngIf="productForm.get('mail')?.touched && productForm.get('mail')?.invalid" class="text-danger">
         Veuillez entrer une adresse email valide.
       </div>
+      <small class="text-muted">Rempli automatiquement depuis la fiche client. Modifiable.</small>
     </div>
 
     <!-- Email Commercial -->

@@ -27,4 +27,25 @@ public class ClientController {
         Client saved = clientRepository.save(client);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Client> updateClient(@PathVariable Long id, @RequestBody Client client) {
+        return clientRepository.findById(id).map(existing -> {
+            existing.setNomClient(client.getNomClient());
+            existing.setNosVisAVis(client.getNosVisAVis());
+            existing.setAdressesMail(client.getAdressesMail());
+            existing.setNumTel(client.getNumTel());
+            existing.setAdresses(client.getAdresses());
+            return ResponseEntity.ok(clientRepository.save(existing));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
+        if (!clientRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        clientRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
