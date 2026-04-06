@@ -14,6 +14,7 @@ export class AjouterContratComponent implements OnInit {
   clients: Client[] = [];
   contratForm!: FormGroup;
   nomProduitOptions = PRODUIT_LIST;
+  dateFinDisabled = false;  // controle le grisage visuel du champ dateFin
 
   constructor(
     private fb: FormBuilder,
@@ -43,8 +44,9 @@ export class AjouterContratComponent implements OnInit {
     });
   }
 
+  // 1) Quand dateFin est remplie -> renouvelable devient grise (comportement existant)
   watchDateFin(): void {
-    this.contratForm.get('dateFin')?.valueChanges.subscribe((val: string) => {
+    this.contratForm.get('dateFin')!.valueChanges.subscribe((val: string) => {
       const renouvelable = this.contratForm.get('renouvelable');
       if (val) {
         renouvelable?.setValue(false, { emitEvent: false });
@@ -53,6 +55,21 @@ export class AjouterContratComponent implements OnInit {
         renouvelable?.enable({ emitEvent: false });
       }
     });
+  }
+
+  // 2) Appele directement par (change) sur la checkbox
+  onRenouvelableChange(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.dateFinDisabled = checked;  // grisage visuel via CSS
+    const dateFin = this.contratForm.get('dateFin');
+    if (checked) {
+      dateFin?.setValue('');
+      dateFin?.disable();
+    } else {
+      dateFin?.enable();
+      dateFin?.setValidators([Validators.required]);
+      dateFin?.updateValueAndValidity();
+    }
   }
 
   // Getter pour le FormArray des emails CC
@@ -72,9 +89,11 @@ export class AjouterContratComponent implements OnInit {
 
   addContrat(): void {
     if (this.contratForm.valid) {
-      const formValue = this.contratForm.value;
+      // getRawValue inclut les champs desactives (dateFin quand renouvelable)
+      const formValue = this.contratForm.getRawValue();
       const contrat = {
         ...formValue,
+        dateFin: formValue.renouvelable ? null : formValue.dateFin,
         ccMail: formValue.ccMail.filter((email: string) => email && email.trim() !== '')
       };
       this.contratService.addContrat(contrat).subscribe(

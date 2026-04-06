@@ -7,8 +7,8 @@
         <i class="fa fa-plus"></i>
       </button>
       <div class="input-group search-box">
-        <input type="text" class="form-control" placeholder="Rechercher..."
-          [(ngModel)]="searchTerm" (input)="onSearch()" />
+        <input type="text" class="form-control" placeholder="Rechercher..." [(ngModel)]="searchTerm"
+          (input)="onSearch()" />
       </div>
     </div>
   </div>
@@ -44,7 +44,7 @@
             <button class="md-btn-icon md-btn-delete" (click)="deleteEset(eset.esetid)" title="Supprimer">
               <i class="fas fa-trash"></i>
             </button>
-            <button class="md-btn-icon md-btn-approve" (click)="aprouve(eset.esetid)" title="Approuver">
+            <button class="md-btn-icon md-btn-approve" (click)="aprouve(eset.esetid)" title="Expirer">
               <i class="fas fa-check"></i>
             </button>
           </div>

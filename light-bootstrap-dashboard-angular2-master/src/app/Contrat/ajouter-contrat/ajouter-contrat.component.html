@@ -1,4 +1,4 @@
-﻿<div class="container mt-5">
+<div class="container mt-5">
   <h2 class="text-center mb-4">Ajouter un Contrat</h2>
 
   <form [formGroup]="contratForm" (ngSubmit)="addContrat()">
@@ -68,9 +68,19 @@
     </div>
 
     <!-- Date Fin -->
-    <div class="form-group mb-3">
+    <div class="form-group mb-3" [class.field-disabled]="dateFinDisabled">
       <label for="dateFin" class="form-label">Date de Fin</label>
-      <input type="date" id="dateFin" class="form-control" formControlName="dateFin" />
+      <input
+        type="date"
+        id="dateFin"
+        class="form-control"
+        formControlName="dateFin"
+        [style.background-color]="dateFinDisabled ? '#e9ecef' : ''"
+        [style.color]="dateFinDisabled ? '#6c757d' : ''"
+        [style.cursor]="dateFinDisabled ? 'not-allowed' : ''"
+        [style.pointer-events]="dateFinDisabled ? 'none' : 'auto'"
+        [style.opacity]="dateFinDisabled ? '0.75' : '1'"
+      />
       <div *ngIf="contratForm.get('dateFin')?.touched && contratForm.get('dateFin')?.invalid" class="text-danger">
         Ce champ est obligatoire.
       </div>
@@ -80,9 +90,14 @@
     <div class="form-group mb-3">
       <label class="form-label">Renouvelable</label>
       <div class="form-check">
-        <input type="checkbox" id="renouvelable" class="form-check-input" formControlName="renouvelable" />
+        <input type="checkbox" id="renouvelable" class="form-check-input"
+          formControlName="renouvelable"
+          (change)="onRenouvelableChange($event)" />
         <label for="renouvelable" class="form-check-label">Oui</label>
       </div>
+      <small class="text-muted" *ngIf="contratForm.get('renouvelable')?.value">
+        <i class="fas fa-info-circle"></i> Le contrat est renouvelable : la date de fin est désactivée.
+      </small>
     </div>
 
     <!-- Remarque -->

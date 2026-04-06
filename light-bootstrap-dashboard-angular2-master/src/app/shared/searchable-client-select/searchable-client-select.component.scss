@@ -39,7 +39,9 @@
   flex-shrink: 0;
   transition: color 0.2s;
 
-  .scs-open & { color: #f36e24; }
+  .scs-open & {
+    color: #f36e24;
+  }
 }
 
 .scs-input {
@@ -51,7 +53,9 @@
   color: #1e293b;
   min-width: 0;
 
-  &::placeholder { color: #b0bec5; }
+  &::placeholder {
+    color: #b0bec5;
+  }
 }
 
 .scs-clear-btn {
@@ -79,7 +83,9 @@
   flex-shrink: 0;
   transition: color 0.2s, transform 0.2s;
 
-  .scs-open & { color: #f36e24; }
+  .scs-open & {
+    color: #f36e24;
+  }
 }
 
 /* ── Dropdown ── */
@@ -99,8 +105,15 @@
 }
 
 @keyframes scsSlideIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Liste ── */
@@ -108,10 +121,22 @@
   max-height: 220px;
   overflow-y: auto;
 
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-track { background: #f8fafc; }
-  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
-  &::-webkit-scrollbar-thumb:hover { background: #f36e24; }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f8fafc;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f36e24;
+  }
 }
 
 /* ── Option ── */
@@ -124,7 +149,9 @@
   transition: background 0.12s;
   border-bottom: 1px solid #f8fafc;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 
   &:hover {
     background: rgba(243, 110, 36, 0.06);
@@ -176,5 +203,8 @@
   align-items: center;
   gap: 6px;
 
-  i { font-size: 1.2rem; color: #cbd5e1; }
+  i {
+    font-size: 1.2rem;
+    color: #cbd5e1;
+  }
 }

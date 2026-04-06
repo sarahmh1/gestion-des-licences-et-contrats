@@ -132,3 +132,43 @@ textarea.form-control {
     font-size: 0.9rem;
   }
 }
+
+/* ── Champ grise quand Renouvelable est coche ── */
+.field-grayed {
+  input[type="date"],
+  .form-control {
+    background-color: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    border-color: #ced4da !important;
+    pointer-events: none;
+    opacity: 0.75;
+  }
+
+  label {
+    color: #999;
+  }
+}
+
+/* Force gris sur input date desactive (certains navigateurs ignorent :disabled) */
+input[type="date"]:disabled,
+input[type="date"][disabled] {
+  background-color: #e9ecef !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
+  border-color: #ced4da !important;
+  opacity: 0.75;
+}
+
+/* Badge "Non applicable" */
+.badge-gris {
+  display: inline-block;
+  background: #dee2e6;
+  color: #6c757d;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
