@@ -171,4 +171,55 @@ input[type="date"][disabled] {
   border-radius: 12px;
   margin-left: 8px;
   vertical-align: middle;
-}
+}
+/* -- Boutons duree rapide -- */
+.quick-duration-btns {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.quick-label {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.btn-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border: 1.5px solid #dee2e6;
+  border-radius: 20px;
+  background: #fff;
+  color: #555;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  outline: none;
+}
+
+.btn-duration:hover {
+  border-color: #f36e24;
+  color: #f36e24;
+  background: #fff8f4;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(243, 110, 36, 0.15);
+}
+
+.btn-duration-main {
+  border-color: #f36e24 !important;
+  background: #f36e24 !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.btn-duration-main:hover {
+  background: #d55a1a !important;
+  border-color: #d55a1a !important;
+}

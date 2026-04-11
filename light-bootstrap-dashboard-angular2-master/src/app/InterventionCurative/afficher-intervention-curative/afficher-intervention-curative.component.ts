@@ -46,6 +46,7 @@ export class AfficherInterventionCurativeComponent implements OnInit {
   ngOnInit(): void {
     this.clientService.getAllClients().subscribe(data => this.clients = data);
     this.initForm();
+    this.watchNomClient();
     this.getAllInterventions();
   }
 
@@ -71,6 +72,22 @@ export class AfficherInterventionCurativeComponent implements OnInit {
   // Getter pour le FormArray des intervenants
   get intervenants(): FormArray {
     return this.interventionForm.get('intervenants') as FormArray;
+  }
+
+  // Auto-remplissage de visAVisClient quand un client est selectionne
+  watchNomClient(): void {
+    this.interventionForm.get('nomClient')!.valueChanges.subscribe((nomClient: string) => {
+      if (!nomClient) return;
+      const found = this.clients.find(c => c.nomClient === nomClient);
+      if (found) {
+        const visAVis = found.nosVisAVis && found.nosVisAVis.length > 0
+          ? found.nosVisAVis[0] : '';
+        this.interventionForm.patchValue(
+          { visAVisClient: visAVis },
+          { emitEvent: false }
+        );
+      }
+    });
   }
 
   // Créer un control pour un intervenant

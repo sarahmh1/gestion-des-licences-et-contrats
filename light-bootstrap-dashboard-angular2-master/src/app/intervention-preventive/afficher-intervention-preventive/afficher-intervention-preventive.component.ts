@@ -43,6 +43,10 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
   filteredAssignableUsers: any[] = [];
   assignedUsers: any[] = [];
 
+  // Contrats charges pour auto-remplissage
+  allContrats: any[] = [];
+  nbInterventionsAutoFilled = false;
+
   // Variables pour sous-popup technique
   showTechSubPopup = false;
   techSubPopupLineIndex: number | null = null;
@@ -69,6 +73,7 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
     this.loadCurrentUserRole();
     this.loadInterventions();
     this.loadAllUsers();
+    this.loadAllContrats();
   }
 
   loadCurrentUserRole(): void {
@@ -78,6 +83,45 @@ export class AfficherInterventionPreventiveComponent implements OnInit {
       this.currentUserRole = user.role || '';
       console.log('Current user role:', this.currentUserRole);
     }
+  }
+
+  // Charge tous les contrats pour le match client+produit
+  loadAllContrats(): void {
+    const token = localStorage.getItem('token');
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+    this.http.get<any[]>('http://localhost:8089/Contrat/all', { headers }).subscribe({
+      next: (data) => {
+        this.allContrats = data;
+        // Abonner les watchers une fois les contrats charges
+        this.watchClientAndProduit();
+      },
+      error: () => { this.allContrats = []; this.watchClientAndProduit(); }
+    });
+  }
+
+  // Quand nomClient ET nomProduit sont definis, cherche le contrat et pre-remplit nbInterventionsParAn
+  watchClientAndProduit(): void {
+    const recheck = () => {
+      const client  = this.interventionForm.get('nomClient')?.value;
+      const produit = this.interventionForm.get('nomProduit')?.value;
+      if (!client || !produit) { this.nbInterventionsAutoFilled = false; return; }
+
+      const contrat = this.allContrats.find(c =>
+        c.client === client && c.nomProduit === produit
+      );
+      if (contrat && contrat.nbInterventionsPreventives) {
+        this.interventionForm.patchValue(
+          { nbInterventionsParAn: String(contrat.nbInterventionsPreventives) },
+          { emitEvent: false }
+        );
+        this.nbInterventionsAutoFilled = true;
+      } else {
+        this.nbInterventionsAutoFilled = false;
+      }
+    };
+
+    this.interventionForm.get('nomClient')!.valueChanges.subscribe(() => recheck());
+    this.interventionForm.get('nomProduit')!.valueChanges.subscribe(() => recheck());
   }
 
   // ==================== GESTION DES RÔLES ====================

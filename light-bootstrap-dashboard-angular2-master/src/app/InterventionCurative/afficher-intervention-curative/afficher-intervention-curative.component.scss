@@ -536,3 +536,18 @@ textarea.form-control {
     width: 100%;
   }
 }
+
+/* Badge auto-remplissage */
+.badge-auto {
+  display: inline-block;
+  background: #e6f7ee;
+  color: #28a745;
+  border: 1px solid #28a745;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.2px;
+}

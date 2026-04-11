@@ -161,12 +161,59 @@ public class InterventionPreventiveServiceImpl implements IInterventionPreventiv
                 existing.getPeriodeLignes().add(target);
             }
 
+            // ── Détecter les changements de dates avant de les écraser ──────────
+            boolean periodeDeDateChanged   = !java.util.Objects.equals(target.getPeriodeDe(), src.getPeriodeDe());
+            boolean periodeADateChanged    = !java.util.Objects.equals(target.getPeriodeA(),   src.getPeriodeA());
+            boolean recommDeChanged        = !java.util.Objects.equals(target.getPeriodeRecommandeDe(), src.getPeriodeRecommandeDe());
+            boolean recommAChanged         = !java.util.Objects.equals(target.getPeriodeRecommandeA(),  src.getPeriodeRecommandeA());
+            boolean anyDateChanged = periodeDeDateChanged || periodeADateChanged || recommDeChanged || recommAChanged;
+
             // Copier les champs admin
             target.setPeriodeDe(src.getPeriodeDe());
             target.setPeriodeA(src.getPeriodeA());
             target.setPeriodeRecommandeDe(src.getPeriodeRecommandeDe());
             target.setPeriodeRecommandeA(src.getPeriodeRecommandeA());
             target.setDateInterventionExigee(src.getDateInterventionExigee());
+
+            // ── Si les dates de période ont changé → réinitialiser les flags email ──
+            if (periodeDeDateChanged || periodeADateChanged) {
+                target.setEmailSentPeriodeDayOf(false);
+                target.setEmailSentPeriode1WeekBefore(false);
+                logger.info("Ligne {} - dates période modifiées → flags email période réinitialisés", i + 1);
+            }
+            if (recommDeChanged || recommAChanged) {
+                target.setEmailSentDayOf(false);
+                target.setEmailSent1WeekBefore(false);
+                target.setEmailSent1MonthBefore(false);
+                logger.info("Ligne {} - dates recommandées modifiées → flags email recommandée réinitialisés", i + 1);
+            }
+
+            // ── Envoyer une notification immédiate aux utilisateurs assignés ──────
+            if (anyDateChanged && existing.getAssignedUsers() != null && !existing.getAssignedUsers().isEmpty()) {
+                int numIntervention = i + 1;
+                String nomClient  = existing.getNomClient()  != null ? existing.getNomClient()  : "N/A";
+                String nomProduit = existing.getNomProduit() != null ? " (" + existing.getNomProduit() + ")" : "";
+                StringBuilder notifMsg = new StringBuilder();
+                notifMsg.append("📅 Mise à jour - Client: ").append(nomClient).append(nomProduit)
+                        .append(" | Intervention ").append(numIntervention).append(" : ")
+                        .append("les dates ont été modifiées. ");
+                if (periodeDeDateChanged || periodeADateChanged) {
+                    notifMsg.append("Nouvelle période: ")
+                            .append(src.getPeriodeDe() != null ? src.getPeriodeDe() : "?")
+                            .append(" → ").append(src.getPeriodeA() != null ? src.getPeriodeA() : "?").append(". ");
+                }
+                if (recommDeChanged || recommAChanged) {
+                    notifMsg.append("Nouvelle période recommandée: ")
+                            .append(src.getPeriodeRecommandeDe() != null ? src.getPeriodeRecommandeDe() : "?")
+                            .append(" → ").append(src.getPeriodeRecommandeA() != null ? src.getPeriodeRecommandeA() : "?").append(".");
+                }
+                sendInAppNotificationToAssignedUsers(
+                        existing.getAssignedUsers(),
+                        notifMsg.toString(),
+                        existing.getInterventionPreventiveId()
+                );
+                logger.info("Notification immédiate envoyée pour changement de dates - Ligne {}", numIntervention);
+            }
 
             // Copier les champs tech (seulement si envoyés, sinon garder l'existant)
             if (src.getDateIntervention() != null) {

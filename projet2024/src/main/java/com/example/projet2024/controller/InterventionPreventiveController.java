@@ -89,6 +89,33 @@ public class InterventionPreventiveController {
         return new ResponseEntity<>(interventions, HttpStatus.OK);
     }
 
+    // ── Réinitialiser les flags email pour tester les notifications ──────────
+    @PutMapping("/{id}/reset-flags")
+    public ResponseEntity<String> resetNotificationFlags(@PathVariable Long id) {
+        try {
+            InterventionPreventive intervention = interventionPreventiveService.getInterventionPreventiveById(id);
+            // Reset flags sur l'intervention principale
+            intervention.setEmailSent1WeekBefore(false);
+            intervention.setEmailSent1MonthBefore(false);
+            intervention.setEmailSentDayOf(false);
+            // Reset flags sur chaque ligne de période
+            if (intervention.getPeriodeLignes() != null) {
+                for (com.example.projet2024.entite.PeriodeLigne ligne : intervention.getPeriodeLignes()) {
+                    ligne.setEmailSentPeriodeDayOf(false);
+                    ligne.setEmailSentPeriode1WeekBefore(false);
+                    ligne.setEmailSentDayOf(false);
+                    ligne.setEmailSent1WeekBefore(false);
+                    ligne.setEmailSent1MonthBefore(false);
+                }
+            }
+            interventionPreventiveService.updateInterventionPreventive(id, intervention);
+            return ResponseEntity.ok("✅ Flags réinitialisés pour l'intervention #" + id + ". Le scheduler re-notifiera dans les 10 prochaines secondes.");
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur : " + e.getMessage());
+        }
+    }
+
     // ==================== GESTION DES FICHIERS ====================
 
     // Upload de fichier pour une Intervention Préventive

@@ -1,4 +1,4 @@
-﻿<div class="container">
+<div class="container">
   <!-- En-tête avec titre et boutons alignés -->
   <div class="header-row">
     <h2>Interventions Curatives</h2>
@@ -214,9 +214,16 @@
 
       <!-- Vis-à-vis client -->
       <div class="form-group mb-3">
-        <label for="visAVisClient" class="form-label">Vis-à-vis Client</label>
+        <label for="visAVisClient" class="form-label">
+          Vis-à-vis Client
+          <span *ngIf="interventionForm.get('visAVisClient')?.value"
+                class="badge-auto">✓ Auto</span>
+        </label>
         <input type="text" id="visAVisClient" class="form-control" formControlName="visAVisClient"
           placeholder="Contact client" />
+        <small class="text-muted" *ngIf="interventionForm.get('visAVisClient')?.value">
+          <i class="fas fa-info-circle"></i> Rempli automatiquement depuis la fiche client.
+        </small>
       </div>
 
       <!-- Statut: En cours de résolution et Résolu -->
@@ -244,7 +251,7 @@
 
       <!-- Upload de fichier -->
       <div class="form-group mb-3">
-        <label class="form-label">Fichier Joint</label>
+        <label class="form-label">Fichier Jointe</label>
 
         <!-- Afficher le fichier existant en mode édition -->
         <div *ngIf="isEditMode && existingFile" class="mb-2">

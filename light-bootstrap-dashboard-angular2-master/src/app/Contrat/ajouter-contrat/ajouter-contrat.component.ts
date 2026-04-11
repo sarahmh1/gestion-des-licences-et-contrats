@@ -60,7 +60,7 @@ export class AjouterContratComponent implements OnInit {
   // 2) Appele directement par (change) sur la checkbox
   onRenouvelableChange(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    this.dateFinDisabled = checked;  // grisage visuel via CSS
+    this.dateFinDisabled = checked;
     const dateFin = this.contratForm.get('dateFin');
     if (checked) {
       dateFin?.setValue('');
@@ -70,6 +70,30 @@ export class AjouterContratComponent implements OnInit {
       dateFin?.setValidators([Validators.required]);
       dateFin?.updateValueAndValidity();
     }
+  }
+
+  // 3) Calcule dateFin = dateDebut + duree choisie
+  setDuration(duration: '1w' | '3m' | '6m' | '1y'): void {
+    const debutVal = this.contratForm.get('dateDebut')?.value;
+    if (!debutVal) {
+      alert('Veuillez d\'abord renseigner la Date de Début.');
+      return;
+    }
+    const debut = new Date(debutVal);
+    const fin = new Date(debut);
+
+    switch (duration) {
+      case '1w': fin.setDate(fin.getDate() + 7);      break;
+      case '3m': fin.setMonth(fin.getMonth() + 3);    break;
+      case '6m': fin.setMonth(fin.getMonth() + 6);    break;
+      case '1y': fin.setFullYear(fin.getFullYear() + 1); break;
+    }
+
+    // Formater en YYYY-MM-DD pour l'input[type="date"]
+    const yyyy = fin.getFullYear();
+    const mm   = String(fin.getMonth() + 1).padStart(2, '0');
+    const dd   = String(fin.getDate()).padStart(2, '0');
+    this.contratForm.get('dateFin')?.setValue(`${yyyy}-${mm}-${dd}`);
   }
 
   // Getter pour le FormArray des emails CC

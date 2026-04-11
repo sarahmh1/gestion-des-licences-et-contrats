@@ -70,6 +70,24 @@
     <!-- Date Fin -->
     <div class="form-group mb-3" [class.field-disabled]="dateFinDisabled">
       <label for="dateFin" class="form-label">Date de Fin</label>
+
+      <!-- Boutons durée rapide -->
+      <div class="quick-duration-btns" *ngIf="!dateFinDisabled">
+        <span class="quick-label">Durée rapide :</span>
+        <button type="button" class="btn-duration" (click)="setDuration('1w')">
+          <i class="fas fa-calendar-week"></i> 1 semaine
+        </button>
+        <button type="button" class="btn-duration" (click)="setDuration('3m')">
+          <i class="fas fa-calendar-alt"></i> 3 mois
+        </button>
+        <button type="button" class="btn-duration btn-duration-main" (click)="setDuration('6m')">
+          <i class="fas fa-calendar-check"></i> 6 mois
+        </button>
+        <button type="button" class="btn-duration" (click)="setDuration('1y')">
+          <i class="fas fa-calendar"></i> 1 an
+        </button>
+      </div>
+
       <input
         type="date"
         id="dateFin"

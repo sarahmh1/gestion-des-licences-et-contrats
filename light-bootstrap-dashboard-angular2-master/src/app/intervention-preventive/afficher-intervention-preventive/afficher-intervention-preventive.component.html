@@ -15,7 +15,7 @@
         <input type="text" class="ip-search-input" placeholder="Rechercher un client, email…" [(ngModel)]="searchTerm"
           (input)="search()" />
       </div>
-      <button (click)="openAddModal()" class="ip-btn-add" title="Ajouter une intervention">
+      <button (click)="openAddModal()" class="ip-btn-add" title="Ajouter une intervention" *ngIf="isAdmin()">
         <i class="fas fa-plus"></i> Nouvelle intervention
       </button>
     </div>
@@ -104,7 +104,8 @@
                 <button class="btn-row-action btn-row-edit" (click)="openEditModal(intervention)" title="Modifier">
                   <i class="fas fa-pen"></i>
                 </button>
-                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer">
+                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer"
+                  *ngIf="isAdmin()">
                   <i class="fas fa-trash"></i>
                 </button>
               </td>
@@ -191,7 +192,8 @@
                 <button class="btn-row-action btn-row-edit" (click)="openEditModal(intervention)" title="Modifier">
                   <i class="fas fa-pen"></i>
                 </button>
-                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer">
+                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer"
+                  *ngIf="isAdmin()">
                   <i class="fas fa-trash"></i>
                 </button>
               </td>
@@ -278,7 +280,8 @@
                 <button class="btn-row-action btn-row-edit" (click)="openEditModal(intervention)" title="Modifier">
                   <i class="fas fa-pen"></i>
                 </button>
-                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer">
+                <button class="btn-row-action btn-row-delete" (click)="confirmDelete(intervention)" title="Supprimer"
+                  *ngIf="isAdmin()">
                   <i class="fas fa-trash"></i>
                 </button>
               </td>
@@ -484,13 +487,19 @@
 
         <!-- Nombre d'interventions par an -->
         <div class="form-group mb-3">
-          <label for="nbInterventionsParAn" class="form-label">Nombre d'interventions par an</label>
+          <label for="nbInterventionsParAn" class="form-label">
+            Nombre d'interventions par an
+            <span *ngIf="nbInterventionsAutoFilled" class="badge-auto-green">✓ Auto (contrat)</span>
+          </label>
           <select id="nbInterventionsParAn" class="form-control" formControlName="nbInterventionsParAn"
             [attr.disabled]="!canEditAdminFields() ? '' : null">
             <option value="">-- Sélectionner --</option>
             <option [value]="2">2</option>
             <option [value]="4">4</option>
           </select>
+          <small class="text-muted" *ngIf="nbInterventionsAutoFilled">
+            <i class="fas fa-link"></i> Valeur récupérée automatiquement depuis le contrat client/produit.
+          </small>
         </div>
 
         <!-- BLOC PÉRIODES -->

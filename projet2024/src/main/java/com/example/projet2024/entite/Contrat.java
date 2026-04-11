@@ -71,6 +71,15 @@ public class Contrat {
     @Column(name = "email_sent_day_of")
     private Boolean emailSentDayOf = false;
 
+    @Column(name = "email_sent_6_months")
+    private Boolean emailSent6Months = false;
+
+    @Column(name = "email_sent_3_months")
+    private Boolean emailSent3Months = false;
+
+    @Column(name = "email_sent_1_week")
+    private Boolean emailSent1Week = false;
+
     @Column(name = "nom_produit", length = 100)
     private String nomProduit;
 

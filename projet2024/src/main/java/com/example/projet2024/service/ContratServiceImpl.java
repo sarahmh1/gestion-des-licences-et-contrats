@@ -40,10 +40,13 @@ public class ContratServiceImpl implements IContratService {
 
     @Override
     public Contrat addContrat(Contrat contrat) {
-        // Initialiser les flags d'email à false pour permettre l'envoi des notifications
+        // Initialiser tous les flags d'email à false
         contrat.setEmailSent30Days(false);
         contrat.setEmailSentDayOf(false);
-        
+        contrat.setEmailSent6Months(false);
+        contrat.setEmailSent3Months(false);
+        contrat.setEmailSent1Week(false);
+
         // Associer les dates avenants au contrat
         if (contrat.getDatesAvenants() != null) {
             for (DateAvenant da : contrat.getDatesAvenants()) {
@@ -149,50 +152,65 @@ public class ContratServiceImpl implements IContratService {
     @Transactional
     @Scheduled(cron = "*/10 * * * * ?") // Test: toutes les 10 secondes (changer en "0 0 8 * * ?" pour production)
     public void checkForExpiringContrats() {
-        logger.info("=== DEBUT Vérification des contrats expirants ===");
+        logger.info("=== DEBUT Verification des contrats expirants ===");
         LocalDate today = LocalDate.now();
-        logger.info("Date du jour: {}", today);
         List<Contrat> allContrats = contratRepository.findAll();
         logger.info("Nombre total de contrats: {}", allContrats.size());
 
         for (Contrat contrat : allContrats) {
-            logger.info("Contrat ID: {}, Client: {}, DateFin: {}, EmailCommercial: {}, EmailSentDayOf: {}", 
-                contrat.getContratId(), contrat.getClient(), contrat.getDateFin(), 
-                contrat.getEmailCommercial(), contrat.getEmailSentDayOf());
-            
             if (contrat.getDateFin() == null || contrat.getEmailCommercial() == null || contrat.getEmailCommercial().isEmpty()) {
-                logger.info("Contrat {} ignoré: dateFin ou emailCommercial manquant", contrat.getContratId());
                 continue;
             }
 
-            long daysUntilExpiration = ChronoUnit.DAYS.between(today, contrat.getDateFin());
-            logger.info("Contrat {} - Jours restants: {}", contrat.getContratId(), daysUntilExpiration);
+            long days = ChronoUnit.DAYS.between(today, contrat.getDateFin());
+            logger.info("Contrat {} - {} - jours restants: {}", contrat.getContratId(), contrat.getClient(), days);
 
-            // Notification 30 jours avant (avec plage de tolérance 28-32 jours)
-            if (daysUntilExpiration >= 28 && daysUntilExpiration <= 32 && (contrat.getEmailSent30Days() == null || !contrat.getEmailSent30Days())) {
-                logger.info(">>> Envoi email 30 jours pour contrat {} (jours restants: {})", contrat.getContratId(), daysUntilExpiration);
-                boolean emailSent = sendExpirationEmail(contrat, (int) daysUntilExpiration);
-                if (emailSent) {
+            // ── 6 mois avant (175-185 jours) ──────────────────────────────────
+            if (days >= 175 && days <= 185 && !Boolean.TRUE.equals(contrat.getEmailSent6Months())) {
+                if (sendExpirationEmail(contrat, (int) days)) {
+                    contrat.setEmailSent6Months(true);
+                    contratRepository.save(contrat);
+                    logger.info("Email 6 mois envoye pour contrat {}", contrat.getContratId());
+                }
+            }
+
+            // ── 3 mois avant (88-92 jours) ────────────────────────────────────
+            if (days >= 88 && days <= 92 && !Boolean.TRUE.equals(contrat.getEmailSent3Months())) {
+                if (sendExpirationEmail(contrat, (int) days)) {
+                    contrat.setEmailSent3Months(true);
+                    contratRepository.save(contrat);
+                    logger.info("Email 3 mois envoye pour contrat {}", contrat.getContratId());
+                }
+            }
+
+            // ── 1 semaine avant (6-8 jours) ───────────────────────────────────
+            if (days >= 6 && days <= 8 && !Boolean.TRUE.equals(contrat.getEmailSent1Week())) {
+                if (sendExpirationEmail(contrat, (int) days)) {
+                    contrat.setEmailSent1Week(true);
+                    contratRepository.save(contrat);
+                    logger.info("Email 1 semaine envoye pour contrat {}", contrat.getContratId());
+                }
+            }
+
+            // ── 30 jours avant (28-32 jours) ──────────────────────────────────
+            if (days >= 28 && days <= 32 && !Boolean.TRUE.equals(contrat.getEmailSent30Days())) {
+                if (sendExpirationEmail(contrat, (int) days)) {
                     contrat.setEmailSent30Days(true);
                     contratRepository.save(contrat);
-                    logger.info("Email envoyé avec succès pour contrat {} - ~30 jours avant expiration", contrat.getContratId());
+                    logger.info("Email 30 jours envoye pour contrat {}", contrat.getContratId());
                 }
             }
 
-            // Notification le jour J (0 ou 1 jour restant)
-            if (daysUntilExpiration >= 0 && daysUntilExpiration <= 1 && (contrat.getEmailSentDayOf() == null || !contrat.getEmailSentDayOf())) {
-                logger.info(">>> Envoi email JOUR J pour contrat {} (jours restants: {})", contrat.getContratId(), daysUntilExpiration);
-                boolean emailSent = sendExpirationEmail(contrat, (int) daysUntilExpiration);
-                if (emailSent) {
+            // ── Jour J (0-1 jours) ────────────────────────────────────────────
+            if (days >= 0 && days <= 1 && !Boolean.TRUE.equals(contrat.getEmailSentDayOf())) {
+                if (sendExpirationEmail(contrat, (int) days)) {
                     contrat.setEmailSentDayOf(true);
                     contratRepository.save(contrat);
-                    logger.info("Email envoyé avec succès pour contrat {} - jour de l'expiration", contrat.getContratId());
+                    logger.info("Email Jour J envoye pour contrat {}", contrat.getContratId());
                 }
-            } else if (daysUntilExpiration >= 0 && daysUntilExpiration <= 1) {
-                logger.info("Contrat {} - Email jour J déjà envoyé (emailSentDayOf={})", contrat.getContratId(), contrat.getEmailSentDayOf());
             }
         }
-        logger.info("=== FIN Vérification des contrats expirants ===");
+        logger.info("=== FIN Verification des contrats expirants ===");
     }
 
     /**
@@ -208,8 +226,23 @@ public class ContratServiceImpl implements IContratService {
         String urgence;
         String couleurUrgence;
 
-        if (daysRemaining >= 28) {
-            // Notification ~30 jours (plage 28-32)
+        if (daysRemaining >= 175) {
+            // ~6 mois avant
+            sujet = "📅 Information: Contrat expire dans 6 mois - " + contrat.getClient();
+            urgence = "INFORMATION - 6 MOIS";
+            couleurUrgence = "#3498db";
+        } else if (daysRemaining >= 88) {
+            // ~3 mois avant
+            sujet = "⏰ Rappel: Contrat expire dans 3 mois - " + contrat.getClient();
+            urgence = "RAPPEL - 3 MOIS";
+            couleurUrgence = "#8e44ad";
+        } else if (daysRemaining >= 6) {
+            // ~1 semaine avant
+            sujet = "⚠️ URGENT: Contrat expire dans 1 semaine - " + contrat.getClient();
+            urgence = "URGENT - 1 SEMAINE";
+            couleurUrgence = "#e67e22";
+        } else if (daysRemaining >= 28) {
+            // ~30 jours avant
             sujet = "⚠️ Rappel: Contrat expire dans " + daysRemaining + " jours - " + contrat.getClient();
             urgence = "RAPPEL - " + daysRemaining + " JOURS";
             couleurUrgence = "#f39c12";
